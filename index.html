@@ -6,6 +6,19 @@
 -->
 <html>
 	<head>
+		<link id="favicon" rel="icon" href="favicon-light.png" type="image/png">
+		<script>
+		  const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+		  const favicon = document.getElementById('favicon');
+		  favicon.href = isDarkMode ? 'favicon-dark.png' : 'favicon-light.png';
+
+		  // 사용자가 다크모드 전환할 때도 반응하게 하려면:
+		  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+		    const newFavicon = e.matches ? 'favicon-dark.png' : 'favicon-light.png';
+		    document.getElementById('favicon').href = newFavicon;
+		  });
+		</script>
+
 		<title>Portfolio by Solbi Kim</title>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
@@ -158,5 +171,6 @@
 
 	</body>
 </html>
+
 
 
