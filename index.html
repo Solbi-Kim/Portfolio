@@ -43,16 +43,23 @@
 
 				<!-- Main -->
 					<div id="main">
+						<!-- 썸네일 -->
 						<article class="thumb">
-							 <div class="video-wrapper">
- 							   <iframe src="https://player.vimeo.com/video/1038469795" 
-    						 	       frameborder="0" 
-     						 	      allow="autoplay; fullscreen" 
-    						   	     allowfullscreen></iframe>
-							  </div>
-							  <h2>Are you sure?</h2>
-							  <p>Glitch & digital style showcase</p>
+						  <a href="#vimeoModal" class="image" onclick="openModal()">
+						    <img src="https://i.vimeocdn.com/video/1960669285-8e74c2fbd1510f1ee23bde2f138256c88e7fef8b3f769ee0db2af28114a8a2ec-d_640x360?&region=us" alt="영상 썸네일">
+						  </a>
+						  <h2>My Awesome Video</h2>
+						  <p>Click to watch</p>
 						</article>
+						<!-- 모달 구조 -->
+						<div id="vimeoModal" class="modal">
+						  <div class="modal-content">
+					 	   <span class="close" onclick="closeModal()">&times;</span>
+  						  <iframe id="vimeoPlayer" src="" frameborder="0" allowfullscreen></iframe>
+						  </div>
+						</div>
+						
+
 						<article class="thumb">
 							<a href="images/fulls/02.jpg" class="image"><img src="images/thumbs/02.jpg" alt="" /></a>
 							<h2>Nisl adipiscing</h2>
@@ -170,6 +177,7 @@
 
 	</body>
 </html>
+
 
 
 
