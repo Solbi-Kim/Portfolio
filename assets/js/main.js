@@ -1,4 +1,4 @@
-/*
+	/*
 	Multiverse by HTML5 UP
 	html5up.net | @ajlkn
 	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
@@ -277,5 +277,26 @@
 				breakpoints.on('>xsmall', function() {
 					$main[0]._poptrox.windowMargin = 50;
 				});
+	
+		// 영상 플레이어 iframe DOM
+		const modal = document.getElementById("vimeoModal");
+		const player = document.getElementById("vimeoPlayer");
+
+		// 썸네일 클릭할 때
+		document.querySelectorAll(".video-thumb").forEach(thumb => {
+		  thumb.addEventListener("click", function (e) {
+		    e.preventDefault();
+ 		   const videoId = this.dataset.video;
+ 		   const videoURL = `https://player.vimeo.com/video/${videoId}?autoplay=1`;
+ 		   player.src = videoURL;
+		    modal.style.display = "block";
+		  });
+		});
+
+		// 닫기 버튼
+		function closeModal() {
+		  modal.style.display = "none";
+		  player.src = ""; // 정지
+		}
 
 })(jQuery);
