@@ -299,7 +299,7 @@
 		});
 
 		function openVideo(id) {
-		  player.src = `https://player.vimeo.com/video/${id}?autoplay=1&background=0&title=0&byline=0&portrait=0`;
+		  player.src = `https://player.vimeo.com/video/${id}?autoplay=1&background=1&title=0&byline=0&portrait=0`;
 		  modal.style.display = "block";
 		}
 
