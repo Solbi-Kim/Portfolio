@@ -287,7 +287,7 @@
 		  thumb.addEventListener("click", function (e) {
 		    e.preventDefault();
  		   const videoId = this.dataset.video;
- 		   const videoURL = `https://player.vimeo.com/video/${videoId}?autoplay=1`;
+ 		   const videoURL = `https://player.vimeo.com/video/${videoId}?autoplay=1&background=1`;
  		   player.src = videoURL;
 		    modal.style.display = "block";
 		  });
