@@ -1,4 +1,4 @@
-		<!DOCTYPE HTML>
+<!DOCTYPE HTML>
 <!--
 	Multiverse by HTML5 UP
 	html5up.net | @ajlkn
@@ -7,16 +7,16 @@
 <html>
 	<head>
 		
-		<link rel="icon" type="image/x-icon" href="favicon-light.ico?" media="(prefers-color-scheme: light)">
-		<link rel="icon" type="image/x-icon" href="favicon-dark.ico?" media="(prefers-color-scheme: dark)">
-
+		<!-- 라이트 모드 사용자용 파비콘 -->
+		<link rel="icon" href="favicon-light.ico" media="(prefers-color-scheme: light)">
+		<!-- 다크 모드 사용자용 파비콘 -->
+		<link rel="icon" href="favicon-dark.ico" media="(prefers-color-scheme: dark)">
 
 
 		<title>Portfolio by Solbi Kim</title>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 		<link rel="stylesheet" href="assets/css/main.css" />
-		<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css">
 		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
 	</head>
 	<body class="is-preload">
@@ -45,21 +45,37 @@
 					<div id="main">
 						<!-- 썸네일 -->
 						<article class="thumb">
-						  <a href="#l" class="video-thumb" data-video="1038469795">
+						  <a href="#vimeoModal" class="video-thumb" data-video="1038469795">
 						    <img src="https://i.vimeocdn.com/video/1960669285-8e74c2fbd1510f1ee23bde2f138256c88e7fef8b3f769ee0db2af28114a8a2ec-d_640x360?&region=us" alt="영상 썸네일">
 						  </a>
 						  <h2>Are you sure?</h2>
 						  <p>Glitch fx Digital showcase</p>
 						</article>
+						<!-- 모달 구조 -->
+						<div id="vimeoModal" class="modal">
+							  <div class="modal-content">
+							    <span class="close" id="closeBtn">&times;</span>
+							    <span class="nav left" id="prevBtn">&lt;</span>
+							    <span class="nav right" id="nextBtn">&gt;</span>
+							    <iframe id="vimeoPlayer" src="" frameborder="0" allowfullscreen></iframe>
+							  </div>
+						\</div>
 						
 						<!-- 썸네일 -->
 						<article class="thumb">
-						  <a href="#" class="video-thumb" data-video="1106829629">
+						  <a href="#vimeoModal" class="video-thumb" data-video="1106829629">
 						    <img src="https://i.vimeocdn.com/video/2043681205-cd942717627e3ddd07729ad9e5cd61750cae4589a9f161d8d18d70c1e1f83671-d?f=webp&region=us" alt="영상 썸네일">
 						  </a>
 						  <h2>CK_promo video</h2>
 						  <p>Original : https://youtu.be/ONoaUlU7p4o?si=0oKFOPS0UrKHtbb4</p>
 						</article>
+						<!-- 모달 구조 -->
+						<div id="vimeoModal" class="modal">
+						  <div class="modal-content">
+					 	   <span class="close" onclick="closeModal()">&times;</span>
+  						  <iframe id="vimeoPlayer" src="" frameborder="0" allowfullscreen></iframe>
+						  </div>
+						</div>
 						
 						<article class="thumb">
 							<a href="images/fulls/03.jpg" class="image"><img src="images/thumbs/03.jpg" alt="" /></a>
@@ -169,22 +185,10 @@
 			<script src="assets/js/browser.min.js"></script>
 			<script src="assets/js/breakpoints.min.js"></script>
 			<script src="assets/js/util.js"></script>
-			<script src="assets/js/main.js" defer></script>
+			<script src="assets/js/main.js"></script>
 
 	</body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
