@@ -253,20 +253,44 @@
 				fadeSpeed: 300,
 				onPopupClose: function() { $body.removeClass('modal-active'); },
 				onPopupOpen: function() { $body.addClass('modal-active'); },
-				overlayOpacity: 0,
+				overlayOpacity: 0.8,
 				popupCloserText: '',
 				popupHeight: 150,
 				popupLoaderText: '',
 				popupSpeed: 300,
 				popupWidth: 150,
-				selector: '.thumb > a.image',
+				selector: '.thumb > a.image, .video-thumb',
 				usePopupCaption: true,
 				usePopupCloser: true,
 				usePopupDefaultStyling: false,
 				usePopupForceClose: true,
 				usePopupLoader: true,
-				usePopupNav: true,
+				usePopupNav: false,
 				windowMargin: 50
+
+				  // 팝업 내부에 들어갈 HTML을 결정
+				  caption: function($a) {
+				    // 비디오 썸네일(<a class="video-thumb" data-video="…">)
+ 				   if ($a.hasClass('video-thumb')) {
+    				  const id = $a.data('video');
+ 				     return `
+				        <div class="video-wrapper">
+				          <iframe
+  				          src="https://player.vimeo.com/video/${id}?autoplay=1&title=0&byline=0&portrait=0"
+				            frameborder="0" allow="autoplay; fullscreen" allowfullscreen>
+				          </iframe>
+				        </div>`;
+				    }
+				    // 이미지 링크(<a class="image" href="…full.jpg">)
+				    // nextAll()으로 <h2>와 <p>를 캡션으로 가져옵니다.
+ 				   let s = '';
+ 				   $a.nextAll().each(function() { s += this.outerHTML; });
+				    return s;
+				  },
+
+				  // 팝업 열기/닫기 시 body 블러 처리
+				  onPopupOpen:  function() { $('body').addClass('modal-active'); },
+ 				 onPopupClose: function() { $('body').removeClass('modal-active'); }
 			});
 
 			// Hack: Set margins to 0 when 'xsmall' activates.
