@@ -281,7 +281,6 @@
 		// 영상 플레이어 iframe DOM
 		const modal = document.getElementById("vimeoModal");
 		const player = document.getElementById("vimeoPlayer");
-<<<<<<< HEAD
 		const closeBtn = document.getElementById("closeBtn");
 		const prevBtn = document.getElementById("prevBtn");
 		const nextBtn = document.getElementById("nextBtn");
@@ -330,7 +329,6 @@
  		 openVideo(videoIds[currentIndex]);
 		});
 
-=======
 		const thumbs = Array.from(document.querySelectorAll(".video-thumb"));
 		let currentIndex = 0;
 
@@ -375,6 +373,5 @@
    		 showVideoAt(prevIndex);
 		  }
 		}
->>>>>>> 02ff4e81e8b0245b6a5aab8068709ef51bfdcbfa
 
 })(jQuery);
