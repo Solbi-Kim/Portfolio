@@ -2168,21 +2168,4 @@ input, select, textarea {
   opacity: 1;
 }
 
-/* 닫기 버튼 (X) */
-.modal .close {
-  right: 1rem;
-}
-
-/* 화살표 버튼 */
-.modal .nav.left {
-  left: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-.modal .nav.right {
-  right: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-}
 
