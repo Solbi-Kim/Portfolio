@@ -1,4 +1,4 @@
-@import url(fontawesome-all.min.css);
+	@import url(fontawesome-all.min.css);
 @import url("https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,300italic,400,400italic");
 
 /*
@@ -1587,7 +1587,7 @@ input, select, textarea {
 
 /* Main */
 
-#main {
+	#main {
 		-moz-transition: -moz-filter 0.5s ease, -webkit-filter 0.5s ease, -ms-filter 0.5s ease, -moz-filter 0.5s ease;
 		-webkit-transition: -moz-filter 0.5s ease, -webkit-filter 0.5s ease, -ms-filter 0.5s ease, -webkit-filter 0.5s ease;
 		-ms-transition: -moz-filter 0.5s ease, -webkit-filter 0.5s ease, -ms-filter 0.5s ease, -ms-filter 0.5s ease;
@@ -1642,6 +1642,25 @@ input, select, textarea {
 				position: absolute;
 				top: 0;
 				width: 100%;
+			}
+
+			.thumb img {
+			  display: block;
+			  max-width: 100%;
+			  max-height: 100%;
+			  object-fit: cover;
+			  object-position: center;   /* 썸네일이미지 중앙정렬 */
+			  width: 100%;
+			  height: auto;
+			border-radius: 0.5em;
+  			box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+			}
+			.thumb {
+			  display: inline-block;
+			  width: 22%;
+			  margin: 1%;
+ 			 vertical-align: top;
+ 			 text-align: center;
 			}
 
 			#main .thumb > h2 {
@@ -2038,7 +2057,6 @@ input, select, textarea {
 
 		}
 
-
 /* Footer */
 
 	#footer .copyright {
@@ -2069,6 +2087,8 @@ input, select, textarea {
  	 height: 100%;
 	}
 
+<<<<<<< HEAD
+=======
 	.thumb img {
 	  width: 100%;
 	  height: 180px; /* 원하는 썸네일 높이 */
@@ -2077,15 +2097,7 @@ input, select, textarea {
  	 border-radius: 8px;
 	  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 	}
-	/* 썸네일 이미지 크기 및 정렬 조정 */
-	#main .thumb > a > img {
-	  width: 100%;
-	  height: auto;
-	  object-fit: cover;
-	  display: block;
-	  margin: 0 auto;
-	}
-
+>>>>>>> 02ff4e81e8b0245b6a5aab8068709ef51bfdcbfa
 
 /* 간단한 모달 스타일 */
 .modal {
@@ -2098,7 +2110,7 @@ input, select, textarea {
 
 .modal-content {
   position: relative;
-
+<<<<<<< HEAD
   margin: 5% auto;
   padding: 0;
   width: 90%;
@@ -2106,13 +2118,13 @@ input, select, textarea {
   background: #000;
   border-radius: 10px;
   overflow: hidden;
-
+=======
   margin: 10% auto;
   padding: 0;
   width: 80%;
   max-width: 800px;
   background: #000;
-
+>>>>>>> 02ff4e81e8b0245b6a5aab8068709ef51bfdcbfa
 }
 
 .modal-content .prev,
@@ -2136,6 +2148,7 @@ input, select, textarea {
   right: 10px;
 }
 
+<<<<<<< HEAD
 /* 모달 컨테이너 */
 .modal {
   display: none;
@@ -2185,6 +2198,7 @@ input, select, textarea {
 }
 
 
+=======
 .modal-content iframe {
   width: 100%;
   height: 450px;
@@ -2197,3 +2211,4 @@ input, select, textarea {
   font-size: 30px;
   cursor: pointer;
 }
+>>>>>>> 02ff4e81e8b0245b6a5aab8068709ef51bfdcbfa
