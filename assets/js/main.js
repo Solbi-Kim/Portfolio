@@ -295,8 +295,18 @@
 
 		// 닫기 버튼
 		function closeModal() {
+		  const modal = document.getElementById("vimeoModal");
+ 		 const player = document.getElementById("vimeoPlayer");
+
 		  modal.style.display = "none";
-		  player.src = ""; // 정지
+		  player.src = ""; // 영상 정지
 		}
+		//창 바깥 눌러서 닫기
+		window.addEventListener("click", function (e) {
+		  const modal = document.getElementById("vimeoModal");
+		  if (e.target === modal) {
+  		  closeModal();
+ 			 }
+		});
 
 })(jQuery);
