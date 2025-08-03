@@ -281,6 +281,7 @@
 		// 영상 플레이어 iframe DOM
 		const modal = document.getElementById("vimeoModal");
 		const player = document.getElementById("vimeoPlayer");
+<<<<<<< HEAD
 		const closeBtn = document.getElementById("closeBtn");
 		const prevBtn = document.getElementById("prevBtn");
 		const nextBtn = document.getElementById("nextBtn");
@@ -329,5 +330,51 @@
  		 openVideo(videoIds[currentIndex]);
 		});
 
+=======
+		const thumbs = Array.from(document.querySelectorAll(".video-thumb"));
+		let currentIndex = 0;
+
+		thumbs.forEach((thumb, index) => {
+ 		 thumb.addEventListener("click", function (e) {
+  		  e.preventDefault();
+		    currentIndex = index;
+  		  const videoId = thumb.dataset.video;
+  		  const videoURL = `https://player.vimeo.com/video/${videoId}?autoplay=1&background=1`;
+  		  player.src = videoURL;
+  		  modal.style.display = "block";
+ 		 });
+		});
+
+		function closeModal() {
+ 		 modal.style.display = "none";
+ 		 player.src = "";
+		}
+
+		window.addEventListener("click", function (e) {
+ 		 if (e.target === modal) closeModal();
+		});
+
+		function showVideoAt(index) {
+ 		 if (index < 0 || index >= thumbs.length) return;
+		  const videoId = thumbs[index].dataset.video;
+		  const videoURL = `https://player.vimeo.com/video/${videoId}?autoplay=1&background=1`;
+		  player.src = videoURL;
+ 		 currentIndex = index;
+		}
+
+		function nextVideo() {
+		  const nextIndex = currentIndex + 1;
+		  if (nextIndex < thumbs.length) {
+ 		   showVideoAt(nextIndex);
+		  }
+		}
+
+		function prevVideo() {
+ 		 const prevIndex = currentIndex - 1;
+ 		 if (prevIndex >= 0) {
+   		 showVideoAt(prevIndex);
+		  }
+		}
+>>>>>>> 02ff4e81e8b0245b6a5aab8068709ef51bfdcbfa
 
 })(jQuery);
