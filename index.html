@@ -53,13 +53,13 @@
 						</article>
 						<!-- 모달 구조 -->
 						<div id="vimeoModal" class="modal">
-						  <div class="modal-content">
-					 	   <span class="close" onclick="closeModal()">&times;</span>
-							<span class="prev" onclick="prevVideo()">&#8592;</span>
-						    <span class="next" onclick="nextVideo()">&#8594;</span>
-  						  <iframe id="vimeoPlayer" src="" frameborder="0" allowfullscreen></iframe>
-						  </div>
-						</div>
+							  <div class="modal-content">
+							    <span class="close" id="closeBtn">&times;</span>
+							    <span class="nav left" id="prevBtn">&lt;</span>
+							    <span class="nav right" id="nextBtn">&gt;</span>
+							    <iframe id="vimeoPlayer" src="" frameborder="0" allowfullscreen></iframe>
+							  </div>
+						\</div>
 						
 						<!-- 썸네일 -->
 						<article class="thumb">
@@ -189,6 +189,7 @@
 
 	</body>
 </html>
+
 
 
 
