@@ -1644,6 +1644,16 @@ input, select, textarea {
 				width: 100%;
 			}
 
+			.thumb img {
+			  display: block;
+			  max-width: 100%;
+			  max-height: 100%;
+			  object-fit: cover;
+			  object-position: center;   /* 썸네일이미지 중앙정렬 */
+			  width: 100%;
+			  height: auto;
+			}
+
 			#main .thumb > h2 {
 				pointer-events: none;
 				bottom: 1.875em;
