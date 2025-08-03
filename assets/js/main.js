@@ -281,32 +281,49 @@
 		// 영상 플레이어 iframe DOM
 		const modal = document.getElementById("vimeoModal");
 		const player = document.getElementById("vimeoPlayer");
+		const thumbs = Array.from(document.querySelectorAll(".video-thumb"));
+		let currentIndex = 0;
 
-		// 썸네일 클릭할 때
-		document.querySelectorAll(".video-thumb").forEach(thumb => {
-		  thumb.addEventListener("click", function (e) {
-		    e.preventDefault();
- 		   const videoId = this.dataset.video;
- 		   const videoURL = `https://player.vimeo.com/video/${videoId}?autoplay=1&background=1`;
- 		   player.src = videoURL;
-		    modal.style.display = "block";
-		  });
+		thumbs.forEach((thumb, index) => {
+ 		 thumb.addEventListener("click", function (e) {
+  		  e.preventDefault();
+		    currentIndex = index;
+  		  const videoId = thumb.dataset.video;
+  		  const videoURL = `https://player.vimeo.com/video/${videoId}?autoplay=1&background=1`;
+  		  player.src = videoURL;
+  		  modal.style.display = "block";
+ 		 });
 		});
 
-		// 닫기 버튼
 		function closeModal() {
-		  const modal = document.getElementById("vimeoModal");
- 		 const player = document.getElementById("vimeoPlayer");
-
-		  modal.style.display = "none";
-		  player.src = ""; // 영상 정지
+ 		 modal.style.display = "none";
+ 		 player.src = "";
 		}
-		//창 바깥 눌러서 닫기
+
 		window.addEventListener("click", function (e) {
-		  const modal = document.getElementById("vimeoModal");
-		  if (e.target === modal) {
-  		  closeModal();
- 			 }
+ 		 if (e.target === modal) closeModal();
 		});
+
+		function showVideoAt(index) {
+ 		 if (index < 0 || index >= thumbs.length) return;
+		  const videoId = thumbs[index].dataset.video;
+		  const videoURL = `https://player.vimeo.com/video/${videoId}?autoplay=1&background=1`;
+		  player.src = videoURL;
+ 		 currentIndex = index;
+		}
+
+		function nextVideo() {
+		  const nextIndex = currentIndex + 1;
+		  if (nextIndex < thumbs.length) {
+ 		   showVideoAt(nextIndex);
+		  }
+		}
+
+		function prevVideo() {
+ 		 const prevIndex = currentIndex - 1;
+ 		 if (prevIndex >= 0) {
+   		 showVideoAt(prevIndex);
+		  }
+		}
 
 })(jQuery);
