@@ -1,4 +1,4 @@
-<!DOCTYPE HTML>
+		er<!DOCTYPE HTML>
 <!--
 	Multiverse by HTML5 UP
 	html5up.net | @ajlkn
@@ -7,16 +7,17 @@
 <html>
 	<head>
 		
-		<!-- 라이트 모드 사용자용 파비콘 -->
-		<link rel="icon" href="favicon-light.ico" media="(prefers-color-scheme: light)">
-		<!-- 다크 모드 사용자용 파비콘 -->
-		<link rel="icon" href="favicon-dark.ico" media="(prefers-color-scheme: dark)">
+		<!-- <link rel="icon" type="image/x-icon" href="favicon-light.ico" media="(prefers-color-scheme: light)">
+		<link rel="icon" type="image/x-icon" href="favicon-dark.ico" media="(prefers-color-scheme: dark)"> -->
+		<link rel="icon" type="image/x-icon" href="favicon-dark.ico">
+
 
 
 		<title>Portfolio by Solbi Kim</title>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 		<link rel="stylesheet" href="assets/css/main.css" />
+		<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css">
 		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
 	</head>
 	<body class="is-preload">
@@ -43,37 +44,64 @@
 
 				<!-- Main -->
 					<div id="main">
+						<!-- 썸네일 -->
 						<article class="thumb">
-							<a href="images/fulls/01.jpg" class="image"><img src="images/thumbs/01.jpg" alt="" /></a>
-							<h2>Magna feugiat lorem</h2>
-							<p>Nunc blandit nisi ligula magna sodales lectus elementum non. Integer id venenatis velit.</p>
+						  <a href="#vimeoModal" class="video-thumb" data-video="1038469795">
+						    <img src="https://i.vimeocdn.com/video/1960669285-8e74c2fbd1510f1ee23bde2f138256c88e7fef8b3f769ee0db2af28114a8a2ec-d_640x360?&region=us" alt="영상 썸네일">
+						  </a>
+						  <h2>Are you sure?</h2>
+						  <p>Glitch fx Digital showcase</p>
 						</article>
+						<!-- 모달 구조 -->
+						<div id="vimeoModal" class="modal">
+							  <div class="modal-content">
+								<a href="#" class="icon solid fa-times close" id="closeBtn"><span class="label">Close</span></a>
+								<a href="#" class="icon solid fa-chevron-left nav left" id="prevBtn"><span class="label">Previous</span></a>
+								<a href="#" class="icon solid fa-chevron-right nav right" id="nextBtn"><span class="label">Next</span></a>
+
+							    <iframe id="vimeoPlayer" src="" frameborder="0" allowfullscreen></iframe>
+							  </div>
+						\</div>
+						
+						<!-- 썸네일 -->
 						<article class="thumb">
-							<a href="images/fulls/02.jpg" class="image"><img src="images/thumbs/02.jpg" alt="" /></a>
-							<h2>Nisl adipiscing</h2>
-							<p>Nunc blandit nisi ligula magna sodales lectus elementum non. Integer id venenatis velit.</p>
+						  <a href="#vimeoModal" class="video-thumb" data-video="1106829629">
+						    <img src="https://i.vimeocdn.com/video/2043681205-cd942717627e3ddd07729ad9e5cd61750cae4589a9f161d8d18d70c1e1f83671-d?f=webp&region=us" alt="영상 썸네일">
+						  </a>
+						  <h2>CK_promo video</h2>
+						  <p>Original : https://youtu.be/ONoaUlU7p4o?si=0oKFOPS0UrKHtbb4</p>
 						</article>
+						<!-- 모달 구조 -->
+						<div id="vimeoModal" class="modal">
+						  <div class="modal-content">
+							<a href="#" class="icon solid fa-times close" id="closeBtn"><span class="label">Close</span></a>
+							<a href="#" class="icon solid fa-chevron-left nav left" id="prevBtn"><span class="label">Previous</span></a>
+							<a href="#" class="icon solid fa-chevron-right nav right" id="nextBtn"><span class="label">Next</span></a>
+						  <iframe id="vimeoPlayer" src="" frameborder="0" allowfullscreen></iframe>
+						  </div>
+						</div>
+						
 						<article class="thumb">
 							<a href="images/fulls/03.jpg" class="image"><img src="images/thumbs/03.jpg" alt="" /></a>
-							<h2>Tempus aliquam veroeros</h2>
-							<p>Nunc blandit nisi ligula magna sodales lectus elementum non. Integer id venenatis velit.</p>
+							<h2>Coming soon</h2>
+							<p></p>
 						</article>
 						<article class="thumb">
 							<a href="images/fulls/04.jpg" class="image"><img src="images/thumbs/04.jpg" alt="" /></a>
-							<h2>Aliquam ipsum sed dolore</h2>
-							<p>Nunc blandit nisi ligula magna sodales lectus elementum non. Integer id venenatis velit.</p>
+							<h2>Coming soon</h2>
+							<p></p>
 						</article>
 						<article class="thumb">
 							<a href="images/fulls/05.jpg" class="image"><img src="images/thumbs/05.jpg" alt="" /></a>
-							<h2>Cursis aliquam nisl</h2>
-							<p>Nunc blandit nisi ligula magna sodales lectus elementum non. Integer id venenatis velit.</p>
+							<h2>Coming soon</h2>
+							<p></p>
 						</article>
 						<article class="thumb">
 							<a href="images/fulls/06.jpg" class="image"><img src="images/thumbs/06.jpg" alt="" /></a>
-							<h2>Sed consequat phasellus</h2>
-							<p>Nunc blandit nisi ligula magna sodales lectus elementum non. Integer id venenatis velit.</p>
+							<h2>Coming soon</h2>
+							<p></p>
 						</article>
-						<article class="thumb">
+						<!--article class="thumb">
 							<a href="images/fulls/07.jpg" class="image"><img src="images/thumbs/07.jpg" alt="" /></a>
 							<h2>Mauris id tellus arcu</h2>
 							<p>Nunc blandit nisi ligula magna sodales lectus elementum non. Integer id venenatis velit.</p>
@@ -102,7 +130,7 @@
 							<a href="images/fulls/12.jpg" class="image"><img src="images/thumbs/12.jpg" alt="" /></a>
 							<h2>Vehicula id nulla dignissim</h2>
 							<p>Nunc blandit nisi ligula magna sodales lectus elementum non. Integer id venenatis velit.</p>
-						</article>
+						</article-->
 					</div>
 
 				<!-- Footer -->
@@ -161,10 +189,29 @@
 			<script src="assets/js/browser.min.js"></script>
 			<script src="assets/js/breakpoints.min.js"></script>
 			<script src="assets/js/util.js"></script>
-			<script src="assets/js/main.js"></script>
+			<script src="assets/js/main.js" defer></script>
 
 	</body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
