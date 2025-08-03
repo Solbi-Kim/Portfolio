@@ -253,44 +253,20 @@
 				fadeSpeed: 300,
 				onPopupClose: function() { $body.removeClass('modal-active'); },
 				onPopupOpen: function() { $body.addClass('modal-active'); },
-				overlayOpacity: 0.8,
+				overlayOpacity: 0,
 				popupCloserText: '',
 				popupHeight: 150,
 				popupLoaderText: '',
 				popupSpeed: 300,
 				popupWidth: 150,
-				selector: '.thumb > a.image, .video-thumb',
+				selector: '.thumb > a.image',
 				usePopupCaption: true,
 				usePopupCloser: true,
 				usePopupDefaultStyling: false,
 				usePopupForceClose: true,
 				usePopupLoader: true,
-				usePopupNav: false,
+				usePopupNav: true,
 				windowMargin: 50
-
-				  // 팝업 내부에 들어갈 HTML을 결정
-				  caption: function($a) {
-				    // 비디오 썸네일(<a class="video-thumb" data-video="…">)
- 				   if ($a.hasClass('video-thumb')) {
-    				  const id = $a.data('video');
- 				     return `
-				        <div class="video-wrapper">
-				          <iframe
-  				          src="https://player.vimeo.com/video/${id}?autoplay=1&title=0&byline=0&portrait=0"
-				            frameborder="0" allow="autoplay; fullscreen" allowfullscreen>
-				          </iframe>
-				        </div>`;
-				    }
-				    // 이미지 링크(<a class="image" href="…full.jpg">)
-				    // nextAll()으로 <h2>와 <p>를 캡션으로 가져옵니다.
- 				   let s = '';
- 				   $a.nextAll().each(function() { s += this.outerHTML; });
-				    return s;
-				  },
-
-				  // 팝업 열기/닫기 시 body 블러 처리
-				  onPopupOpen:  function() { $('body').addClass('modal-active'); },
- 				 onPopupClose: function() { $('body').removeClass('modal-active'); }
 			});
 
 			// Hack: Set margins to 0 when 'xsmall' activates.
@@ -302,5 +278,52 @@
 					$main[0]._poptrox.windowMargin = 50;
 				});
 	
+		// 영상 플레이어 iframe DOM
+		const modal = document.getElementById("vimeoModal");
+		const player = document.getElementById("vimeoPlayer");
+		const thumbs = Array.from(document.querySelectorAll(".video-thumb"));
+		let currentIndex = 0;
+
+		thumbs.forEach((thumb, index) => {
+ 		 thumb.addEventListener("click", function (e) {
+  		  e.preventDefault();
+		    currentIndex = index;
+  		  const videoId = thumb.dataset.video;
+  		  const videoURL = `https://player.vimeo.com/video/${videoId}?autoplay=1&background=1`;
+  		  player.src = videoURL;
+  		  modal.style.display = "block";
+ 		 });
+		});
+
+		function closeModal() {
+ 		 modal.style.display = "none";
+ 		 player.src = "";
+		}
+
+		window.addEventListener("click", function (e) {
+ 		 if (e.target === modal) closeModal();
+		});
+
+		function showVideoAt(index) {
+ 		 if (index < 0 || index >= thumbs.length) return;
+		  const videoId = thumbs[index].dataset.video;
+		  const videoURL = `https://player.vimeo.com/video/${videoId}?autoplay=1&background=1`;
+		  player.src = videoURL;
+ 		 currentIndex = index;
+		}
+
+		function nextVideo() {
+		  const nextIndex = currentIndex + 1;
+		  if (nextIndex < thumbs.length) {
+ 		   showVideoAt(nextIndex);
+		  }
+		}
+
+		function prevVideo() {
+ 		 const prevIndex = currentIndex - 1;
+ 		 if (prevIndex >= 0) {
+   		 showVideoAt(prevIndex);
+		  }
+		}
 
 })(jQuery);
