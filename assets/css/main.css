@@ -1,4 +1,4 @@
-@import url(fontawesome-all.min.css);
+	@import url(fontawesome-all.min.css);
 @import url("https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,300italic,400,400italic");
 
 /*
@@ -1652,6 +1652,15 @@ input, select, textarea {
 			  object-position: center;   /* 썸네일이미지 중앙정렬 */
 			  width: 100%;
 			  height: auto;
+			border-radius: 0.5em;
+  			box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+			}
+			.thumb {
+			  display: inline-block;
+			  width: 22%;
+			  margin: 1%;
+ 			 vertical-align: top;
+ 			 text-align: center;
 			}
 
 			#main .thumb > h2 {
