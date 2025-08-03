@@ -1193,7 +1193,7 @@ input, select, textarea {
 		cursor: default;
 	}
 
-		.poptrox-popup:before {
+		/* .poptrox-popup:before {
 			-moz-transition: opacity 0.2s ease-in-out;
 			-webkit-transition: opacity 0.2s ease-in-out;
 			-ms-transition: opacity 0.2s ease-in-out;
@@ -1211,7 +1211,7 @@ input, select, textarea {
 			width: 100%;
 			z-index: 1;
 			opacity: 1;
-		}
+		} */
 
 		.poptrox-popup .closer {
 			-moz-transition: opacity 0.2s ease-in-out;
@@ -1323,6 +1323,8 @@ input, select, textarea {
 		.poptrox-popup.loading:before {
 			opacity: 0;
 		}
+
+		
 
 		body.touch .poptrox-popup .closer,
 		body.touch .poptrox-popup .nav-previous,
@@ -2168,4 +2170,41 @@ input, select, textarea {
   opacity: 1;
 }
 
+/* 닫기 버튼 */
+.poptrox-popup .closer {
+  background: none !important;
+  font-family: "Font Awesome 5 Free";
+  font-weight: 900;
+}
+.poptrox-popup .closer:before {
+  content: "\f00d";    /* fa-times */
+  font-size: 1.5em;
+  color: #fff;
+}
+/* 이전 버튼 */
+.poptrox-popup .nav-previous {
+  background: none !important;
+  font-family: "Font Awesome 5 Free";
+  font-weight: 900;
+}
+.poptrox-popup .nav-previous:before {
+  content: "\f053";    /* fa-chevron-left */
+  font-size: 2em;
+  color: #fff;
+}
+/* 다음 버튼 */
+.poptrox-popup .nav-next {
+  background: none !important;
+  font-family: "Font Awesome 5 Free";
+  font-weight: 900;
+}
+.poptrox-popup .nav-next:before {
+  content: "\f054";    /* fa-chevron-right */
+  font-size: 2em;
+  color: #fff;
+}
+/* 버튼 위치 조정 (필요에 따라) */
+.poptrox-popup .closer { top: 10px; right: 10px; }
+.poptrox-popup .nav-previous { left: 10px; top: 50%; transform: translateY(-50%); }
+.poptrox-popup .nav-next     { right: 10px; top: 50%; transform: translateY(-50%); }
 
