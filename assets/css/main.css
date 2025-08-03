@@ -1,4 +1,4 @@
-	@import url(fontawesome-all.min.css);
+@import url(fontawesome-all.min.css);
 @import url("https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,300italic,400,400italic");
 
 /*
@@ -1654,8 +1654,6 @@ input, select, textarea {
 			  height: auto;
 			}
 
-			}
-
 			#main .thumb > h2 {
 				pointer-events: none;
 				bottom: 1.875em;
@@ -2090,6 +2088,15 @@ input, select, textarea {
  	 border-radius: 8px;
 	  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 	}
+	/* 썸네일 이미지 크기 및 정렬 조정 */
+	#main .thumb > a > img {
+	  width: 100%;
+	  height: auto;
+	  object-fit: cover;
+	  display: block;
+	  margin: 0 auto;
+	}
+
 >>>>>>> 02ff4e81e8b0245b6a5aab8068709ef51bfdcbfa
 
 /* 간단한 모달 스타일 */
@@ -2204,10 +2211,4 @@ input, select, textarea {
   font-size: 30px;
   cursor: pointer;
 }
-			.thumb {
-			  display: inline-block;
-			  width: 22%;
-			  margin: 1%;
- 			 vertical-align: top;
- 			 text-align: center;
-
+>>>>>>> 02ff4e81e8b0245b6a5aab8068709ef51bfdcbfa
