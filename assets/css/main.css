@@ -1652,15 +1652,8 @@ input, select, textarea {
 			  object-position: center;   /* 썸네일이미지 중앙정렬 */
 			  width: 100%;
 			  height: auto;
-			border-radius: 0.5em;
-  			box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
 			}
-			.thumb {
-			  display: inline-block;
-			  width: 22%;
-			  margin: 1%;
- 			 vertical-align: top;
- 			 text-align: center;
+
 			}
 
 			#main .thumb > h2 {
@@ -2211,4 +2204,10 @@ input, select, textarea {
   font-size: 30px;
   cursor: pointer;
 }
->>>>>>> 02ff4e81e8b0245b6a5aab8068709ef51bfdcbfa
+			.thumb {
+			  display: inline-block;
+			  width: 22%;
+			  margin: 1%;
+ 			 vertical-align: top;
+ 			 text-align: center;
+
