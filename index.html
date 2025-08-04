@@ -23,11 +23,20 @@
 		<div id="wrapper">
 
 		<!-- 상단 제목 섹션 -->
-  		<section class="hero-title">
-  			<h1 id="typing-title"><span id="typed-text"></span><span id="typed-cursor">|</span></h1>
-  			<h2>by Solbi Kim</h2>
-  			<p>Thank you for watching 😍</p>
-		</section>
+  		<section class="hero-title" style="position:relative; overflow:hidden;">
+  <h1 id="typing-title">
+    <span id="typed-text"></span><span id="typed-cursor">|</span>
+  </h1>
+  <h2>by Solbi Kim</h2>
+  <p>Thank you for watching 😍</p>
+  <div id="like-counter"
+       style="position:absolute; right:2em; bottom:0.7em; font-size:1.3em; color:#d16;">
+    <span id="like-btn" style="cursor:pointer; user-select:none;">❤️</span>
+    <span id="like-count">0</span>
+  </div>
+  <!-- 하트 애니메이션을 위한 컨테이너 추가 -->
+  <div id="heart-fx-container" style="pointer-events:none; position:absolute; top:0; left:0; width:100%; height:100%;"></div>
+</section>
 
 		<!-- Wrapper -->
 			<div id="wrapper">
@@ -171,6 +180,7 @@
 	</body>
 
 </html>
+
 
 
 
