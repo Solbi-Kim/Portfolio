@@ -206,8 +206,9 @@ input, select, textarea {
 			}
 
 		}
+/* 제목폰트 */
 	.hero-title h1 {
- 	 font-family: 'Montserrat', sans-serif;
+ 	 font-family: 'Pretendard', sans-serif;
   	font-size: 3rem;
   	letter-spacing: 0.06em;
   	color: #222;
