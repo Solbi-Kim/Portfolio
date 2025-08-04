@@ -295,6 +295,9 @@
 		});
 
 
+		const wiggle = Math.floor(Math.random()*60)-30; // -30 ~ +30px wiggle 효과
+		heart.style.setProperty('--wiggle', `${wiggle}px`);
+
 		// 하트 애니메이션
 		const heartFxContainer = document.getElementById('heart-fx-container');
 		const heartBtn = document.getElementById('like-btn');
