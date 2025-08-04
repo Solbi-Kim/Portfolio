@@ -233,36 +233,6 @@ input, select, textarea {
 	}
 
 
-	.hero-title {                      /* 반응형 글자 */
-  		position: relative;
-  		height: 45vh;
-  		display: flex;
-  		flex-direction: column;
-  		justify-content: center;
- 		align-items: center;
-  		overflow: hidden;
-  		background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), #6366f1 0%, #222 100%);
-  		transition: background 0.3s;
-		}
-
-		.hero-title h1 {
-  		font-family: 'Playwrite AU QLD', 'Noto Sans KR', sans-serif;
-  		font-size: 3.4em;
-  		font-weight: 500;
-  		color: #fff;
-  		letter-spacing: -1px;
-  		margin-bottom: 0.4em;
-  		filter: drop-shadow(0 2px 24px rgba(99,102,241,0.25));
-  		opacity: 0;
-  		transform: translateY(40px);
- 		transition: opacity 0.8s cubic-bezier(.6,0,.4,1), transform 0.8s cubic-bezier(.6,0,.4,1);
-		}
-
-		/* 애니메이션 시 활성화 */
-		.hero-title h1.show {
-  		opacity: 1;
-  		transform: none;
-		}
 
 
 
