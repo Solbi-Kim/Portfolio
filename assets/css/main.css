@@ -1237,7 +1237,7 @@ input, select, textarea {
 			background-size: 3em;
 			height: 5em;
 			opacity: 0;
-			position: absolute;
+			position: relative;
 			right: 1.5em;
 			top: 1.2em;
 			width: 5em;
@@ -1272,7 +1272,7 @@ input, select, textarea {
 			left: 1em;
 			top: 50%
 			z-index: 9999 !important;
-			position: absolute;
+			position: relative;
 		}
 
 		.poptrox-popup .nav-next {
@@ -1280,7 +1280,7 @@ input, select, textarea {
 			top: 50%
 			transform: translateY(-50%);
 			z-index: 9999 !important;
-			position: absolute;
+			
 		}
 
 		.poptrox-popup .caption {
