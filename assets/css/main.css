@@ -206,6 +206,19 @@ input, select, textarea {
 			}
 
 		}
+	.hero-title h1 {
+ 	 font-family: 'Montserrat', sans-serif;
+  	font-size: 3rem;
+  	letter-spacing: 0.06em;
+  	color: #222;
+  	font-weight: 800;
+  	margin-bottom: 0.3em;
+	}
+	.hero-title p {
+ 	font-size: 1.1em;
+  	color: #555;
+	}
+
 
 	a {
 		-moz-transition: color 0.2s ease-in-out, border-bottom-color 0.2s ease-in-out;
