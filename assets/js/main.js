@@ -278,37 +278,5 @@
 					$main[0]._poptrox.windowMargin = 50;
 				});
 
-	
-			$('.gallery').poptrox({
-  				onPopup: function() {
-    				var popup = $('.poptrox-popup');
-    				var title = popup.find('.caption').html(); // 기존 제목
-    				// 새 제목바 구조 만들기
-    				var titleBar = $(
-      				'<div class="title-bar">' +
-        			'<span class="nav-previous">&lt;</span>' +
-        			'<h2>' + title + '</h2>' +
-        			'<span class="nav-next">&gt;</span>' +
-      				'</div>'
-    				);
-    			popup.find('.caption').replaceWith(titleBar);
-  			}
-
-			document.addEventListener("DOMContentLoaded", function () {    /* 커서 움직이는 텍스트 */
-  			const text = "Portfolio";
-  			const typedText = document.getElementById("typed-text");
-  			const cursor = document.getElementById("typed-cursor");
-  			let i = 0;
-  			function type() {
-    				if (i <= text.length) {
-      					typedText.textContent = text.slice(0, i);
-      					i++;
-      					setTimeout(type, 120); // 타이핑 속도 조절(밀리초)
-    					}
-  				}
-  				type();
-			});
-
-	});
 
 })(jQuery);
