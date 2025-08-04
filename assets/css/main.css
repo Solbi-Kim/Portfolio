@@ -1215,10 +1215,10 @@ input, select, textarea {
 	}
 
 	.poptrox-popup {
-		background: rgba(31, 34, 36, 0.925);
+		background: rgba(31, 34, 36, 0);
 		box-shadow: 0 1em 3em 0.5em rgba(0, 0, 0, 0.25);
 		cursor: default;
-		position: absolute;
+		position: relative !important;
 		top: 30%
 
 		display: flex;                 /* flex 사용! */
@@ -1323,12 +1323,15 @@ input, select, textarea {
 			bottom: 2em;
 			cursor: default;
 			left: 0;
-			position: absolute;
+			position: relative;
 			text-align: left;   /* 중앙정렬 텍스트 */
 			width: 100%;
-			z-index: 2;
+			z-index: 99;
 			bottom:30%
-			Z-index: 1001;
+
+			pointer-events: auto;
+
+			
 			
 		}
 
