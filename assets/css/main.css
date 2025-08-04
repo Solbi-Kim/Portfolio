@@ -1205,9 +1205,6 @@ input, select, textarea {
 		box-shadow: 0 1em 3em 0.5em rgba(0, 0, 0, 0.25);
 		cursor: default;
 		position: absolute;
-		
- 		max-width: 850px;   /* 팝업 최대 너비 (화면 좁으면 더 줄어듦) */
-  		width: 80vw;        /* 브라우저 가로폭의 80% */
 	}
 
 		.poptrox-popup:before {
@@ -1229,13 +1226,6 @@ input, select, textarea {
 			z-index: 1;
 			opacity: 1;
 		}
-
-		.poptrox-popup iframe {  /* 영상 위치 조정 */
-			  display: block;
-			  width: 100%;
-			  height: 50vh;           /* 높이도 조절 가능 */
-			  margin-bottom: 0.5em;   /* caption과 겹치지 않게 띄움 */
-			  margin-top: 0em;      /* 필요하다면 살짝 위로 */
 
 		.poptrox-popup .closer {
 			-moz-transition: opacity 0.2s ease-in-out;
