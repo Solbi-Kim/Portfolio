@@ -219,6 +219,19 @@ input, select, textarea {
   	text-shadow: 0 2px 18px rgba(0,0,0,0.13);
 	text-transform: none;
 	}
+	.hero-title h2 {
+ 	font-family: 'Playwrite AU QLD', sans-serif;
+	color: #404040;           /* 라이트 그레이/화이트 계열 */
+ 	text-align: center;
+  	margin-top: 1em;
+  	margin-bottom: 0.5em;
+  	font-size: 2.6em;
+  	font-weight: 400;
+  	letter-spacing: -1px;
+  	text-shadow: 0 2px 18px rgba(0,0,0,0.13);
+	text-transform: none;
+	}
+
 
 
 	a {
