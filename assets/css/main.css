@@ -1242,7 +1242,7 @@ input, select, textarea {
 			right: 0;
 			top: 0;
 			width: 5em;
-			z-index: 2;
+			z-index: 9999 !important;
 		}
 
 		.poptrox-popup .nav-previous,
@@ -1262,7 +1262,7 @@ input, select, textarea {
 			position: absolute;
 			top: 50%;
 			width: 6em;
-			z-index: 2;
+			z-index: 9999 !important;
 		}
 
 		.poptrox-popup .nav-previous {
@@ -1271,10 +1271,14 @@ input, select, textarea {
 			-ms-transform: scaleX(-1);
 			transform: scaleX(-1);
 			left: 0;
+			z-index: 9999 !important;
+			position: absolute
 		}
 
 		.poptrox-popup .nav-next {
 			right: 0;
+			z-index: 9999 !important;
+			position: absolute
 		}
 
 		.poptrox-popup .caption {
