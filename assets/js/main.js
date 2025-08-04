@@ -266,7 +266,7 @@
 				usePopupForceClose: true,
 				usePopupLoader: true,
 				usePopupNav: true,
-				windowMargin: 50
+				windowMargin: 10
 			});
 
 			// Hack: Set margins to 0 when 'xsmall' activates.
@@ -277,5 +277,21 @@
 				breakpoints.on('>xsmall', function() {
 					$main[0]._poptrox.windowMargin = 50;
 				});
+	$('.gallery').poptrox({
+  // ...
+  onPopup: function() {
+    var popup = $('.poptrox-popup');
+    var title = popup.find('.caption').html(); // 기존 제목
+    // 새 제목바 구조 만들기
+    var titleBar = $(
+      '<div class="title-bar">' +
+        '<span class="nav-previous">&lt;</span>' +
+        '<h2>' + title + '</h2>' +
+        '<span class="nav-next">&gt;</span>' +
+      '</div>'
+    );
+    popup.find('.caption').replaceWith(titleBar);
+  }
+});
 
 })(jQuery);
