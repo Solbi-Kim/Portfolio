@@ -1339,7 +1339,7 @@ input, select, textarea {
 			text-align: left;   /* 중앙정렬 텍스트 */
 			width: 100%;
 			z-index: 99;
-			bottom:30%
+			bottom:25%
 
 			pointer-events: auto;
 
