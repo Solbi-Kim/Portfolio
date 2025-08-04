@@ -206,31 +206,39 @@ input, select, textarea {
 			}
 
 		}
-/* 제목폰트 */
-	.hero-title h1 {
- 	font-family: 'Playwrite AU QLD', sans-serif;
-	color: #7f7f7f;           /* 라이트 그레이/화이트 계열 */
- 	text-align: center;
-  	margin-top: 1em;
-  	margin-bottom: 0.5em;
-  	font-size: 2.6em;
-  	font-weight: 400;
-  	letter-spacing: -1px;
-  	text-shadow: 0 2px 18px rgba(0,0,0,0.13);
-	text-transform: none;
-	}
-	.hero-title h2 {
- 	font-family: 'Playwrite AU QLD', sans-serif;
-	color: #404040;           /* 라이트 그레이/화이트 계열 */
- 	text-align: center;
-  	margin-top: 1em;
-  	margin-bottom: 0.5em;
-  	font-size: 2.6em;
-  	font-weight: 400;
-  	letter-spacing: -1px;
-  	text-shadow: 0 2px 18px rgba(0,0,0,0.13);
-	text-transform: none;
-	}
+		/* 반응형 제목폰트 */
+		.hero-title {
+  		text-align: center;
+  		margin-top: 3em;
+		}
+		.hero-title h1, .hero-title h2 {
+  		font-family: 'Playwrite AU QLD', sans-serif;
+ 		color: #7f7f7f;
+  		text-shadow: 0 2px 18px rgba(0,0,0,0.13);
+  		font-weight: 400;
+  		letter-spacing: -1px;
+		}
+		.hero-title h1 {
+ 		 font-size: 5em;
+  		margin-bottom: 0.2em;
+		}
+		.hero-title h2 {
+		 color: #404040;
+  		font-size: 2em;
+		}
+		.hero-title p {
+  		font-size: 1em;
+  		font-weight: 400;
+		}
+		#typed-cursor {
+  		display: inline-block;
+ 		width: 1ch;
+  		animation: blink 0.7s steps(1) infinite;
+		}
+		@keyframes blink {
+  		0%, 100% { opacity: 1; }
+  		60% { opacity: 0; }
+		}
 
 
 
