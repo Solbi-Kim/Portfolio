@@ -1237,9 +1237,9 @@ input, select, textarea {
 			background-size: 3em;
 			height: 5em;
 			opacity: 0;
-			position: relative;
-			right: 0;
-			top: 0;
+			position: absolute;
+			right: 1.5em;
+			top: 1.2em;
 			width: 5em;
 			z-index: 9999 !important;
 		}
@@ -1268,16 +1268,19 @@ input, select, textarea {
 			-moz-transform: scaleX(-1);
 			-webkit-transform: scaleX(-1);
 			-ms-transform: scaleX(-1);
-			transform: scaleX(-1);
-			left: 0;
+			transform: translateY(-50%) scaleX(-1);
+			left: 1em;
+			top: 50%
 			z-index: 9999 !important;
-			position: relative
+			position: absolute;
 		}
 
 		.poptrox-popup .nav-next {
-			right: 0;
+			right: 1em;
+			top: 50%
+			transform: translateY(-50%);
 			z-index: 9999 !important;
-			position: relative
+			position: absolute;
 		}
 
 		.poptrox-popup .caption {
@@ -1290,7 +1293,7 @@ input, select, textarea {
 			cursor: default;
 			left: 0;
 			position: absolute;
-			text-align: left;
+			text-align: center;   /* 중앙정렬 텍스트 */
 			width: 100%;
 			z-index: 2;
 		}
