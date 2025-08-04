@@ -1277,12 +1277,12 @@ input, select, textarea {
 			-moz-transform: scaleX(-1);
 			-webkit-transform: scaleX(-1);
 			-ms-transform: scaleX(-1);
-			left: -2em;
+			left: -3em;
 			transform: translateY(-50%) scaleX(-1); /* 좌우반전+중앙 */
 		}
 
 		.poptrox-popup .nav-next {
-			right: -2em;
+			right: -3em;
 			
 		}
 
