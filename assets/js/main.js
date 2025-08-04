@@ -278,5 +278,21 @@
 					$main[0]._poptrox.windowMargin = 50;
 				});
 
+		// 반응형 제목
+		document.addEventListener("DOMContentLoaded", function () {
+  			const text = "Portfolio";
+  			const typedText = document.getElementById("typed-text");
+  			const cursor = document.getElementById("typed-cursor");
+  			let i = 0;
+  		function type() {
+    			if (i <= text.length) {
+      				typedText.textContent = text.slice(0, i);
+      				i++;
+      				setTimeout(type, 120); // 타이핑 속도 조절(밀리초)
+    			}
+  		}
+  		type();
+		});
+
 
 })(jQuery);
