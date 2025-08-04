@@ -295,70 +295,63 @@
 		});
 
 
-		const wiggle = Math.floor(Math.random()*60)-30; // -30 ~ +30px wiggle 효과
-		heart.style.setProperty('--wiggle', `${wiggle}px`);
+// 좋아요 숫자 카운터 불러오기(페이지 로드 시)
+const counterKey = 'solbi-portfolio-2024/likes';
+fetch(`https://api.countapi.xyz/get/${counterKey}`)
+	.then(res => res.json())
+	.then(res => {
+		document.getElementById('like-count').textContent = res.value ?? 0;
+	})
+	.catch(() => {
+		document.getElementById('like-count').textContent = 0;
+	});
 
-		// 하트 애니메이션
-		const heartFxContainer = document.getElementById('heart-fx-container');
-		const heartBtn = document.getElementById('like-btn');
+// 하트 애니메이션 및 숫자증가
+const heartFxContainer = document.getElementById('heart-fx-container');
+const heartBtn = document.getElementById('like-btn');
 
-		heartBtn.addEventListener('click', function() {
-  		// 하트 여러 개(2~5개) 랜덤 생성
-  			const hearts = Math.floor(Math.random()*7)+6;
-  			for (let i = 0; i < hearts; i++) {
-   			createFloatingHeart();
-  			}
-		
-  		// 서버에 좋아요 숫자 증가도 같이 실행
-  		const counterKey = 'solbi-portfolio-2024/likes';
+heartBtn.addEventListener('click', function() {
+	// 하트 여러 개(6~12개) 랜덤 생성
+	const hearts = Math.floor(Math.random()*7) + 6;
+	for (let i = 0; i < hearts; i++) {
+		createFloatingHeart();
+	}
 
-		// 페이지 로드 시 값 가져오기 (get)
-		fetch(`https://api.countapi.xyz/get/${counterKey}`)
-  		.then(res => res.json())
-  		.then(res => {
-    			document.getElementById('like-count').textContent = res.value ?? 0;
-  		})
-  		.catch(() => {
-    			document.getElementById('like-count').textContent = 0;
-  		});
-		// 하트 클릭 시 값 +1 (hit)
-		document.getElementById('like-btn').addEventListener('click', function() {
-  		// 하트 애니메이션 함수 호출
-  			launchHearts();
-  		// 좋아요 숫자 증가 (hit)
-  			fetch(`https://api.countapi.xyz/hit/${counterKey}`)
-    			.then(res => res.json())
-    			.then(res => {
-      				document.getElementById('like-count').textContent = res.value;
-    			});
+	// 좋아요 숫자 +1 증가
+	fetch(`https://api.countapi.xyz/hit/${counterKey}`)
+		.then(res => res.json())
+		.then(res => {
+			document.getElementById('like-count').textContent = res.value;
 		});
-			
-		//이모지 생성
-		function createFloatingHeart() {
-  			const heart = document.createElement('div');
-  			heart.className = 'heart-fx';
- 			heart.innerHTML = '❤️'; // 이모지 or 원하는 svg 가능
+});
 
-			// 랜덤 위치(상단 제목 영역 내에서) - padding 고려
-  			const left = 10 + Math.random() * 80; // 10~90% (조금은 오른쪽에 치우치게 조정 가능)
-  			const top = 25 + Math.random() * 45; // 25~70% (중앙~아래쪽 위주)
-  			heart.style.left = `${left}%`;
-  			heart.style.top = `${top}%`;
+// 하트 애니메이션 함수 (wiggle/크기 랜덤 포함)
+function createFloatingHeart() {
+	const heart = document.createElement('div');
+	heart.className = 'heart-fx';
+	heart.innerHTML = '❤️';
 
-  			// scale/rotate 랜덤
-  			const rot = Math.floor(Math.random()*60)-30; // -30 ~ +30deg
-  			const up = Math.floor(Math.random()*40)+10; // 위로 10~50px
-  			heart.style.setProperty('--rot', `${rot}deg`);
-  			heart.style.setProperty('--up', `-${up}px`);
+	// 랜덤 위치
+	const left = 10 + Math.random() * 80;
+	const top = 25 + Math.random() * 45;
+	heart.style.left = `${left}%`;
+	heart.style.top = `${top}%`;
 
-  			// 사이즈(폰트) 랜덤
-  			heart.style.fontSize = `${2.4 + Math.random()*1.6}em`;
+	// scale/rotate/wiggle 랜덤
+	const rot = Math.floor(Math.random()*60) - 30;
+	const up = Math.floor(Math.random()*60) + 30;
+	const wiggle = Math.floor(Math.random()*60) - 30;
+	heart.style.setProperty('--rot', `${rot}deg`);
+	heart.style.setProperty('--up', `-${up}px`);
+	heart.style.setProperty('--wiggle', `${wiggle}px`);
 
-  			heartFxContainer.appendChild(heart);
+	// 폰트사이즈(크기) 랜덤
+	heart.style.fontSize = `${2.4 + Math.random()*1.6}em`;
 
-  			// 애니 끝나면 사라짐
-  			heart.addEventListener('animationend', () => heart.remove());
-		}
+	heartFxContainer.appendChild(heart);
+
+	heart.addEventListener('animationend', () => heart.remove());
+}
 
 
 
