@@ -295,4 +295,54 @@
 		});
 
 
+		// 하트 애니메이션
+		const heartFxContainer = document.getElementById('heart-fx-container');
+const heartBtn = document.getElementById('like-btn');
+
+heartBtn.addEventListener('click', function() {
+  // 하트 여러 개(2~5개) 랜덤 생성
+  const hearts = Math.floor(Math.random()*4)+2;
+  for (let i = 0; i < hearts; i++) {
+    createFloatingHeart();
+  }
+  // 서버에 좋아요 숫자 증가도 같이 실행
+  fetch('https://api.countapi.xyz/hit/solbi-portfolio-2024/likes')
+    .then(res => res.json())
+    .then(res => {
+      document.getElementById('like-count').textContent = res.value;
+    });
+});
+
+function createFloatingHeart() {
+  const heart = document.createElement('div');
+  heart.className = 'heart-fx';
+  heart.innerHTML = '❤️'; // 이모지 or 원하는 svg 가능
+
+  // 랜덤 위치(상단 제목 영역 내에서) - padding 고려
+  const left = 10 + Math.random() * 80; // 10~90% (조금은 오른쪽에 치우치게 조정 가능)
+  const top = 25 + Math.random() * 45; // 25~70% (중앙~아래쪽 위주)
+  heart.style.left = `${left}%`;
+  heart.style.top = `${top}%`;
+
+  // scale/rotate 랜덤
+  const rot = Math.floor(Math.random()*60)-30; // -30 ~ +30deg
+  const up = Math.floor(Math.random()*40)+10; // 위로 10~50px
+  heart.style.setProperty('--rot', `${rot}deg`);
+  heart.style.setProperty('--up', `-${up}px`);
+
+  // 사이즈(폰트) 랜덤
+  heart.style.fontSize = `${1.6 + Math.random()*1.4}em`;
+
+  heartFxContainer.appendChild(heart);
+
+  // 애니 끝나면 사라짐
+  heart.addEventListener('animationend', () => heart.remove());
+}
+
+
+
+
+
+
+
 })(jQuery);
