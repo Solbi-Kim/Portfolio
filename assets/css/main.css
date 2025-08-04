@@ -1379,7 +1379,7 @@ input, select, textarea {
 			.poptrox-popup:hover .closer:hover,
 			.poptrox-popup:hover .nav-previous:hover,
 			.poptrox-popup:hover .nav-next:hover {
-				opacity: 1.0;
+				opacity: 1.2;
 			}
 
 		.poptrox-popup.loading:before {
