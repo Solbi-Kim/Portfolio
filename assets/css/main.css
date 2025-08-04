@@ -1,4 +1,4 @@
-	@import url(fontawesome-all.min.css);
+@import url(fontawesome-all.min.css);
 @import url("https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,300italic,400,400italic");
 
 /*
@@ -1588,80 +1588,125 @@ input, select, textarea {
 /* Main */
 
 	#main {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 2em;
-  padding: 2em;
-}
+		-moz-transition: -moz-filter 0.5s ease, -webkit-filter 0.5s ease, -ms-filter 0.5s ease, -moz-filter 0.5s ease;
+		-webkit-transition: -moz-filter 0.5s ease, -webkit-filter 0.5s ease, -ms-filter 0.5s ease, -webkit-filter 0.5s ease;
+		-ms-transition: -moz-filter 0.5s ease, -webkit-filter 0.5s ease, -ms-filter 0.5s ease, -ms-filter 0.5s ease;
+		transition: -moz-filter 0.5s ease, -webkit-filter 0.5s ease, -ms-filter 0.5s ease, filter 0.5s ease;
+		display: -moz-flex;
+		display: -webkit-flex;
+		display: -ms-flex;
+		display: flex;
+		-moz-flex-wrap: wrap;
+		-webkit-flex-wrap: wrap;
+		-ms-flex-wrap: wrap;
+		flex-wrap: wrap;
+		-webkit-tap-highlight-color: rgba(255, 255, 255, 0);
+	}
 
-/* 썸네일 카드 스타일 */
-.thumb {
-  flex: 0 1 calc(25% - 2em); /* 4열, 여백 포함 */
-  min-width: 260px;
-  max-width: 350px;
-  margin-bottom: 2em;
-  background: #fff;
-  border-radius: 0.5em;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
-  overflow: hidden;
-  transition: transform 0.2s;
-  display: flex;
-  flex-direction: column;
-}
+		#main .thumb {
+			-moz-transition: opacity 1.25s ease-in-out;
+			-webkit-transition: opacity 1.25s ease-in-out;
+			-ms-transition: opacity 1.25s ease-in-out;
+			transition: opacity 1.25s ease-in-out;
+			pointer-events: auto;
+			-webkit-tap-highlight-color: rgba(255, 255, 255, 0);
+			opacity: 1;
+			overflow: hidden;
+			position: relative;
+		}
 
-.thumb:hover {
-  transform: scale(1.035);
-}
+			#main .thumb:after {
+				background-image: -moz-linear-gradient(to top, rgba(10,17,25,0.35) 5%, rgba(10,17,25,0) 35%);
+				background-image: -webkit-linear-gradient(to top, rgba(10,17,25,0.35) 5%, rgba(10,17,25,0) 35%);
+				background-image: -ms-linear-gradient(to top, rgba(10,17,25,0.35) 5%, rgba(10,17,25,0) 35%);
+				background-image: linear-gradient(to top, rgba(10,17,25,0.35) 5%, rgba(10,17,25,0) 35%);
+				pointer-events: none;
+				background-size: cover;
+				content: '';
+				display: block;
+				height: 100%;
+				left: 0;
+				position: absolute;
+				top: 0;
+				width: 100%;
+			}
 
-.thumb img {
-  width: 100%;
-  height: 220px;           /* 고정 비율, 카드 높이 맞춤 */
-  object-fit: cover;       /* 이미지를 잘라내면서 비율 맞춤 */
-  display: block;
-  background: #ddd;
-  margin: 0 auto;
-  border-bottom: 1px solid #eee;
-  transition: filter 0.2s;
-}
+			#main .thumb > .image {
+				-webkit-tap-highlight-color: rgba(255, 255, 255, 0);
+				background-position: center;
+				background-repeat: no-repeat;
+				background-size: cover;
+				border: 0;
+				height: 100%;
+				left: 0;
+				position: absolute;
+				top: 0;
+				width: 100%;
+			}
 
-.thumb h2 {
-  font-size: 1.1em;
-  margin: 1em 1em 0.5em 1em;
-  color: #222;
-}
+			#main .thumb > h2 {
+				pointer-events: none;
+				bottom: 1.875em;
+				font-size: 0.8em;
+				left: 2.1875em;
+				margin: 0;
+				position: absolute;
+				z-index: 1;
+			}
 
-.thumb p {
-  font-size: 0.97em;
-  color: #666;
-  margin: 0 1em 1.2em 1em;
-}
+			#main .thumb > p {
+				display: none;
+			}
 
-@media (max-width: 1280px) {
-  .thumb {
-    flex-basis: calc(33.333% - 2em); /* 3열 */
-  }
-}
-@media (max-width: 980px) {
-  .thumb {
-    flex-basis: calc(50% - 2em); /* 2열 */
-  }
-}
-@media (max-width: 736px) {
-  #main {
-    padding: 1em;
-    gap: 1em;
-  }
-  .thumb {
-    flex-basis: 100%;  /* 1열 */
-    min-width: 0;
-    margin-bottom: 1em;
-  }
-  .thumb img {
-    height: 180px;
-  }
-}
+		#main:after {
+			pointer-events: none;
+			-moz-transition: opacity 0.5s ease, visibility 0.5s;
+			-webkit-transition: opacity 0.5s ease, visibility 0.5s;
+			-ms-transition: opacity 0.5s ease, visibility 0.5s;
+			transition: opacity 0.5s ease, visibility 0.5s;
+			background: rgba(36, 38, 41, 0.25);
+			content: '';
+			display: block;
+			height: 100%;
+			left: 0;
+			opacity: 0;
+			position: absolute;
+			top: 0;
+			visibility: hidden;
+			width: 100%;
+			z-index: 1;
+		}
 
+			body.ie #main:after {
+				background: rgba(36, 38, 41, 0.55);
+			}
+
+		body.content-active #main {
+			-moz-filter: blur(6px);
+			-webkit-filter: blur(6px);
+			-ms-filter: blur(6px);
+			filter: blur(6px);
+		}
+
+			body.content-active #main:after {
+				pointer-events: auto;
+				opacity: 1;
+				visibility: visible;
+			}
+
+		body.is-preload #main .thumb {
+			pointer-events: none;
+			opacity: 0;
+		}
+
+		#main .thumb {
+			-moz-transition-delay: 2.525s;
+			-webkit-transition-delay: 2.525s;
+			-ms-transition-delay: 2.525s;
+			transition-delay: 2.525s;
+			height: calc(40vh - 2em);
+			min-height: 20em;
+			width: 25%;
 		}
 
 			#main .thumb:nth-child(1) {
@@ -2003,148 +2048,3 @@ input, select, textarea {
 		#footer .copyright a {
 			color: inherit;
 		}
-
-/* Video */
-	.video-wrapper {
-	  position: relative;
-	  padding-bottom: 56.25%; /* 16:9 비율 */
-	  padding-top: 25px;
-	  height: 0;
- 	 overflow: hidden;
-	  border-radius: 0.5em;
- 	 box-shadow: 0 0 20px rgba(0,0,0,0.2);
-	}
-
-	.video-wrapper iframe {
- 	 position: absolute;
- 	 top: 0;
-	  left: 0;
-	  width: 100%;
- 	 height: 100%;
-	}
-
-<<<<<<< HEAD
-=======
-	.thumb img {
-	  width: 100%;
-	  height: 180px; /* 원하는 썸네일 높이 */
-	  object-fit: cover; /* 비율 유지하며 채우기 */
-	  object-position: center; /* 가운데 정렬 */
- 	 border-radius: 8px;
-	  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-	}
->>>>>>> 02ff4e81e8b0245b6a5aab8068709ef51bfdcbfa
-
-/* 간단한 모달 스타일 */
-.modal {
-  display: none;
-  position: fixed;
-  z-index: 99;
-  left: 0; top: 0; width: 100%; height: 100%;
-  background-color: rgba(0,0,0,0.8);
-}
-
-.modal-content {
-  position: relative;
-<<<<<<< HEAD
-  margin: 5% auto;
-  padding: 0;
-  width: 90%;
-  max-width: 1000px;
-  background: #000;
-  border-radius: 10px;
-  overflow: hidden;
-=======
-  margin: 10% auto;
-  padding: 0;
-  width: 80%;
-  max-width: 800px;
-  background: #000;
->>>>>>> 02ff4e81e8b0245b6a5aab8068709ef51bfdcbfa
-}
-
-.modal-content .prev,
-.modal-content .next {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 2em;
-  color: white;
-  cursor: pointer;
-  z-index: 100;
-  padding: 0 15px;
-  user-select: none;
-}
-
-.modal-content .prev {
-  left: 10px;
-}
-
-.modal-content .next {
-  right: 10px;
-}
-
-<<<<<<< HEAD
-/* 모달 컨테이너 */
-.modal {
-  display: none;
-  position: fixed;
-  z-index: 9999;
-  left: 0; top: 0;
-  width: 100%; height: 100%;
-  background-color: rgba(0, 0, 0, 0.85);
-  align-items: center;
-  justify-content: center;
-}
-
-/* 모달 콘텐츠 영역 */
-.modal-content {
-  position: relative;
-  width: 90%;
-  max-width: 960px;
-  aspect-ratio: 16 / 9;
-  background-color: black;
-  border-radius: 0.25em;
-  overflow: hidden;
-  box-shadow: 0 0 2em rgba(255, 255, 255, 0.1);
-}
-
-/* iframe은 꽉 채우기 */
-.modal-content iframe {
-  width: 100%;
-  height: 100%;
-  display: block;
-  border: none;
-}
-
-/* 닫기/화살표 버튼 공통 스타일 */
-.modal .icon-button {
-  position: absolute;
-  top: 1rem;
-  font-size: 1.5rem;
-  color: white;
-  opacity: 0.5;
-  transition: opacity 0.2s ease;
-  cursor: pointer;
-  z-index: 10;
-}
-
-.modal .icon-button:hover {
-  opacity: 1;
-}
-
-
-=======
-.modal-content iframe {
-  width: 100%;
-  height: 450px;
-}
-
-.close {
-  color: white;
-  position: absolute;
-  top: 10px; right: 20px;
-  font-size: 30px;
-  cursor: pointer;
-}
->>>>>>> 02ff4e81e8b0245b6a5aab8068709ef51bfdcbfa

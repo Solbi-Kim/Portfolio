@@ -1,4 +1,4 @@
-	/*
+/*
 	Multiverse by HTML5 UP
 	html5up.net | @ajlkn
 	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
@@ -277,101 +277,5 @@
 				breakpoints.on('>xsmall', function() {
 					$main[0]._poptrox.windowMargin = 50;
 				});
-	
-		// 영상 플레이어 iframe DOM
-		const modal = document.getElementById("vimeoModal");
-		const player = document.getElementById("vimeoPlayer");
-		const closeBtn = document.getElementById("closeBtn");
-		const prevBtn = document.getElementById("prevBtn");
-		const nextBtn = document.getElementById("nextBtn");
-
-		let currentIndex = 0;
-		const thumbnails = document.querySelectorAll(".video-thumb");
-		const videoIds = Array.from(thumbnails).map(el => el.dataset.video);
-
-		// 썸네일 클릭 시
-		thumbnails.forEach((thumb, index) => {
-		  thumb.addEventListener("click", function (e) {
- 		   e.preventDefault();
-  		  currentIndex = index;
-  		  openVideo(videoIds[currentIndex]);
-		  });
-		});
-
-		function openVideo(id) {
-		  player.src = `https://player.vimeo.com/video/${id}?autoplay=1&background=1&title=0&byline=0&portrait=0`;
-		  modal.style.display = "block";
-		}
-
-		function closeModal() {
-		  modal.style.display = "none";
-		  player.src = "";
-		}
-
-		// X 버튼
-		closeBtn.addEventListener("click", closeModal);
-
-		// 바깥 클릭 시 닫기
-		window.addEventListener("click", function (e) {
- 		 if (e.target === modal) {
-  		  closeModal();
- 		 }
-		});
-
-		// 좌우 이동
-		prevBtn.addEventListener("click", () => {
-		  currentIndex = (currentIndex - 1 + videoIds.length) % videoIds.length;
-		  openVideo(videoIds[currentIndex]);
-		});
-
-		nextBtn.addEventListener("click", () => {
-		  currentIndex = (currentIndex + 1) % videoIds.length;
- 		 openVideo(videoIds[currentIndex]);
-		});
-
-		const thumbs = Array.from(document.querySelectorAll(".video-thumb"));
-		let currentIndex = 0;
-
-		thumbs.forEach((thumb, index) => {
- 		 thumb.addEventListener("click", function (e) {
-  		  e.preventDefault();
-		    currentIndex = index;
-  		  const videoId = thumb.dataset.video;
-  		  const videoURL = `https://player.vimeo.com/video/${videoId}?autoplay=1&background=1`;
-  		  player.src = videoURL;
-  		  modal.style.display = "block";
- 		 });
-		});
-
-		function closeModal() {
- 		 modal.style.display = "none";
- 		 player.src = "";
-		}
-
-		window.addEventListener("click", function (e) {
- 		 if (e.target === modal) closeModal();
-		});
-
-		function showVideoAt(index) {
- 		 if (index < 0 || index >= thumbs.length) return;
-		  const videoId = thumbs[index].dataset.video;
-		  const videoURL = `https://player.vimeo.com/video/${videoId}?autoplay=1&background=1`;
-		  player.src = videoURL;
- 		 currentIndex = index;
-		}
-
-		function nextVideo() {
-		  const nextIndex = currentIndex + 1;
-		  if (nextIndex < thumbs.length) {
- 		   showVideoAt(nextIndex);
-		  }
-		}
-
-		function prevVideo() {
- 		 const prevIndex = currentIndex - 1;
- 		 if (prevIndex >= 0) {
-   		 showVideoAt(prevIndex);
-		  }
-		}
 
 })(jQuery);
