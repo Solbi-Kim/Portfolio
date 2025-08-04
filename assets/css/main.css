@@ -1355,6 +1355,7 @@ input, select, textarea {
 			opacity: 0;
 		}
 
+
 		body.touch .poptrox-popup .closer,
 		body.touch .poptrox-popup .nav-previous,
 		body.touch .poptrox-popup .nav-next {
