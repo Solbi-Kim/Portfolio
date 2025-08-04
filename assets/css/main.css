@@ -1320,14 +1320,15 @@ input, select, textarea {
 			background-image: -webkit-linear-gradient(to top, rgba(16,16,16,0.45) 25%, rgba(16,16,16,0) 100%);
 			background-image: -ms-linear-gradient(to top, rgba(16,16,16,0.45) 25%, rgba(16,16,16,0) 100%);
 			background-image: linear-gradient(to top, rgba(16,16,16,0.45) 25%, rgba(16,16,16,0) 100%);
-			bottom: -2em;
+			bottom: 2em;
 			cursor: default;
 			left: 0;
 			position: absolute;
-			text-align: center;   /* 중앙정렬 텍스트 */
+			text-align: left;   /* 중앙정렬 텍스트 */
 			width: 100%;
 			z-index: 2;
 			bottom:30%
+			Z-index: 1001;
 			
 		}
 
