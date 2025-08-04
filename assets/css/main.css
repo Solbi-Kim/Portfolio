@@ -1219,7 +1219,8 @@ input, select, textarea {
 		box-shadow: 0 1em 3em 0.5em rgba(0, 0, 0, 0.25);
 		cursor: default;
 		position: relative !important;
-		top: 30%
+		top: 50%
+		bottom: 50%
 
 		display: flex;                 /* flex 사용! */
   		flex-direction: column;        /* 위에서 아래로 정렬 */
@@ -1320,7 +1321,7 @@ input, select, textarea {
 			background-image: -webkit-linear-gradient(to top, rgba(16,16,16,0.45) 25%, rgba(16,16,16,0) 100%);
 			background-image: -ms-linear-gradient(to top, rgba(16,16,16,0.45) 25%, rgba(16,16,16,0) 100%);
 			background-image: linear-gradient(to top, rgba(16,16,16,0.45) 25%, rgba(16,16,16,0) 100%);
-			bottom: 2em;
+			bottom: 0em;
 			cursor: default;
 			left: 0;
 			position: relative;
