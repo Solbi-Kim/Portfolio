@@ -297,6 +297,7 @@
 
 // 좋아요 숫자 카운터 불러오기(페이지 로드 시)
 const counterKey = 'solbi-portfolio-2024/likes';
+// 페이지 로드할때 이전 좋아요 숫자 get
 fetch(`https://api.countapi.xyz/get/${counterKey}`)
 	.then(res => res.json())
 	.then(res => {
