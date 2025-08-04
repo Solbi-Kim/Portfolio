@@ -277,21 +277,38 @@
 				breakpoints.on('>xsmall', function() {
 					$main[0]._poptrox.windowMargin = 50;
 				});
-	$('.gallery').poptrox({
-  // ...
-  onPopup: function() {
-    var popup = $('.poptrox-popup');
-    var title = popup.find('.caption').html(); // 기존 제목
-    // 새 제목바 구조 만들기
-    var titleBar = $(
-      '<div class="title-bar">' +
-        '<span class="nav-previous">&lt;</span>' +
-        '<h2>' + title + '</h2>' +
-        '<span class="nav-next">&gt;</span>' +
-      '</div>'
-    );
-    popup.find('.caption').replaceWith(titleBar);
-  }
-});
+
+	
+			$('.gallery').poptrox({
+  				onPopup: function() {
+    				var popup = $('.poptrox-popup');
+    				var title = popup.find('.caption').html(); // 기존 제목
+    				// 새 제목바 구조 만들기
+    				var titleBar = $(
+      				'<div class="title-bar">' +
+        			'<span class="nav-previous">&lt;</span>' +
+        			'<h2>' + title + '</h2>' +
+        			'<span class="nav-next">&gt;</span>' +
+      				'</div>'
+    				);
+    			popup.find('.caption').replaceWith(titleBar);
+  			}
+
+			// 1) 타이틀 등장 애니메이션
+			window.addEventListener("DOMContentLoaded", () => {
+  				setTimeout(() => {
+	    				document.querySelector(".hero-title h1").classList.add("show");
+  				}, 400); // 0.4초 후 등장
+			});
+
+			// 2) 마우스 포인터에 따라 배경 움직이기
+			document.querySelector(".hero-title").addEventListener("mousemove", function (e) {
+ 				const rect = this.getBoundingClientRect();
+				const x = ((e.clientX - rect.left) / rect.width) * 100;
+				const y = ((e.clientY - rect.top) / rect.height) * 100;
+  				this.style.setProperty("--mx", `${x}%`);
+  				this.style.setProperty("--my", `${y}%`);
+			});
+	});
 
 })(jQuery);
