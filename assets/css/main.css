@@ -1260,7 +1260,7 @@ input, select, textarea {
 			opacity: 0;
 			position: absolute;
 			right: 1.5em;
-			top: -5em;
+			top: -1em;
 			width: 2.5em;
 			height: 2.5em;
 			z-index: 11;
