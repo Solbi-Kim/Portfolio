@@ -1205,10 +1205,6 @@ input, select, textarea {
 		box-shadow: 0 1em 3em 0.5em rgba(0, 0, 0, 0.25);
 		cursor: default;
 		position: absolute;
- 		max-width: 80vw;   /* 창 가로폭, 60% 화면 너비 */
-  		max-height: 80vh;  /* 창 세로폭, 80% 화면 높이 */
-  		width: 100%;
-  		height: auto;
 		
 	}
 	@media (max-width: 736px) {
