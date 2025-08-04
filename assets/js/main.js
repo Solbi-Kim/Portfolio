@@ -294,21 +294,6 @@
     			popup.find('.caption').replaceWith(titleBar);
   			}
 
-			// 1) 타이틀 등장 애니메이션
-			window.addEventListener("DOMContentLoaded", () => {
-  				setTimeout(() => {
-	    				document.querySelector(".hero-title h1").classList.add("show");
-  				}, 400); // 0.4초 후 등장
-			});
-
-			// 2) 마우스 포인터에 따라 배경 움직이기
-			document.querySelector(".hero-title").addEventListener("mousemove", function (e) {
- 				const rect = this.getBoundingClientRect();
-				const x = ((e.clientX - rect.left) / rect.width) * 100;
-				const y = ((e.clientY - rect.top) / rect.height) * 100;
-  				this.style.setProperty("--mx", `${x}%`);
-  				this.style.setProperty("--my", `${y}%`);
-			});
 	});
 
 })(jQuery);
