@@ -1211,6 +1211,7 @@ input, select, textarea {
   			flex-direction: column;        /* 위에서 아래로 정렬 */
   			justify-content: flex-start;   /* 맨 위 정렬 */
   			align-items: center;           /* 가운데 정렬  에러시 주석 다지우기 */
+	}
 	.poptrox-popup iframe {     /* 에러시 주석 다지우기 */
   	margin-top: 0;
   	margin-bottom: 1.5em;  /* 제목/캡션이랑 간격 */
@@ -1218,9 +1219,8 @@ input, select, textarea {
   	/* max-width: 100%; */
   	/* height: 400px;      // 필요시 조절 */
  	 /* display: block;     // flex에선 필요 없음   에러시주석다지우기 */
-}
-		
 	}
+		
 	@media (max-width: 736px) {
   		.poptrox-popup {
    		 max-width: 95vw;
@@ -1282,7 +1282,7 @@ input, select, textarea {
 			margin-top: -4em;
 			opacity: 0;
 			position: absolute;
-			top: 50%;                           /* 창의 중간(위아래) */
+			top: 60%;                           /* 창의 중간(위아래) */
 			transform: translateY(-50%);
 			z-index: 10;
 		}
