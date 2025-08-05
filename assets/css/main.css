@@ -1307,7 +1307,7 @@ input, select, textarea {
 }
 
 .poptrox-popup iframe {     
-		margin-top: 0px    /* 영상 영역 위로 */
+		padding-bottom: 4em;   
 }
 
 
