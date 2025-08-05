@@ -1393,8 +1393,7 @@ input, select, textarea {
 		position: static;       /* absolute 말고 static */
 		width: 100%;
 		text-align: left;       /* 필요에 따라 center로도 가능 */
-		padding: 2em 2em 0em 2em; /* 하단 0, 위/좌/우만 여백 */
-		padding-bottom: 0 !important;  /* 하단 패딩 0 */
+		padding: 2em 2em 2em 2em; /* 하단 0, 위/좌/우만 여백 */
 		margin-bottom: 2em;       /* margin 들어가면 0으로! */
 		box-sizing: border-box; /* padding이 width 안에 포함되게 */
 }
