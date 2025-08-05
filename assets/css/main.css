@@ -1389,7 +1389,7 @@ input, select, textarea {
 		background-image: -webkit-linear-gradient(to top, rgba(16,16,16,0.45) 25%, rgba(16,16,16,0) 100%);
 		background-image: -ms-linear-gradient(to top, rgba(16,16,16,0.45) 25%, rgba(16,16,16,0) 100%);
 		background-image: linear-gradient(to top, rgba(16,16,16,0.45) 25%, rgba(16,16,16,0) 100%);
-		bottom: -2em;
+		bottom: 0em;
 		cursor: default;
 		left: 0;
 		position: static;
