@@ -338,26 +338,36 @@ function createFloatingHeart() {
 	heart.style.left = `${left}%`;
 	heart.style.top = `${top}%`;
 
-	// scale/rotate/wiggle 랜덤
+	// rotate
 	const rot = Math.floor(Math.random()*60) - 30;
-	const up = Math.floor(Math.random()*60) + 30;
-	const wiggle = Math.floor(Math.random()*60) - 30;
-	heart.style.setProperty('--rot', `${rot}deg`);
-	heart.style.setProperty('--up', `-${up}px`);
-	heart.style.setProperty('--wiggle', `${wiggle}px`);
 
 	// 폰트사이즈(크기) 랜덤
 	heart.style.fontSize = `${2.4 + Math.random()*1.6}em`;
+
+	// 위로 올라가는 구간별 translateY 값 (네가 원하는 만큼 단계 추가 가능)
+	const up1 = -(Math.random()*20 + 20);  // -20 ~ -40px
+	const up2 = up1 - (Math.random()*40 + 40);  // 더 위로 (-60 ~ -120px)
+	const up3 = up2 - (Math.random()*50 + 40);  // (-100 ~ -170px)
+	const up4 = up3 - (Math.random()*50 + 30);  // 최종 (-140 ~ -220px)
+
+	// wiggle 좌우 흔들기 각 구간별
+	const wiggle1 = Math.floor(Math.random()*60)-30;  // -30~+30px
+	const wiggle2 = Math.floor(Math.random()*60)-30;
+	const wiggle3 = Math.floor(Math.random()*60)-30;
+
+	heart.style.setProperty('--rot', `${rot}deg`);
+	heart.style.setProperty('--up1', `${up1}px`);
+	heart.style.setProperty('--up2', `${up2}px`);
+	heart.style.setProperty('--up3', `${up3}px`);
+	heart.style.setProperty('--up4', `${up4}px`);
+	heart.style.setProperty('--wiggle1', `${wiggle1}px`);
+	heart.style.setProperty('--wiggle2', `${wiggle2}px`);
+	heart.style.setProperty('--wiggle3', `${wiggle3}px`);
 
 	heartFxContainer.appendChild(heart);
 
 	heart.addEventListener('animationend', () => heart.remove());
 }
-
-
-
-
-
 
 
 })(jQuery);
