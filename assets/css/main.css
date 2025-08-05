@@ -1293,7 +1293,7 @@ input, select, textarea {
 		display: flex;
 		flex-direction: column;
 		justify-content: flex-end;
-		align-items: center;
+		align-items: stretch;
 
 		max-height: 90vh;    /* 원래보다 좀 더 길게 */
 		min-height: 340px;   /* 필요하면 높이 최소값도 줘 */
@@ -1384,19 +1384,16 @@ input, select, textarea {
 }
 
 .poptrox-popup .caption {
-		padding: 2em 2em 0.1em 2em ;
 		background-image: -moz-linear-gradient(to top, rgba(16,16,16,0.45) 25%, rgba(16,16,16,0) 100%);
 		background-image: -webkit-linear-gradient(to top, rgba(16,16,16,0.45) 25%, rgba(16,16,16,0) 100%);
 		background-image: -ms-linear-gradient(to top, rgba(16,16,16,0.45) 25%, rgba(16,16,16,0) 100%);
 		background-image: linear-gradient(to top, rgba(16,16,16,0.45) 25%, rgba(16,16,16,0) 100%);
-		bottom: 0em;
-		cursor: default;
-		left: 0;
-		position: static;
-		text-align: left;
+		position: static;       /* absolute 말고 static */
 		width: 100%;
-		z-index: 2;
-		padding: 2em 2em 0.8em 2em;
+		text-align: left;       /* 필요에 따라 center로도 가능 */
+		padding: 2em 2em 0.8em 2em;   /* 하단 여백을 0~1em 정도로 */
+		margin-bottom: 0;       /* 혹시 margin 들어가면 0으로! */
+		box-sizing: border-box; /* padding이 width 안에 포함되게 */
 }
 
 .poptrox-popup .caption h2, 
@@ -1485,6 +1482,12 @@ body.touch .poptrox-popup .nav-next {
 		.poptrox-popup .nav-next {
 				display: none !important;
 		}
+}
+
+@media (max-width: 736px) {
+	.poptrox-popup .caption {
+		padding: 1em 0.7em 0.3em 0.7em;
+	}
 }
 
 /* Wrapper */
