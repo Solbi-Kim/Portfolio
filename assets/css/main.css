@@ -1294,7 +1294,7 @@ input, select, textarea {
 }
 
 .poptrox-popup iframe {     
-		margin-top: -50px
+		margin-top: -60px
 }
 
 @media (max-width: 736px) {
@@ -1336,7 +1336,7 @@ input, select, textarea {
 		opacity: 0;
 		position: absolute;
 		right: 1.5em;
-		top: -1em;
+		top: -3em;
 		width: 2.5em;
 		height: 2.5em;
 		z-index: 11;
@@ -1367,12 +1367,12 @@ input, select, textarea {
 		-moz-transform: scaleX(-1);
 		-webkit-transform: scaleX(-1);
 		-ms-transform: scaleX(-1);
-		left: -2em;
+		left: -3em;
 		transform: translateY(-50%) scaleX(-1);
 }
 
 .poptrox-popup .nav-next {
-		right: -2em;
+		right: -3em;
 }
 
 .poptrox-popup .caption {
