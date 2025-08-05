@@ -316,7 +316,7 @@ heartBtn.addEventListener('click', function() {
 	// 하트 여러 개(6~12개) 랜덤 생성
 	const hearts = Math.floor(Math.random()*7) + 6;
 	for (let i = 0; i < hearts; i++) {
-		createFloatingHeart(emoji);
+		createFloatingHeart();
 	}
 
 	// 좋아요 숫자 +1 증가
