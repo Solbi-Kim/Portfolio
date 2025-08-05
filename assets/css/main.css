@@ -1342,7 +1342,7 @@ input, select, textarea {
 		background-size: 3em;
 		opacity: 0;
 		position: fixed;
-		right: 1.5em;
+		right: 0.5em;
 		top: -3em;
 		width: 2.5em;
 		height: 2.5em;
@@ -1478,6 +1478,12 @@ body.touch .poptrox-popup .nav-next {
 		}
 		.poptrox-popup .caption h2 {
 		font-size: 2em;
+		}
+		.poptrox-popup iframe {
+			aspect-ratio: 9 / 16;    /* 세로모드(포트레이트) 비율 */
+			width: 100%;
+			height: auto;
+			max-height: 80vh;        /* 필요시 최대 높이 제한 */
 		}
 		.poptrox-popup .closer,
 		.poptrox-popup .nav-previous,
