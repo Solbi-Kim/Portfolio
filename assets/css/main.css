@@ -1268,9 +1268,6 @@ input, select, textarea {
 		cursor: default;
 		position: relative;
 	}
-	.poptrox-popup iframe {
-	margin-top: -30px;    /* 위로 올림 */
-	}
 
 		.poptrox-popup:before {
 			-moz-transition: opacity 0.2s ease-in-out;
