@@ -1298,7 +1298,7 @@ input, select, textarea {
 		max-height: 90vh;    /* 원래보다 좀 더 길게 */
 		min-height: 340px;   /* 필요하면 높이 최소값도 줘 */
 		height: auto;/* 내부 콘텐츠에 맞게 자동 */
-		padding-bottom: 0 !important;   /* 혹시 padding 있으면 제거 */
+		padding-bottom: 3em;   /* 혹시 padding 있으면 제거 */
 		margin-bottom: 2.5em; /* 라이트박스와 창 아래쪽 사이 여백! */
 }
 
