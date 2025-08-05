@@ -1246,7 +1246,7 @@ input, select, textarea {
 /* ========================= */
 
 .poptrox-overlay {
-		-webkit-tap-highlight-color: rgba(255, 255, 255, 0);
+		-webkit-tap-highlight-color: rgba(0, 0, 0, 10);
 		opacity: 1;
 		position: fixed;
 		left: 0;
@@ -1379,11 +1379,13 @@ input, select, textarea {
 .poptrox-popup .caption h6 {
 		margin: 0 0 0.5em 0;
 		line-height: 1.18;
+		display: inline-block;
 }
 
 .poptrox-popup .caption p {
 		margin: 0 0 0.2em 0;   /* 마지막 문장 아래 붙게 */
 		line-height: 1.22;
+		display: inline-block;
 }
 
 .poptrox-popup .caption-title {
@@ -1392,6 +1394,7 @@ input, select, textarea {
 		font-weight: 600;
 		color: #fff;
 		margin-top: -0.3em;
+		display: inline-block;
 }
 
 .poptrox-popup .loader {
