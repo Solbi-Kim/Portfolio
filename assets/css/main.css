@@ -1476,8 +1476,8 @@ body.touch .poptrox-popup .nav-next {
 		.poptrox-popup:before {
 				display: none;
 		}
-		.poptrox-popup .caption {
-				display: none !important;
+		.poptrox-popup .caption h2 {
+		font-size: 2em;
 		}
 		.poptrox-popup .closer,
 		.poptrox-popup .nav-previous,
