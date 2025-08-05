@@ -357,7 +357,23 @@ function createFloatingHeart(emoji) {
 
 	heartFxContainer.appendChild(heart);
 
-	heart.addEventListener('animationend', () => heart.remove());
+	(function animateSinCurve(heart, baseTop, up, left, wiggle, rot) {
+		const duration = 1200;
+		const start = performance.now();
+		function frame(now) {
+			let t = (now - start) / duration;
+			if (t > 1) t = 1;
+			const y = baseTop + up * t;
+			const x = left + Math.sin(t * Math.PI * 2) * wiggle;
+			heart.style.top = `${y}%`;
+			heart.style.left = `${x}%`;
+			heart.style.opacity = t < 0.1 ? t * 10 : t > 0.85 ? (1 - t) * 5 : 1;
+			heart.style.transform = `scale(${1.1 - t*0.7}) rotate(${rot}deg)`;
+			if (t < 1) requestAnimationFrame(frame);
+			else heart.remove();
+		}
+		requestAnimationFrame(frame);
+	})(heart, top, up, left, wiggle, rot);
 }
 
 
