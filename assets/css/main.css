@@ -1394,6 +1394,13 @@ input, select, textarea {
 		padding: 0em 1.6em 0em 1.6em;  /* 상/좌/하/우 여백 */
 		margin-bottom: 5vh;
 
+		position: absolute;
+		width: 100%;
+		box-sizing: border-box;
+		padding: 0em 1.6em 0em 1.6em;  /* 상/좌/하/우 여백 */
+		margin-bottom: 0;
+		padding: 1.3em 1.6em 0.6em 1.6em;  /* 상/좌/하/우 여백 */
+		margin: 0;
 }
 
 .poptrox-popup .caption h2, 
