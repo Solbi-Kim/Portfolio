@@ -315,7 +315,6 @@ const heartBtn = document.getElementById('like-btn');
 heartBtn.addEventListener('click', function() {
 	// 하트 여러 개(6~12개) 랜덤 생성
 	launchHearts();
-	}
 
 	// 좋아요 숫자 +1 증가
 	fetch(`https://script.google.com/macros/s/AKfycbw6jrYpLM3nrZeXmAJsZOXyWg48TwJTrYlVXvcT01kvq0flhDipUV4E7BAOiaSu0iUxcw/exec?inc=1`)
