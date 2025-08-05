@@ -1286,7 +1286,7 @@ input, select, textarea {
 		position: fixed !important;
 		left: 50%;
 		top: 3em;
-		botom:2em;
+		bottom:2em;
 		transform: translateX(-50%);
 		max-width: 96vw;         /* 좌우 2vw씩 여백 */
 		width: auto;
