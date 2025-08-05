@@ -314,9 +314,10 @@ const heartBtn = document.getElementById('like-btn');
 heartBtn.addEventListener('click', function() {
 	// 하트 여러 개(6~12개) 랜덤 생성
 	const hearts = Math.floor(Math.random()*7) + 6;
-	for (let i = 0; i < hearts; i++) {
-		createFloatingHeart();
+	for (let i = 0; i < count; i++) {
+		createFloatingEmoji();
 	}
+	currentEmojiIndex = Math.floor(Math.random() * emojiList.length); //다른 이모지로 랜덤하게 바꾸기!
 
 	// 좋아요 숫자 +1 증가
 	fetch(`https://script.google.com/macros/s/AKfycbw6jrYpLM3nrZeXmAJsZOXyWg48TwJTrYlVXvcT01kvq0flhDipUV4E7BAOiaSu0iUxcw/exec?inc=1`)
@@ -327,30 +328,31 @@ heartBtn.addEventListener('click', function() {
 });
 
 // 하트 애니메이션 함수 (wiggle/크기 랜덤 포함)
-function createFloatingHeart() {
-	const heart = document.createElement('div');
-	heart.className = 'heart-fx';
-	heart.innerHTML = '❤️';
+const emojiList = ['❤️', '😍', '🔥', '👏', '🤩', '✨', '💎', '😎'];
+let currentEmojiIndex = 0;  // 전역 변수로 현재 이모지 기억
+
+function createFloatingEmoji() {
+	const emoji = document.createElement('div');
+	emoji.className = 'heart-fx';
+	emoji.innerHTML = emojiList[currentEmojiIndex];
 
 	const left = 10 + Math.random() * 80;
 	const top = 25 + Math.random() * 45;
-	heart.style.left = `${left}%`;
-	heart.style.top = `${top}%`;
+	emoji.style.left = `${left}%`;
+	emoji.style.top = `${top}%`;
 
 	const rot = Math.floor(Math.random() * 60) - 30;
-	const up = -120 - Math.random()*90;      // 위로 -120~-210px
-	const wiggle = Math.floor(Math.random() * 70) - 35; // -35~+35px
+	const up = -120 - Math.random()*90;
+	const wiggle = Math.floor(Math.random() * 70) - 35;
 
-	heart.style.fontSize = `${2.6 + Math.random()*2.0}em`;
+	emoji.style.fontSize = `${2.6 + Math.random()*2.0}em`;
 
-	heart.style.setProperty('--rot', `${rot}deg`);
-	heart.style.setProperty('--up', `${up}px`);
-	heart.style.setProperty('--wiggle', `${wiggle}px`);
+	emoji.style.setProperty('--rot', `${rot}deg`);
+	emoji.style.setProperty('--up', `${up}px`);
+	emoji.style.setProperty('--wiggle', `${wiggle}px`);
 
-	heartFxContainer.appendChild(heart);
-
-	heart.addEventListener('animationend', () => heart.remove());
+	heartFxContainer.appendChild(emoji);
+	emoji.addEventListener('animationend', () => emoji.remove());
 }
-
 
 })(jQuery);
