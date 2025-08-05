@@ -341,7 +341,7 @@ function createFloatingHeart(emoji) {
 	heart.innerHTML = emoji;  // 넘겨받은 이모지만 넣기!
 
 	const left = 10 + Math.random() * 80;
-	const top = 0 + Math.random() * 25;
+	const top = 80 + Math.random() * 20;
 	heart.style.left = `${left}%`;
 	heart.style.top = `${top}%`;
 
