@@ -1247,7 +1247,7 @@ input, select, textarea {
 /* ========================= */
 
 .poptrox-overlay {
-		-webkit-tap-highlight-color: rgba(0, 0, 0, 10);
+		-webkit-tap-highlight-color: rgba(0, 0, 0, 20);
 		opacity: 1;
 		position: fixed;
 		left: 0;
