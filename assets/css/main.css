@@ -1393,7 +1393,7 @@ input, select, textarea {
 		position: static;       /* absolute 말고 static */
 		width: 100%;
 		text-align: left;       /* 필요에 따라 center로도 가능 */
-		padding: 2em 2em 3em 2em; /* 상좌하우 여백 */
+		padding: 2em 2em 0em 2em; /* 상좌하우 여백 */
 		margin-bottom: 2em;       /* margin 들어가면 0으로! */
 		box-sizing: border-box; /* padding이 width 안에 포함되게 */
 }
@@ -1403,7 +1403,7 @@ input, select, textarea {
 .poptrox-popup .caption h4, 
 .poptrox-popup .caption h5, 
 .poptrox-popup .caption h6 {
-		margin: 0 0 3em 0;
+		margin: 0 0 1em 0;
 }
 
 .poptrox-popup .caption p {
