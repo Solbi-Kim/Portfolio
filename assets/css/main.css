@@ -1283,23 +1283,26 @@ input, select, textarea {
 }
 
 .poptrox-popup {
-		background: rgba(31, 34, 36, 0);
-		box-shadow: 0 1em 3em 0.5em rgba(0, 0, 0, 0.25);
-		cursor: default;
 		position: fixed !important;
 		left: 50%;
 		top: 50%;
-		transform: translate(-50%, -47%);  /*X,Y 값임*/
+		transform: translate(-50%, -50%);
+		max-width: 96vw;         /* 좌우 2vw씩 여백 */
+		width: auto;
+		min-width: 220px;        /* 필요시 최소값 */
+		max-height: 90vh;        /* 상하 5vh씩 여백 */
+		min-height: 200px;       /* 필요시 최소값 */
+		height: auto;
+
+		margin: 0;               /* 창과 박스 바깥 여백 없음! */
+		padding: 0;              /* 박스 내부 여백 없음! */
+		box-sizing: border-box;  /* padding, border까지 폭 계산에 포함 */
 		display: flex;
 		flex-direction: column;
 		justify-content: flex-end;
 		align-items: stretch;
-
-		max-height: 90vh;    /* 원래보다 좀 더 길게 */
-		min-height: 340px;   /* 필요하면 높이 최소값도 줘 */
-		height: auto;/* 내부 콘텐츠에 맞게 자동 */
-		padding-bottom: 3em;   /* 혹시 padding 있으면 제거 */
-		margin-bottom: 10em; /* 라이트박스와 창 아래쪽 사이 여백! */
+		box-shadow: 0 1em 3em 0.5em rgba(0,0,0,0.25);
+		background: rgba(31,34,36,0);
 }
 
 .poptrox-popup iframe {     
@@ -1384,12 +1387,10 @@ input, select, textarea {
 		background-image: -webkit-linear-gradient(to top, rgba(16,16,16,0.45) 25%, rgba(16,16,16,0) 100%);
 		background-image: -ms-linear-gradient(to top, rgba(16,16,16,0.45) 25%, rgba(16,16,16,0) 100%);
 		background-image: linear-gradient(to top, rgba(16,16,16,0.45) 25%, rgba(16,16,16,0) 100%);
-		position: static;       /* absolute 말고 static */
 		width: 100%;
-		text-align: left;       /* 필요에 따라 center로도 가능 */
-		padding: 1.2em 2em 0em 2em; /* 상좌하우 여백 */
-		margin-bottom: 0em;       /* margin 들어가면 0으로! */
-		box-sizing: border-box; /* padding이 width 안에 포함되게 */
+		box-sizing: border-box;
+		padding: 1.3em 1.6em 0.6em 1.6em;  /* 상/좌/하/우 여백 */
+		margin: 0;
 }
 
 .poptrox-popup .caption h2, 
