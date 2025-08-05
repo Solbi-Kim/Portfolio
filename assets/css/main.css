@@ -1239,30 +1239,6 @@ input, select, textarea {
 		animation: heart-pop 0.95s cubic-bezier(0.22,1,0.36,1) forwards;
 		user-select: none;
 }
-@keyframes heart-pop {
-	0% {
-		opacity: 0;
-		transform: scale(0.2) translateY(40px) translateX(0) rotate(var(--rot, 0deg));
-	}
-	15% {
-		opacity: 1;
-		transform: scale(1.2) translateY(0) translateX(0) rotate(var(--rot, 0deg));
-	}
-	35% {
-		transform: scale(1) translateY(-40px) translateX(var(--wiggle, 0px)) rotate(var(--rot, 0deg));
-	}
-	60% {
-		transform: scale(0.93) translateY(-110px) translateX(calc(var(--wiggle, 0px) * -0.7)) rotate(var(--rot, 0deg));
-	}
-	85% {
-		opacity: 1;
-		transform: scale(0.8) translateY(-170px) translateX(var(--wiggle, 0px)) rotate(var(--rot, 0deg));
-	}
-	100% {
-		opacity: 0;
-		transform: scale(0.5) translateY(-240px) translateX(0) rotate(var(--rot, 0deg));
-	}
-}
 
 
 /* ========================= */
@@ -1401,7 +1377,7 @@ input, select, textarea {
 .poptrox-popup .caption h4, 
 .poptrox-popup .caption h5, 
 .poptrox-popup .caption h6 {
-		margin: 0 0 0.3em 0;
+		margin: 0 0 0.5em 0;
 		line-height: 1.18;
 }
 
@@ -1415,7 +1391,7 @@ input, select, textarea {
 		font-size: 1.3em;
 		font-weight: 600;
 		color: #fff;
-		margin: 0 1em;
+		margin-top: -0.3em;
 }
 
 .poptrox-popup .loader {
