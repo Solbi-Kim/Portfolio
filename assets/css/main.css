@@ -1392,7 +1392,7 @@ input, select, textarea {
 		width: 100%;
 		box-sizing: border-box;
 		padding: 0em 1.6em 0em 1.6em;  /* 상/좌/하/우 여백 */
-		bottom:1em;
+		bottom: 0.6em;
 
 }
 
