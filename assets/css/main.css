@@ -1296,7 +1296,7 @@ input, select, textarea {
 	@media (max-width: 736px) {
   		.poptrox-popup {
    		 max-width: 95vw;
-   		 max-height: 85vh;
+   		 max-height: 80vh;
   		}
 	}
 
