@@ -1290,8 +1290,8 @@ input, select, textarea {
 		max-width: 96vw;         /* 좌우 2vw씩 여백 */
 		width: auto;
 		min-width: 220px;        /* 필요시 최소값 */
-		/*max-height: 90vh;         상하 5vh씩 여백 
-		min-height: 200px;        필요시 최소값 */
+		max-height: 90vh;         /*상하 5vh씩 여백 */
+		min-height: 200px;        /*필요시 최소값 */
 		height: auto; 
 		top:3em; bottom:2em;
 
