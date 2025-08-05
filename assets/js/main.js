@@ -341,7 +341,7 @@ function createFloatingHeart(emoji) {
 	heart.innerHTML = emoji;  // 넘겨받은 이모지만 넣기!
 
 	const left = 10 + Math.random() * 80;
-	const top = 25 + Math.random() * 45;
+	const top = 25 + Math.random() * 25;
 	heart.style.left = `${left}%`;
 	heart.style.top = `${top}%`;
 
@@ -358,7 +358,7 @@ function createFloatingHeart(emoji) {
 	heartFxContainer.appendChild(heart);
 
 	(function animateSinCurve(heart, baseTop, up, left, wiggle, rot) {
-		const duration = 1200;
+		const duration = 1800;
 		const start = performance.now();
 		function frame(now) {
 			let t = (now - start) / duration;
