@@ -327,7 +327,7 @@ heartBtn.addEventListener('click', function() {
 // 하트 애니메이션 함수 (wiggle/크기 랜덤 포함)
 
 function launchHearts() {    //랜덤 이모지 배열
-	const emojis = ['❤️','💛','💜','💙','💚','🧡','🤍','💖','✨','🔥','😍','🌈','🎉','🥰','😎','👍','⭐️','🩷','🦄'];
+	const emojis = ['❤️','💛','💜','💙','💚','🧡','🤍','💖','✨','🔥','😍','🌈','🎉','🥰','😎','👍','⭐️','🦄'];
 	const emoji = emojis[Math.floor(Math.random() * emojis.length)];
 	const hearts = Math.floor(Math.random() * 7) + 6; // 6~12개 랜덤
 	for (let i = 0; i < hearts; i++) {
