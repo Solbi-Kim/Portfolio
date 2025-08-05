@@ -298,7 +298,7 @@
 // 좋아요 숫자 카운터 불러오기(페이지 로드 시)
 const counterKey = 'solbi-portfolio-2024/likes';
 // 페이지 로드할때 이전 좋아요 숫자 get
-fetch(`https://script.google.com/macros/s/AKfycbwNObOcOMwX19XyhFi2fZ_d55EjX1o_jT1ucDIXK9I66kUDZrCEZentNFRFpMorsGGb/exec`)
+fetch(`https://script.google.com/macros/s/AKfycbw6jrYpLM3nrZeXmAJsZOXyWg48TwJTrYlVXvcT01kvq0flhDipUV4E7BAOiaSu0iUxcw/exec`)
 	.then(res => res.json())
 	.then(res => {
 		document.getElementById('like-count').textContent = res.value ?? 0;
@@ -319,7 +319,7 @@ heartBtn.addEventListener('click', function() {
 	}
 
 	// 좋아요 숫자 +1 증가
-	fetch(`https://script.google.com/macros/s/AKfycbwNObOcOMwX19XyhFi2fZ_d55EjX1o_jT1ucDIXK9I66kUDZrCEZentNFRFpMorsGGb/exec?inc=1`)
+	fetch(`https://script.google.com/macros/s/AKfycbw6jrYpLM3nrZeXmAJsZOXyWg48TwJTrYlVXvcT01kvq0flhDipUV4E7BAOiaSu0iUxcw/exec?inc=1`)
 		.then(res => res.json())
 		.then(res => {
 			document.getElementById('like-count').textContent = res.value;
