@@ -1297,7 +1297,9 @@ input, select, textarea {
 
 		max-height: 90vh;    /* 원래보다 좀 더 길게 */
 		min-height: 340px;   /* 필요하면 높이 최소값도 줘 */
-		height: auto;        /* 내부 콘텐츠에 맞게 자동 */
+		height: auto;/* 내부 콘텐츠에 맞게 자동 */
+		padding-bottom: 0 !important;   /* 혹시 padding 있으면 제거 */
+		margin-bottom: 2.5em; /* 라이트박스와 창 아래쪽 사이 여백! */
 }
 
 .poptrox-popup iframe {     
@@ -1391,8 +1393,9 @@ input, select, textarea {
 		position: static;       /* absolute 말고 static */
 		width: 100%;
 		text-align: left;       /* 필요에 따라 center로도 가능 */
-		padding: 2em 2em 0.8em 2em;   /* 하단 여백을 0~1em 정도로 */
-		margin-bottom: 0;       /* 혹시 margin 들어가면 0으로! */
+		padding: 2em 2em 0em 2em; /* 하단 0, 위/좌/우만 여백 */
+		padding-bottom: 0 !important;  /* 하단 패딩 0 */
+		margin-bottom: 2em;       /* margin 들어가면 0으로! */
 		box-sizing: border-box; /* padding이 width 안에 포함되게 */
 }
 
