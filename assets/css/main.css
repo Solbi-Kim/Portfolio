@@ -1295,7 +1295,7 @@ input, select, textarea {
 		justify-content: flex-end;
 		align-items: center;
 
-		max-height: 80vh;    /* 원래보다 좀 더 길게 */
+		max-height: 90vh;    /* 원래보다 좀 더 길게 */
 		min-height: 340px;   /* 필요하면 높이 최소값도 줘 */
 		height: auto;        /* 내부 콘텐츠에 맞게 자동 */
 }
