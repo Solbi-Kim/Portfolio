@@ -1385,9 +1385,6 @@ input, select, textarea {
 .poptrox-popup .caption p {
 		margin: 0 0 0.2em 0;   /* 마지막 문장 아래 붙게 */
 		line-height: 1.22;
-.poptrox-popup .caption c {
-	font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
-}
 
 }
 
@@ -1568,6 +1565,27 @@ body.touch .poptrox-popup .nav-next {
 			top: 50%;
 			visibility: visible;
 		}
+
+/* 이모지 넣는 Class */
+.mycaption-link {
+	font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', Pretendard, sans-serif;
+	font-size: 1.3em;
+	text-decoration: none;
+	padding: 0.15em 0.35em;
+	border-radius: 0.5em;
+	background: rgba(170,170,255,0.07);
+	transition: background 0.15s, color 0.15s;
+	color: #49f;
+	box-shadow: 0 1px 6px rgba(80,120,220,0.08);
+	cursor: pointer;
+}
+.mycaption-link:hover {
+	background: rgba(80,160,255,0.16);
+	color: #0052b7;
+	text-decoration: underline;
+}
+
+
 
 /* Header */
 
