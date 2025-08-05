@@ -1327,217 +1327,221 @@ input, select, textarea {
 /* Poptrox Popup */
 
 	.poptrox-overlay {
+		/* 모바일 탭 강조 비활성화 */
 		-webkit-tap-highlight-color: rgba(255, 255, 255, 0);
 	}
 
 	.poptrox-popup {
+		/* 라이트박스 배경 */
 		background: rgba(31, 34, 36, 0);
+		/* 라이트박스 그림자 */
 		box-shadow: 0 1em 3em 0.5em rgba(0, 0, 0, 0.25);
+		/* 마우스 기본커서 */
 		cursor: default;
+		/* 부모 내 위치 기준 + z-index 컨트롤 */
 		position: relative !important;
-		top: 50%
+		/* 위쪽 위치 (아래쪽 포함, 예전 플렉스용) */
+		top: 50%;
 		bottom: 50%;
+		/* 내부 컨텐츠 플렉스 정렬 */
+		display: flex;
+		flex-direction: column;        /* 세로로 배치 */
+		justify-content: flex-start;   /* 위에서부터 쌓임 */
+		align-items: center;           /* 좌우 가운데 정렬 */
+	}
 
-		display: flex;                 /* flex 사용! */
-  		flex-direction: column;        /* 위에서 아래로 정렬 */
-  		justify-content: flex-start;   /* 맨 위 정렬 */
-  		align-items: center;           /* 가운데 정렬  에러시 주석 다지우기 */
+	.poptrox-popup iframe {     
+		top: 0;                        /* 팝업 내부 iframe 상단 정렬 */
+		bottom: 1.5em;                 /* 하단 제목/캡션과 간격 */
+		/* width: 90%;                // 필요시 활성화 */
+		/* max-width: 100%; */
+		/* height: 400px;             // 필요시 활성화 */
+		/* display: block;            // flex 환경이면 불필요 */
 	}
-	.poptrox-popup iframe {     /* 에러시 주석 다지우기 */
-  	top: 0;
-  	bottom: 1.5em;  /* 제목/캡션이랑 간격 */
- 	 /* width: 90%;         // 필요시 주석 해제 */
-  	/* max-width: 100%; */
-  	/* height: 400px;      // 필요시 조절 */
- 	 /* display: block;     // flex에선 필요 없음   에러시주석다지우기 */
-	}
-		
+
 	@media (max-width: 736px) {
-  		.poptrox-popup {
-   		 max-width: 95vw;
-   		 max-height: 85vh;
-  		}
+		.poptrox-popup {
+			max-width: 95vw;           /* 모바일 가로 제한 */
+			max-height: 85vh;          /* 모바일 세로 제한 */
+		}
 	}
 
-		.poptrox-popup:before {
-			-moz-transition: opacity 0.2s ease-in-out;
-			-webkit-transition: opacity 0.2s ease-in-out;
-			-ms-transition: opacity 0.2s ease-in-out;
-			transition: opacity 0.2s ease-in-out;
-			background-image: -moz-linear-gradient(to left, rgba(31,34,36,0.35), rgba(31,34,36,0) 10em, rgba(31,34,36,0)), -moz-linear-gradient(to right, rgba(31,34,36,0.35), rgba(31,34,36,0) 10em, rgba(31,34,36,0));
-			background-image: -webkit-linear-gradient(to left, rgba(31,34,36,0.35), rgba(31,34,36,0) 10em, rgba(31,34,36,0)), -webkit-linear-gradient(to right, rgba(31,34,36,0.35), rgba(31,34,36,0) 10em, rgba(31,34,36,0));
-			background-image: -ms-linear-gradient(to left, rgba(31,34,36,0.35), rgba(31,34,36,0) 10em, rgba(31,34,36,0)), -ms-linear-gradient(to right, rgba(31,34,36,0.35), rgba(31,34,36,0) 10em, rgba(31,34,36,0));
-			background-image: linear-gradient(to left, rgba(31,34,36,0.35), rgba(31,34,36,0) 10em, rgba(31,34,36,0)), linear-gradient(to right, rgba(31,34,36,0.35), rgba(31,34,36,0) 10em, rgba(31,34,36,0));
-			content: '';
-			display: block;
-			height: 100%;
-			left: 0;
-			position: absolute;
-			top: 0;
-			width: 100%;
-			z-index: 1;
-			opacity: 1;
-		}
+	.poptrox-popup:before {
+		/* 팝업 그라데이션 효과 */
+		-moz-transition: opacity 0.2s ease-in-out;
+		-webkit-transition: opacity 0.2s ease-in-out;
+		-ms-transition: opacity 0.2s ease-in-out;
+		transition: opacity 0.2s ease-in-out;
+		background-image: -moz-linear-gradient(to left, rgba(31,34,36,0.35), rgba(31,34,36,0) 10em, rgba(31,34,36,0)), -moz-linear-gradient(to right, rgba(31,34,36,0.35), rgba(31,34,36,0) 10em, rgba(31,34,36,0));
+		background-image: -webkit-linear-gradient(to left, rgba(31,34,36,0.35), rgba(31,34,36,0) 10em, rgba(31,34,36,0)), -webkit-linear-gradient(to right, rgba(31,34,36,0.35), rgba(31,34,36,0) 10em, rgba(31,34,36,0));
+		background-image: -ms-linear-gradient(to left, rgba(31,34,36,0.35), rgba(31,34,36,0) 10em, rgba(31,34,36,0)), -ms-linear-gradient(to right, rgba(31,34,36,0.35), rgba(31,34,36,0) 10em, rgba(31,34,36,0));
+		background-image: linear-gradient(to left, rgba(31,34,36,0.35), rgba(31,34,36,0) 10em, rgba(31,34,36,0)), linear-gradient(to right, rgba(31,34,36,0.35), rgba(31,34,36,0) 10em, rgba(31,34,36,0));
+		content: '';
+		display: block;               /* block 요소로 팝업 전체 덮음 */
+		height: 100%;
+		left: 0;
+		position: absolute;
+		top: 0;
+		width: 100%;
+		z-index: 1;
+		opacity: 1;                   /* 그라데이션 불투명도 */
+	}
 
+	.poptrox-popup .closer {
+		/* 닫기(X)버튼 스타일 */
+		-moz-transition: opacity 0.2s ease-in-out;
+		-webkit-transition: opacity 0.2s ease-in-out;
+		-ms-transition: opacity 0.2s ease-in-out;
+		transition: opacity 0.2s ease-in-out;
+		background-image: url("images/close.svg");
+		background-position: center;
+		background-repeat: no-repeat;
+		background-size: 3em;
+		opacity: 0;
+		position: absolute;
+		right: 1.5em;                /* 우측 상단 */
+		top: 0em;
+		width: 2.5em;
+		height: 2.5em;
+		z-index: 11;                 /* 팝업 위에 항상 보임 */
+	}
+
+	.poptrox-popup .nav-previous,
+	.poptrox-popup .nav-next {
+		/* 좌우 네비(화살표) */
+		-moz-transition: opacity 0.2s ease-in-out;
+		-webkit-transition: opacity 0.2s ease-in-out;
+		-ms-transition: opacity 0.2s ease-in-out;
+		transition: opacity 0.2s ease-in-out;
+		background-image: url("images/arrow.svg");
+		background-position: center;
+		background-repeat: no-repeat;
+		background-size: 3em;
+		cursor: pointer;
+		height: 3em;
+		width: 3em;
+		margin-top: -4em;
+		opacity: 0;                  /* 기본은 숨김 */
+		position: absolute;
+		top: 100%;                   /* 아래쪽 정렬 */
+		transform: translateY(-50%);
+		z-index: 10;
+	}
+
+	.poptrox-popup .nav-previous {
+		-moz-transform: scaleX(-1);  /* 좌측 화살표 좌우반전 */
+		-webkit-transform: scaleX(-1);
+		-ms-transform: scaleX(-1);
+		left: 2em;
+		transform: translateY(-50%) scaleX(-1);
+	}
+
+	.poptrox-popup .nav-next {
+		right: 2em;                  /* 우측 화살표 */
+	}
+
+	.poptrox-popup .caption {
+		padding: 2em 2em 0.1em 2em ;/* 하단바 여백 */
+		background-image: -moz-linear-gradient(to top, rgba(16,16,16,0.45) 25%, rgba(16,16,16,0) 100%);
+		background-image: -webkit-linear-gradient(to top, rgba(16,16,16,0.45) 25%, rgba(16,16,16,0) 100%);
+		background-image: -ms-linear-gradient(to top, rgba(16,16,16,0.45) 25%, rgba(16,16,16,0) 100%);
+		background-image: linear-gradient(to top, rgba(16,16,16,0.45) 25%, rgba(16,16,16,0) 100%);
+		bottom: 0;
+		cursor: default;
+		left: 0;
+		position: absolute;
+		text-align: center;          /* 텍스트 중앙정렬 */
+		width: 100%;
+		z-index: 2;
+	}
+
+	.poptrox-popup .caption h2, 
+	.poptrox-popup .caption h3, 
+	.poptrox-popup .caption h4, 
+	.poptrox-popup .caption h5, 
+	.poptrox-popup .caption h6 {
+		margin: 0 0 1em 0;          /* 제목 위아래 여백 */
+	}
+
+	.poptrox-popup .caption p {
+		color: #ffffff;              /* 하단 설명글 흰색 */
+	}
+
+	.poptrox-popup .caption-title {
+		flex: none;
+		font-size: 1.3em;
+		font-weight: 600;
+		color: #fff;                 /* 캡션(제목) 강조색 */
+		margin: 0 1em;
+	}
+
+	.poptrox-popup .loader {
+		-moz-animation: spinner 1s infinite linear !important;
+		-webkit-animation: spinner 1s infinite linear !important;
+		-ms-animation: spinner 1s infinite linear !important;
+		animation: spinner 1s infinite linear !important;
+		background-image: url("images/spinner.svg");
+		background-position: center;
+		background-repeat: no-repeat;
+		background-size: contain;
+		display: block;
+		font-size: 2em;
+		height: 2em;
+		left: 50%;
+		line-height: 2em;
+		margin: -1em 0 0 -1em;
+		opacity: 0.25;
+		position: absolute;
+		text-align: center;
+		top: 50%;
+		width: 2em;
+	}
+
+	.poptrox-popup:hover .closer,
+	.poptrox-popup:hover .nav-previous,
+	.poptrox-popup:hover .nav-next {
+		opacity: 0.5;                 /* 마우스 오버 시 버튼/화살표 반투명 */
+	}
+
+	.poptrox-popup:hover .closer:hover,
+	.poptrox-popup:hover .nav-previous:hover,
+	.poptrox-popup:hover .nav-next:hover {
+		opacity: 1.0;                 /* 오버시 완전불투명 */
+	}
+
+	.poptrox-popup.loading:before {
+		opacity: 0;                   /* 로딩시 그라데이션 숨김 */
+	}
+
+	body.touch .poptrox-popup .closer,
+	body.touch .poptrox-popup .nav-previous,
+	body.touch .poptrox-popup .nav-next {
+		opacity: 1.0 !important;      /* 터치 디바이스에선 항상 보이게 */
+	}
+
+	@media screen and (max-width: 980px) {
 		.poptrox-popup .closer {
-			-moz-transition: opacity 0.2s ease-in-out;
-			-webkit-transition: opacity 0.2s ease-in-out;
-			-ms-transition: opacity 0.2s ease-in-out;
-			transition: opacity 0.2s ease-in-out;
-			background-image: url("images/close.svg");
-			background-position: center;
-			background-repeat: no-repeat;
-			background-size: 3em;
-			opacity: 0;
-			position: absolute;
-			right: 1.5em;
-			top: 0em;
-			width: 2.5em;
-			height: 2.5em;
-			z-index: 11;
+			background-size: 3em;      /* 태블릿 닫기 버튼 크기 */
 		}
-
 		.poptrox-popup .nav-previous,
 		.poptrox-popup .nav-next {
-			-moz-transition: opacity 0.2s ease-in-out;
-			-webkit-transition: opacity 0.2s ease-in-out;
-			-ms-transition: opacity 0.2s ease-in-out;
-			transition: opacity 0.2s ease-in-out;
-			background-image: url("images/arrow.svg");
-			background-position: center;
-			background-repeat: no-repeat;
-			background-size: 3em;
-			cursor: pointer;
-			height: 3em;
-			width: 3em;
-			margin-top: -4em;
-			opacity: 0;
-			position: absolute;
-			top: 100%;
-			transform: translateY(-50%);
-			z-index: 10;
+			background-size: 4em;      /* 태블릿 네비 크기 */
 		}
+	}
 
-		.poptrox-popup .nav-previous {
-			-moz-transform: scaleX(-1);
-			-webkit-transform: scaleX(-1);
-			-ms-transform: scaleX(-1);
-			left: 2em;
-			transform: translateY(-50%) scaleX(-1); /* 좌우반전+중앙 */
+	@media screen and (max-width: 736px) {
+		.poptrox-popup:before {
+			display: none;             /* 모바일에서 그라데이션 숨김 */
 		}
-
-		.poptrox-popup .nav-next {
-			right: 2em;
-			
-		}
-
 		.poptrox-popup .caption {
-			padding: 2em 2em 0.1em 2em ;
-			background-image: -moz-linear-gradient(to top, rgba(16,16,16,0.45) 25%, rgba(16,16,16,0) 100%);
-			background-image: -webkit-linear-gradient(to top, rgba(16,16,16,0.45) 25%, rgba(16,16,16,0) 100%);
-			background-image: -ms-linear-gradient(to top, rgba(16,16,16,0.45) 25%, rgba(16,16,16,0) 100%);
-			background-image: linear-gradient(to top, rgba(16,16,16,0.45) 25%, rgba(16,16,16,0) 100%);
-			bottom: 0;
-			cursor: default;
-			left: 0;
-			position: absolute;
-			text-align: center;   /* 중앙정렬 텍스트 */
-			width: 100%;
-			z-index: 2;
-			
+			display: none !important;  /* 모바일에서 하단 캡션 숨김 */
 		}
-
-			.poptrox-popup .caption h2, .poptrox-popup .caption h3, .poptrox-popup .caption h4, .poptrox-popup .caption h5, .poptrox-popup .caption h6 {
-				margin: 0 0 1em 0;
-			}
-
-			.poptrox-popup .caption p {
-				color: #ffffff;
-			}
-
-			.poptrox-popup .caption-title {
-  			flex: none;
-  			font-size: 1.3em;
-  			font-weight: 600;
-  			color: #fff;               /* 제목 색상 */
-  			margin: 0 1em;
-			}
-
-		.poptrox-popup .loader {
-			-moz-animation: spinner 1s infinite linear !important;
-			-webkit-animation: spinner 1s infinite linear !important;
-			-ms-animation: spinner 1s infinite linear !important;
-			animation: spinner 1s infinite linear !important;
-			background-image: url("images/spinner.svg");
-			background-position: center;
-			background-repeat: no-repeat;
-			background-size: contain;
-			display: block;
-			font-size: 2em;
-			height: 2em;
-			left: 50%;
-			line-height: 2em;
-			margin: -1em 0 0 -1em;
-			opacity: 0.25;
-			position: absolute;
-			text-align: center;
-			top: 50%;
-			width: 2em;
+		.poptrox-popup .closer,
+		.poptrox-popup .nav-previous,
+		.poptrox-popup .nav-next {
+			display: none !important;  /* 모바일에서 버튼 숨김 */
 		}
-
-		.poptrox-popup:hover .closer,
-		.poptrox-popup:hover .nav-previous,
-		.poptrox-popup:hover .nav-next {
-			opacity: 0.5;
-		}
-
-			.poptrox-popup:hover .closer:hover,
-			.poptrox-popup:hover .nav-previous:hover,
-			.poptrox-popup:hover .nav-next:hover {
-				opacity: 1.0;
-			}
-
-		.poptrox-popup.loading:before {
-			opacity: 0;
-		}
-
-
-		body.touch .poptrox-popup .closer,
-		body.touch .poptrox-popup .nav-previous,
-		body.touch .poptrox-popup .nav-next {
-			opacity: 1.0 !important;
-		}
-
-		@media screen and (max-width: 980px) {
-
-			.poptrox-popup .closer {
-				background-size: 3em;
-			}
-
-			.poptrox-popup .nav-previous,
-			.poptrox-popup .nav-next {
-				background-size: 4em;
-			}
-
-		}
-
-		@media screen and (max-width: 736px) {
-
-			.poptrox-popup:before {
-				display: none;
-			}
-
-			.poptrox-popup .caption {
-				display: none !important;
-			}
-
-			.poptrox-popup .closer,
-			.poptrox-popup .nav-previous,
-			.poptrox-popup .nav-next {
-				display: none !important;
-			}
-
-		}
+	}
 
 /* Wrapper */
 
