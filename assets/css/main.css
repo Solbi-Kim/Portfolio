@@ -1266,9 +1266,6 @@ input, select, textarea {
 		background: rgba(31, 34, 36, 0);
 		box-shadow: 0 1em 3em 0.5em rgba(0, 0, 0, 0.25);
 		cursor: default;
-<<<<<<< HEAD
-		position: relative;
-=======
 		position: relative !important;
 		top: 50%
 		bottom: 50%
@@ -1292,7 +1289,6 @@ input, select, textarea {
    		 max-width: 95vw;
    		 max-height: 85vh;
   		}
->>>>>>> parent of b8c87f1 (Update main.css)
 	}
 
 		.poptrox-popup:before {
