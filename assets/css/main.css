@@ -1299,19 +1299,13 @@ input, select, textarea {
 		min-height: 340px;   /* 필요하면 높이 최소값도 줘 */
 		height: auto;/* 내부 콘텐츠에 맞게 자동 */
 		padding-bottom: 3em;   /* 혹시 padding 있으면 제거 */
-		margin-bottom: 2.5em; /* 라이트박스와 창 아래쪽 사이 여백! */
+		margin-bottom: 2em; /* 라이트박스와 창 아래쪽 사이 여백! */
 }
 
 .poptrox-popup iframe {     
 		margin-top: 0px    /* 영상 영역 위로 */
 }
 
-@media (max-width: 736px) {
-		.poptrox-popup {
-				max-width: 95vw;
-				max-height: 85vh;
-		}
-}
 
 .poptrox-popup:before {
 		-moz-transition: opacity 0.2s ease-in-out;
@@ -1393,8 +1387,8 @@ input, select, textarea {
 		position: static;       /* absolute 말고 static */
 		width: 100%;
 		text-align: left;       /* 필요에 따라 center로도 가능 */
-		padding: 2em 2em 0em 2em; /* 상좌하우 여백 */
-		margin-bottom: 2em;       /* margin 들어가면 0으로! */
+		padding: 1.2em 2em 0em 2em; /* 상좌하우 여백 */
+		margin-bottom: 0em;       /* margin 들어가면 0으로! */
 		box-sizing: border-box; /* padding이 width 안에 포함되게 */
 }
 
@@ -1403,11 +1397,13 @@ input, select, textarea {
 .poptrox-popup .caption h4, 
 .poptrox-popup .caption h5, 
 .poptrox-popup .caption h6 {
-		margin: 0 0 1em 0;
+		margin: 0 0 0.3em 0;
+		line-height: 1.18;
 }
 
 .poptrox-popup .caption p {
-		color: #ffffff;
+		margin: 0 0 0.2em 0;   /* 마지막 문장 아래 붙게 */
+		line-height: 1.22;
 }
 
 .poptrox-popup .caption-title {
