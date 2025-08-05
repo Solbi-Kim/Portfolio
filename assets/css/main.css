@@ -360,6 +360,10 @@ input, select, textarea {
 	.align-right {
 		text-align: right;
 	}
+	span {
+		font-family: 'Pretendard', 'sans-serif';
+		font-weight: 400;  /* regular */
+	}
 
 /* Button */
 
