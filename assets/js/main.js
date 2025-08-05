@@ -328,10 +328,39 @@ heartBtn.addEventListener('click', function() {
 });
 
 // 하트 애니메이션 함수 (wiggle/크기 랜덤 포함)
-function createFloatingHeart() {
+/* 하트하나일때    function createFloatingHeart() {
 	const heart = document.createElement('div');
 	heart.className = 'heart-fx';
 	heart.innerHTML = '❤️';
+
+	const left = 10 + Math.random() * 80;
+	const top = 25 + Math.random() * 45;
+	heart.style.left = `${left}%`;
+	heart.style.top = `${top}%`;
+
+	const rot = Math.floor(Math.random() * 60) - 30;
+	const up = -120 - Math.random()*90;      // 위로 -120~-210px
+	const wiggle = Math.floor(Math.random() * 70) - 35; // -35~+35px
+
+	heart.style.fontSize = `${2.6 + Math.random()*2.0}em`;
+
+	heart.style.setProperty('--rot', `${rot}deg`);
+	heart.style.setProperty('--up', `${up}px`);
+	heart.style.setProperty('--wiggle', `${wiggle}px`);
+
+	heartFxContainer.appendChild(heart);
+
+	heart.addEventListener('animationend', () => heart.remove());
+}    */
+
+	function createFloatingHeart() {
+	const heart = document.createElement('div');
+	heart.className = 'heart-fx';
+
+	// 1. 여러 이모지 중에서 랜덤 선택
+	const emojis = ['❤️','💛','💜','💙','💚','🧡','🤍','💖','✨','🔥','😍','🌈','🎉','🥰','😎','👍','⭐️','🩷','🦄'];
+	const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+	heart.innerHTML = emoji;
 
 	const left = 10 + Math.random() * 80;
 	const top = 25 + Math.random() * 45;
