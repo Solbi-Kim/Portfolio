@@ -1,9 +1,4 @@
 <!DOCTYPE HTML>
-<!--
-	Multiverse by HTML5 UP
-	html5up.net | @ajlkn
-	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
--->
 <html>
 	<html lang="ko" translate="no">
 	<head>
@@ -12,24 +7,36 @@
 		<link rel="icon" type="image/x-icon" href="favicon-light.ico?" media="(prefers-color-scheme: light)">
 		<!-- 다크 모드 파비콘 -->
 		<link rel="icon" type="image/x-icon" href="favicon-dark.ico?" media="(prefers-color-scheme: dark)">
-
+	
 		<title>Portfolio by Shovi</title>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 		<link rel="stylesheet" href="assets/css/main.css" />
 		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
 		<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@800&display=swap" rel="stylesheet">
-
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Playwrite+AU+QLD:wght@100..400&display=swap" rel="stylesheet">
 	</head>
 	<body class="is-preload">
 
 		<div id="wrapper">
 
 		<!-- 상단 제목 섹션 -->
-  		<section class="hero-title">
-    			<h1 style="Font-size:5em; text-align: center">Portfolio by Solbi Kim</h1>
-    			<p style="font-size:1em; font-weight:400; text-align: center">Thank you for watching 😍</p>
-  		</section>
+  		<section class="hero-title" style="position:relative; overflow:hidden;">
+  <h1 id="typing-title">
+    <span id="typed-text"></span><span id="typed-cursor">|</span>
+  </h1>
+  <h2>&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;by Solbi Kim</h2>
+  <p>Thank you for watching 😍</p>
+  <div id="like-counter"
+       style="position:absolute; right:2em; bottom:0.7em; font-size:1.3em; color:#d16;">
+    <span id="like-btn" style="cursor:pointer; user-select:none;">❤️</span>
+    <span id="like-count">0</span>
+  </div>
+  <!-- 하트 애니메이션을 위한 컨테이너 추가 -->
+  <div id="heart-fx-container" style="pointer-events:none; position:absolute; top:0; left:0; width:100%; height:100%;"></div>
+</section>
 
 		<!-- Wrapper -->
 			<div id="wrapper">
@@ -47,7 +54,7 @@
 				<!-- Main -->
 					<div id="main">
 						<article class="thumb">
-							<a href="https://player.vimeo.com/video/1038469795?background=1" class="image" data-poptrox="iframe,1280x720">
+							<a href="https://player.vimeo.com/video/1038469795?background=1" class="image" data-poptrox="iframe,1280x720" >
 							<img src="https://i.vimeocdn.com/video/1960669285-8e74c2fbd1510f1ee23bde2f138256c88e7fef8b3f769ee0db2af28114a8a2ec-d?f=webp&region=us" alt="영상썸네일" /></a>
 							<h2>Are you sure?</h2>
 							<p>Glitch fx animation</p>
@@ -65,14 +72,16 @@
 							<p>Original : <a href ="https://youtu.be/1G-kFKv3syI?si=9T1Kx1jdOOg1l1gi">🎞</a></p>
 						</article>
 						<article class="thumb">
-							<a href="images/fulls/04.jpg" class="image"><img src="images/thumbs/04.jpg" alt="" /></a>
-							<h2>Coming Soon</h2>
-							<p>Coming Soon.</p>
+							<a href="https://player.vimeo.com/video/1106995508?background=1" class="image" data-poptrox="iframe,1280x720">
+							<img src="https://i.vimeocdn.com/video/2044032093-6898be911566f3b74f9520eef04afa45dc1d4500be1e02789bc000cc28100349-d?f=webp&region=us" alt="영상썸네일" /></a>
+							<h2>App Promotion : Kant</h2>
+							<p>Your time, your terms.</a></p>
 						</article>
 						<article class="thumb">
-							<a href="images/fulls/05.jpg" class="image"><img src="images/thumbs/05.jpg" alt="" /></a>
-							<h2>Coming Soon</h2>
-							<p>Coming Soon.</p>
+							<a href="https://player.vimeo.com/video/1107282826?background=1" class="image" data-poptrox="iframe,1280x720">
+							<img src="https://i.vimeocdn.com/video/2044253264-c170f1afd7e7a5ee19744b115887493ed35248f925e66e5f1c60e98cd94e6b96-d?f=webp&region=us" alt="영상썸네일" /></a>
+							<h2>Ride3_Remake_Video</h2>
+							<p>Original : <a href ="https://youtu.be/TAV0dV79W6M">🎞</a></p>
 						</article>
 						<article class="thumb">
 							<a href="images/fulls/06.jpg" class="image"><img src="images/thumbs/06.jpg" alt="" /></a>
@@ -116,8 +125,8 @@
 						<div class="inner split">
 							<div>
 								<section>
-									<h2>Magna feugiat sed adipiscing</h2>
-									<p>Nulla consequat, ex ut suscipit rutrum, mi dolor tincidunt erat, et scelerisque turpis ipsum eget quis orci mattis aliquet. Maecenas fringilla et ante at lorem et ipsum. Dolor nulla eu bibendum sapien. Donec non pharetra dui. Nulla consequat, ex ut suscipit rutrum, mi dolor tincidunt erat, et scelerisque turpis ipsum.</p>
+									<h2>모션그래픽과 영상을 제작합니다.</h2>
+									<p>아직 자기소개가 없습니다.</p>
 								</section>
 								<section>
 									<h2>Follow me on ...</h2>
@@ -131,7 +140,7 @@
 									</ul>
 								</section>
 								<p class="copyright">
-									&copy; Unttled. Design: <a href="http://html5up.net">HTML5 UP</a>.
+									&copy; Unttled. Design: <a href="">HTML5 UP</a>.
 								</p>
 							</div>
 							<div>
@@ -172,6 +181,29 @@
 	</body>
 
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

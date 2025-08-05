@@ -277,21 +277,82 @@
 				breakpoints.on('>xsmall', function() {
 					$main[0]._poptrox.windowMargin = 50;
 				});
-	$('.gallery').poptrox({
-  // ...
-  onPopup: function() {
-    var popup = $('.poptrox-popup');
-    var title = popup.find('.caption').html(); // 기존 제목
-    // 새 제목바 구조 만들기
-    var titleBar = $(
-      '<div class="title-bar">' +
-        '<span class="nav-previous">&lt;</span>' +
-        '<h2>' + title + '</h2>' +
-        '<span class="nav-next">&gt;</span>' +
-      '</div>'
-    );
-    popup.find('.caption').replaceWith(titleBar);
-  }
+
+		// 반응형 제목
+		document.addEventListener("DOMContentLoaded", function () {
+  			const text = "Portfolio";
+  			const typedText = document.getElementById("typed-text");
+  			const cursor = document.getElementById("typed-cursor");
+  			let i = 0;
+  		function type() {
+    			if (i <= text.length) {
+      				typedText.textContent = text.slice(0, i);
+      				i++;
+      				setTimeout(type, 120); // 타이핑 속도 조절(밀리초)
+    			}
+  		}
+  		type();
+		});
+
+
+// 좋아요 숫자 카운터 불러오기(페이지 로드 시)
+const counterKey = 'solbi-portfolio-2024/likes';
+// 페이지 로드할때 이전 좋아요 숫자 get
+fetch(`https://script.google.com/macros/s/AKfycbw6jrYpLM3nrZeXmAJsZOXyWg48TwJTrYlVXvcT01kvq0flhDipUV4E7BAOiaSu0iUxcw/exec`)
+	.then(res => res.json())
+	.then(res => {
+		document.getElementById('like-count').textContent = res.value ?? 0;
+	})
+	.catch(() => {
+		document.getElementById('like-count').textContent = 0;
+	});
+
+// 하트 애니메이션 및 숫자증가
+const heartFxContainer = document.getElementById('heart-fx-container');
+const heartBtn = document.getElementById('like-btn');
+
+heartBtn.addEventListener('click', function() {
+	// 하트 여러 개(6~12개) 랜덤 생성
+	const hearts = Math.floor(Math.random()*7) + 6;
+	for (let i = 0; i < count; i++) {
+		createFloatingEmoji();
+	}
+	currentEmojiIndex = Math.floor(Math.random() * emojiList.length); //다른 이모지로 랜덤하게 바꾸기!
+
+	// 좋아요 숫자 +1 증가
+	fetch(`https://script.google.com/macros/s/AKfycbw6jrYpLM3nrZeXmAJsZOXyWg48TwJTrYlVXvcT01kvq0flhDipUV4E7BAOiaSu0iUxcw/exec?inc=1`)
+		.then(res => res.json())
+		.then(res => {
+			document.getElementById('like-count').textContent = res.value;
+		});
 });
+
+// 하트 애니메이션 함수 (wiggle/크기 랜덤 포함)
+const emojiList = ['❤️', '😍', '🔥', '👏', '🤩', '✨', '💎', '😎'];
+let currentEmojiIndex = 0;  // 전역 변수로 현재 이모지 기억
+
+function createFloatingEmoji() {
+	const emoji = document.createElement('div');
+	emoji.className = 'heart-fx';
+	emoji.innerHTML = emojiList[currentEmojiIndex];
+
+	const left = 10 + Math.random() * 80;
+	const top = 25 + Math.random() * 45;
+	emoji.style.left = `${left}%`;
+	emoji.style.top = `${top}%`;
+
+	const rot = Math.floor(Math.random() * 60) - 30;
+	const up = -120 - Math.random()*90;
+	const wiggle = Math.floor(Math.random() * 70) - 35;
+
+	emoji.style.fontSize = `${2.6 + Math.random()*2.0}em`;
+
+	emoji.style.setProperty('--rot', `${rot}deg`);
+	emoji.style.setProperty('--up', `${up}px`);
+	emoji.style.setProperty('--wiggle', `${wiggle}px`);
+
+	heartFxContainer.appendChild(emoji);
+	emoji.addEventListener('animationend', () => emoji.remove());
+}
 
 })(jQuery);
