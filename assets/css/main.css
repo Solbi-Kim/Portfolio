@@ -1681,20 +1681,6 @@ body.touch .poptrox-popup .nav-next {
 			opacity: 0;
 		}
 	}
-/* 스크롤 스냅 */
-	html, body {
-		height: 100%;
-		scroll-behavior: smooth;
-		scroll-snap-type: y mandatory;
-		overflow-y: scroll;
-	}
-
-	.donut-banner,
-	.hero-title {
-		height: 100vh;
-		scroll-snap-align: start;
-	}
-
 
 /* Header */
 
