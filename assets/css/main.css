@@ -1396,13 +1396,10 @@ input, select, textarea {
 		margin-top: -0.3em;
 }
 
-.caption-btns {
-  display: inline-flex;
-  gap: 0.5em;
-  vertical-align: middle; /* 폰트 베이스라인 맞춤 */
-}
-.caption-btn {
-  /* (이전과 동일, width/height는 1.5em~2em 정도면 예쁨) */
+.poptrox-popup .caption-btns {
+  		display: inline-flex;
+  		gap: 0.5em;
+  		vertical-align: middle; /* 폰트 베이스라인 맞춤 */
 }
 
 .poptrox-popup .loader {
