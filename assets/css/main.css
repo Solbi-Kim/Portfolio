@@ -1366,7 +1366,7 @@ input, select, textarea {
 		background-image: -webkit-linear-gradient(to top, rgba(16,16,16,0.45) 25%, rgba(16,16,16,0) 100%);
 		background-image: -ms-linear-gradient(to top, rgba(16,16,16,0.45) 25%, rgba(16,16,16,0) 100%);
 		background-image: linear-gradient(to top, rgba(16,16,16,0.45) 50%, rgba(16,16,16,0) 100%); 
-		position: absoulte; /* absolute or relative */
+		position: relative; /* absolute or relative */
   		pointer-events: auto; /* 클릭 가능 */
   		z-index: 1000;
 		width: 100%;
