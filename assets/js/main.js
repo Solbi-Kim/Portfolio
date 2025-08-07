@@ -376,5 +376,63 @@ function createFloatingHeart(emoji) {
 	})(heart, top, up, left, wiggle, rot);
 }
 
+//스크롤스냅
+(function($) {
+	const $window = $(window);
+
+	function easeInOut(t) {
+		return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+	}
+
+	function smoothScrollTo(targetY, duration = 1200) {
+		const startY = window.scrollY;
+		const diff = targetY - startY;
+		const startTime = performance.now();
+
+		function frame(currentTime) {
+			const elapsed = currentTime - startTime;
+			const progress = Math.min(elapsed / duration, 1);
+			const eased = easeInOut(progress);
+			window.scrollTo(0, startY + diff * eased);
+			if (progress < 1) requestAnimationFrame(frame);
+		}
+
+		requestAnimationFrame(frame);
+	}
+
+	$window.on('load', function () {
+		const $banner = $('.donut-banner');
+		const $wrapper = $('#wrapper');
+		const $hero = $('.hero-title');
+
+		let snappedBanner = false;
+		let snappedHero = false;
+
+		$window.on('wheel', function (e) {
+			if (!snappedBanner && $banner.length && e.originalEvent.deltaY > 0) {
+				const bannerBottom = $banner.offset().top + $banner.outerHeight();
+				if (window.scrollY < bannerBottom - 100) {
+					e.preventDefault();
+					snappedBanner = true;
+					smoothScrollTo($wrapper.offset().top);
+					setTimeout(() => { snappedBanner = false }, 1400);
+				}
+			}
+		});
+
+		const observer = new IntersectionObserver(entries => {
+			entries.forEach(entry => {
+				if (entry.isIntersecting && !snappedHero) {
+					snappedHero = true;
+					smoothScrollTo(entry.target.offsetTop);
+					setTimeout(() => { snappedHero = false }, 1400);
+				}
+			});
+		}, { threshold: 0.6 });
+
+		if ($hero.length) observer.observe($hero[0]);
+	});
+})(jQuery);
+
 
 })(jQuery);
