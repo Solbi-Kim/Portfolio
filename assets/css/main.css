@@ -1397,18 +1397,23 @@ input, select, textarea {
 }
 
 /* vimeo and Behance Btn */
-.poprtrox-popup.caption2 {
-  position: absolute;
-  right: 2em;
-  bottom: 2.4em;         /* caption과 겹치게, 위치값은 상황에 맞게 */
-  text-align: right;
-  z-index: 10;
-}
-.poptrox-popup {
-  position: relative;    /* absolute 기준 부모로 */
-  /* ... 기존 스타일 유지 ... */
+.poptrox-popup .caption .caption2 {
+  float: right;
+  display: inline-flex;
+  gap: 0.5em;
+  margin-left: auto;
 }
 
+.poptrox-popup .caption .caption2 a {
+  font-size: 1.3em;
+  color: #fff;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+.poptrox-popup .caption .caption2 a:hover {
+  opacity: 1;
+}
 
 
 
