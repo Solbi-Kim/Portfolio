@@ -191,7 +191,7 @@
 
 			
 	<script>
-		document.querySelector('.donut-banner').addEventListener('click', () => {
+		document.querySelector('.donut-banner').addEventListener('click', () => {  //클릭시 로켓슝
 			const rocket = document.createElement('img');
 			rocket.src = 'images/rocket.png';
 			rocket.className = 'rocket-fly';
@@ -203,12 +203,19 @@
 
 			rocket.addEventListener('animationend', () => rocket.remove());
 		});
-		document.querySelector('.donut-banner').addEventListener('wheel', e => {
-			if (e.deltaY > 20) {
-				e.preventDefault(); // 스크롤 튕김 방지
-				smoothScrollTo(document.querySelector('#wrapper'));
+		
+		window.addEventListener('wheel', e => {     //스크롤 스냅
+			const banner = document.querySelector('.donut-banner');
+			const wrapper = document.querySelector('#wrapper');
+
+			const bannerBottom = banner.getBoundingClientRect().bottom;
+
+			if (bannerBottom > 50 && e.deltaY > 20) {
+				e.preventDefault();
+				smoothScrollTo(wrapper);
 			}
-		}, { passive: false }); // <- 이거 중요함
+		}, { passive: false });
+
 
 	</script>
 
@@ -217,6 +224,7 @@
 	</body>
 
 </html>
+
 
 
 
