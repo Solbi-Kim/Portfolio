@@ -1689,9 +1689,10 @@ body.touch .poptrox-popup .nav-next {
 		overflow-y: scroll;
 	}
 
-	.page-wrapper > * {
+	.donut-banner,
+	.hero-title {
+		height: 100vh;
 		scroll-snap-align: start;
-		height: 100vh; /* 필요한 섹션에만 */
 	}
 
 
