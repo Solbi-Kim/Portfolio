@@ -1691,9 +1691,11 @@ body.touch .poptrox-popup .nav-next {
 	}
 
 	.page-wrapper {
-		height: 100vh;
-		overflow-y: auto;
 		scroll-snap-type: y mandatory;
+	}
+	.page-wrapper > *:not(.no-snap) {
+		scroll-snap-align: start;
+		height: 100vh;
 	}
 
 	.donut-banner,
