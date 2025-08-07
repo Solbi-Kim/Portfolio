@@ -379,7 +379,7 @@ function createFloatingHeart(emoji) {
 //부드러운 스크롤스냅
 function smoothScrollTo(target) {
 	const targetY = target.getBoundingClientRect().top + window.scrollY;
-	const duration = 1000; // 1초 동안
+	const duration = 2000; // 1초 동안
 	const startY = window.scrollY;
 	const diff = targetY - startY;
 	const startTime = performance.now();
