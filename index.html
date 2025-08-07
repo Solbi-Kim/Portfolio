@@ -189,9 +189,28 @@
 			<script src="assets/js/util.js"></script>
 			<script src="assets/js/main.js"></script>
 
+			
+	<script>
+		document.querySelector('.donut-banner').addEventListener('click', () => {
+			const rocket = document.createElement('img');
+			rocket.src = 'images/rocket.png';
+			rocket.className = 'rocket-fly';
+
+			const randomY = Math.random() * 30 + 35;
+			rocket.style.top = `${randomY}%`;
+
+			document.getElementById('rocket-layer').appendChild(rocket);
+
+			rocket.addEventListener('animationend', () => rocket.remove());
+		});
+	</script>
+
+		
+
 	</body>
 
 </html>
+
 
 
 
