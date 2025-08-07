@@ -376,33 +376,5 @@ function createFloatingHeart(emoji) {
 	})(heart, top, up, left, wiggle, rot);
 }
 
-//부드러운 스크롤스냅
-function smoothScrollTo(target) {
-	const targetY = target.getBoundingClientRect().top + window.scrollY;
-	const duration = 2000; // 1초 동안
-	const startY = window.scrollY;
-	const diff = targetY - startY;
-	const startTime = performance.now();
-
-	function easeInOut(t) {
-		return t < 0.5
-			? 2 * t * t
-			: -1 + (4 - 2 * t) * t;
-	}
-
-	function animateScroll(currentTime) {
-		const elapsed = currentTime - startTime;
-		const progress = Math.min(elapsed / duration, 1);
-		const ease = easeInOut(progress);
-		window.scrollTo(0, startY + diff * ease);
-		if (progress < 1) {
-			requestAnimationFrame(animateScroll);
-		}
-	}
-
-	requestAnimationFrame(animateScroll);
-}
-
-
 
 })(jQuery);
