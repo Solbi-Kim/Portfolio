@@ -204,17 +204,6 @@
 			rocket.addEventListener('animationend', () => rocket.remove());
 		});
 		
-		window.addEventListener('wheel', e => {     //스크롤 스냅
-			const banner = document.querySelector('.donut-banner');
-			const wrapper = document.querySelector('#wrapper');
-
-			const bannerBottom = banner.getBoundingClientRect().bottom;
-
-			if (bannerBottom > 50 && e.deltaY > 20) {
-				e.preventDefault();
-				smoothScrollTo(wrapper);
-			}
-		}, { passive: false });
 
 
 	</script>
@@ -224,6 +213,7 @@
 	</body>
 
 </html>
+
 
 
 
