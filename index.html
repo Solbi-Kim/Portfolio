@@ -203,6 +203,13 @@
 
 			rocket.addEventListener('animationend', () => rocket.remove());
 		});
+		document.querySelector('.donut-banner').addEventListener('wheel', e => {
+			if (e.deltaY > 20) {
+				e.preventDefault(); // 스크롤 튕김 방지
+				smoothScrollTo(document.querySelector('#wrapper'));
+			}
+		}, { passive: false }); // <- 이거 중요함
+
 	</script>
 
 		
@@ -210,6 +217,7 @@
 	</body>
 
 </html>
+
 
 
 
