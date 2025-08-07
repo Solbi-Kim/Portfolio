@@ -1396,11 +1396,22 @@ input, select, textarea {
 		margin-top: -0.3em;
 }
 
-.poptrox-popup .caption-btns {
-  		display: inline-flex;
-  		gap: 0.5em;
-  		vertical-align: middle; /* 폰트 베이스라인 맞춤 */
+/* vimeo and Behance Btn */
+.poprtrox-popup.caption2 {
+  position: absolute;
+  right: 2em;
+  bottom: 2.4em;         /* caption과 겹치게, 위치값은 상황에 맞게 */
+  text-align: right;
+  z-index: 10;
 }
+.poptrox-popup {
+  position: relative;    /* absolute 기준 부모로 */
+  /* ... 기존 스타일 유지 ... */
+}
+
+
+
+
 
 .poptrox-popup .loader {
 		-moz-animation: spinner 1s infinite linear !important;
