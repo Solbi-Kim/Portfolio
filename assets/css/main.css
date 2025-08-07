@@ -1187,12 +1187,13 @@ input, select, textarea {
 /* ========================= */
 
 .hero-title {
+		height:100vh;
 		text-align: center;
 		margin-top: 3em;
 		position: relative;
 		overflow: hidden;
-		padding-top: 4em;     /* 원하는 만큼 크게! */
-		padding-bottom: 4em;  /* 원하는 만큼 크게! */
+		padding-top: 8em;     /* 원하는 만큼 크게! */
+		padding-bottom: 8em;  /* 원하는 만큼 크게! */
 }
 .hero-title h1,
 .hero-title h2 {
