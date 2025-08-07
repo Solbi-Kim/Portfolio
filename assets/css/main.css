@@ -1362,10 +1362,13 @@ input, select, textarea {
 
 .poptrox-popup .caption {
 		background-image: -moz-linear-gradient(to top, rgba(16,16,16,0.45) 25%, rgba(16,16,16,0) 100%);
-		background-image: -webkit-linear-gradient(to top, rgba(16,16,16,0.45) 25%, rgba(16,16,16,0) 100%);
+		/* background-image: -webkit-linear-gradient(to top, rgba(16,16,16,0.45) 25%, rgba(16,16,16,0) 100%);
 		background-image: -ms-linear-gradient(to top, rgba(16,16,16,0.45) 25%, rgba(16,16,16,0) 100%);
-		background-image: linear-gradient(to top, rgba(16,16,16,0.45) 50%, rgba(16,16,16,0) 100%);
-		position:absolute;
+		background-image: linear-gradient(to top, rgba(16,16,16,0.45) 50%, rgba(16,16,16,0) 100%); */
+		position: relative;
+  		pointer-events: auto; /* 클릭 가능 */
+  		z-index: 1000;
+		/* position:absolute; */
 		width: 100%;
 		box-sizing: border-box;
 		padding: 0em 1.6em 1.6em 1.6em;  /* 상/좌/하/우 여백 */
@@ -1398,28 +1401,28 @@ input, select, textarea {
 
 /* 비메오 비핸스 버튼 */
 .poptrox-popup .caption .caption2 {
-  float: right;
   display: inline-flex;
-  align-items: center;
   gap: 0.6em;
   margin-left: auto;
-  pointer-events: auto; /* 💥 꼭 넣어야 클릭 가능 */
+  pointer-events: auto;
+  position: absolute;
+  z-index: 1001; /* 상위로 올려 */
 }
 
-/* 버튼 아이콘 크기/색상 */
+/* 버튼 아이콘 스타일 */
 .poptrox-popup .caption .caption2 a {
-  font-size: 1.7em;
-  color: #62b3ff; /* 파란 계열 */
-  opacity: 0.8;
+  font-size: 1.8em;
+  color: #88ccff; /* 더 밝은 파랑 */
+  opacity: 0.85;
   transition: all 0.2s ease;
+  cursor: pointer;
   pointer-events: auto;
 }
 
-/* 호버 효과 */
 .poptrox-popup .caption .caption2 a:hover {
-  color: #a2d2ff;
-  opacity: 1.0;
-  transform: scale(1.15);
+  color: #cceeff;
+  transform: scale(1.2);
+  opacity: 1;
 }
 
 
