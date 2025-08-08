@@ -1648,12 +1648,13 @@ body.touch .poptrox-popup .nav-next {
 	}
 
 	.donut-back,
-	.donut-front {
+	.donut-front
+	.donut-BG{
 		position: absolute;
 		top: 50%;
 		left: 50%;
-		width: 50vw;
-		max-width: 600px;
+		width: auto;
+		height:80vh;
 		transform: translate(-50%, -50%);
 		pointer-events: none;
 	}
