@@ -1676,9 +1676,9 @@ body.touch .poptrox-popup .nav-next {
 		position: absolute;
 		left: -80px;
 		bottom: 0px; /* 좌측 하단 시작 */
-		width: 140px;
+		width: 200px;
 		z-index: 2;
-		animation: rocket-fly 2.5s ease-in-out forwards;
+		animation: rocket-fly 4s ease-in-out forwards;
 		pointer-events: none;
 	}
 
@@ -1688,7 +1688,7 @@ body.touch .poptrox-popup .nav-next {
 			opacity: 0;
 		}
 		50% {
-			transform: translate(50vw, -30vh) rotate(0deg);
+			transform: translate(50vw, 0vh) rotate(0deg);
 			opacity:1;
 		}
 		100% {
