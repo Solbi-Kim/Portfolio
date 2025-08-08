@@ -253,7 +253,6 @@
 				fadeSpeed: 300,
 				onPopupClose: function() { $body.removeClass('modal-active'); },
 				onPopupOpen: function() { $body.addClass('modal-active'); },
-				onPopupOpen: function() { console.log('팝트록스 팝업 실행됨!');},
 				overlayOpacity: 0,
 				popupCloserText: '',
 				popupHeight: 150,
