@@ -226,7 +226,7 @@ input, select, textarea {
 		color: #ffffff;
 		font-weight: 300;
 	}
-}
+
 
 	em, i {
 		font-style: italic;
@@ -2350,3 +2350,4 @@ body.touch .poptrox-popup .nav-next {
 		#footer .copyright a {
 			color: inherit;
 		}
+}
