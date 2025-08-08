@@ -2141,28 +2141,24 @@ input, select, textarea {
   position: absolute;
   top: 50%;
   left: 50%;
+  width: 40vw;        /* 크기 줄임 */
+  max-width: none;    /* 제한 해제 */
+  height: auto;       /* 종횡비 유지 */
   transform: translate(-50%, -50%);
   pointer-events: none;
 }
 
 .donut-BG {
-  width: auto;
-  height: 80vh;
   z-index: 1;
 }
 
 .donut-back {
-  width: auto;
-  height: 80vh;
   z-index: 2;
 }
 
 .donut-front {
- width: auto;
-  height: 80vh;
   z-index: 4;
 }
-
 /* 마우스 올리면 안보이게 */
 .donut-back,
 .donut-front {
