@@ -438,7 +438,6 @@ function createFloatingHeart(emoji) {
 
 
 //로켓 날아가는 애니메이션
-<script>
 function flyRocketAccurately() {
   const rocket = document.querySelector('.rocket-fly');
   const donut = document.querySelector('.donut-BG');
@@ -463,7 +462,6 @@ function flyRocketAccurately() {
 window.addEventListener('load', flyRocketAccurately);
 // 창 크기 변경 시도 자동 재조정
 window.addEventListener('resize', flyRocketAccurately);
-</script>
 
 
 
