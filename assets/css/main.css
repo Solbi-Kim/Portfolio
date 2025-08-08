@@ -2152,6 +2152,8 @@ input, select, textarea {
 }
 
 .donut-back {
+  width: 50vw;
+  max-width: 600px;
   z-index: 2;
 }
 
