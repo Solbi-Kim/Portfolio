@@ -325,12 +325,28 @@ function flyRocketAccurately() {
   });
 }
 
+// 타이핑 애니메이션 함수
+function startTypingAnimation() {
+  const text = "Portfolio";
+  const typedText = document.getElementById("typed-text");
+  const cursor = document.getElementById("typed-cursor");
+  let i = 0;
 
-	//addEventListener 반응형 애니메이션
+  function type() {
+    if (i <= text.length) {
+      typedText.textContent = text.slice(0, i);
+      i++;
+      setTimeout(type, 120);
+    }
+  }
+
+  type();
+}
+
+// ✅ 모든 DOM이 준비되면 한 번에 실행
 document.addEventListener("DOMContentLoaded", () => {
-  // ✅ 1. 타이핑 애니메이션 (Intersection 감지 방식)
+  // 타이핑 감지
   const typingTarget = document.querySelector(".hero-title");
-
   if (typingTarget) {
     const observer = new IntersectionObserver((entries, observer) => {
       entries.forEach(entry => {
@@ -342,43 +358,19 @@ document.addEventListener("DOMContentLoaded", () => {
     }, {
       threshold: 0.6
     });
-
     observer.observe(typingTarget);
   }
 
-  // ✅ 2. 로켓: 클릭 시 발사 (즉시 실행 X)
+  // 로켓 클릭 이벤트
   const donut = document.querySelector('.donut-BG');
   if (donut) {
     donut.addEventListener('click', flyRocketAccurately);
   }
 
-  // ✅ resize 이벤트는 필요 시 유지
+  // 리사이즈 대응
   window.addEventListener('resize', () => {
-    // 위치 보정만 필요하면 이거 유지 가능
     console.log("창 크기 변경됨. 다음 발사 시 궤도에 반영됩니다.");
   });
-});
-
-
-// 모든 DOM 요소가 로드되면 타이핑 실행
-document.addEventListener("DOMContentLoaded", () => {
-  // 타이핑 애니메이션을 intersection으로 감지해서 실행
-  const typingTarget = document.querySelector(".hero-title");
-
-  if (typingTarget) {
-    const observer = new IntersectionObserver((entries, observer) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          startTypingAnimation();
-          observer.unobserve(entry.target); // 1번만 실행
-        }
-      });
-    }, {
-      threshold: 0.6
-    });
-
-    observer.observe(typingTarget);
-  }
 });
 
 
