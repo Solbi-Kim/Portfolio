@@ -1309,6 +1309,7 @@ input, select, textarea {
 		width: 100%;
 		z-index: 1;
 		opacity: 1;
+		pointer-events: none;
 }
 
 .poptrox-popup .closer {
