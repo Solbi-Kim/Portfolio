@@ -181,16 +181,33 @@
 
 
 		<script>
-		document.querySelector('.donut-banner').addEventListener('click', () => {  //클릭시 로켓슝
-			const rocket = document.createElement('img');
-			rocket.src = 'images/rocket.png';
-			rocket.className = 'rocket-fly';
+  			document.querySelector('.donut-banner').addEventListener('click', () => {
+    			const rocket = document.createElement('img');
+    			rocket.src = 'images/rocket.png';
+    			rocket.className = 'rocket-fly';
 
-			document.getElementById('rocket-layer').appendChild(rocket);
+    			document.getElementById('rocket-layer').appendChild(rocket);
 
-			rocket.addEventListener('animationend', () => rocket.remove());
-		});
+    			// 🚀 애니메이션 바로 실행
+    			const donut = document.querySelector('.donut-BG');
+    			const donutRect = donut.getBoundingClientRect();
+    			const donutCenterY = donutRect.top + window.scrollY + donutRect.height / 2;
+
+    			rocket.animate([
+      				{ transform: `translate(-10vw, 100vh) rotate(-15deg)`, opacity: 0 },
+      				{ transform: `translate(50vw, ${donutCenterY}px) rotate(0deg)`, opacity: 1 },
+      				{ transform: `translate(110vw, -30vh) rotate(20deg)`, opacity: 0 }
+    				], {
+      					duration: 4000,
+      					easing: 'ease-in-out',
+      					fill: 'forwards'
+   						}
+				);
+
+    			rocket.addEventListener('animationend', () => rocket.remove());
+  			});
 		</script>
+
 
 			<script src="assets/js/jquery.min.js"></script>
 			<script src="assets/js/jquery.poptrox.min.js"></script>
@@ -205,6 +222,7 @@
 	</body>
 
 </html>
+
 
 
 
