@@ -302,32 +302,8 @@ function startTypingAnimation() {
 }
 
 // 로켓 애니메이션 함수
-function flyRocketAccurately() {
-  const rocket = document.querySelector('.rocket-fly');
-  const donut = document.querySelector('.donut-BG');
-
-  if (!rocket || !donut) {
-    console.warn("🚫 로켓 또는 도넛 요소 없음");
-    return;
-  }
-
-  const donutRect = donut.getBoundingClientRect();
-  const donutCenterY = donutRect.top + donutRect.height / 2;
-
-  rocket.animate([
-    { transform: `translate(-10vw, 100vh) rotate(-15deg)`, opacity: 0 },
-    { transform: `translate(50vw, ${donutCenterY}px) rotate(0deg)`, opacity: 1 },
-    { transform: `translate(110vw, -100px) rotate(20deg)`, opacity: 0 }
-  ], {
-    duration: 4000,
-    easing: 'ease-in-out',
-    fill: 'forwards'
-  });
-}
-
-// 모든 DOM 요소가 로드되면 실행
 document.addEventListener("DOMContentLoaded", () => {
-  // 1. 타이핑 애니메이션을 intersection으로 감지해서 실행
+  // ✅ 1. 타이핑 애니메이션 (Intersection 감지 방식)
   const typingTarget = document.querySelector(".hero-title");
 
   if (typingTarget) {
@@ -345,9 +321,39 @@ document.addEventListener("DOMContentLoaded", () => {
     observer.observe(typingTarget);
   }
 
-  // 2. 로켓 애니메이션 즉시 실행
-  flyRocketAccurately();
-  window.addEventListener('resize', flyRocketAccurately);
+  // ✅ 2. 로켓: 클릭 시 발사 (즉시 실행 X)
+  const donut = document.querySelector('.donut-BG');
+  if (donut) {
+    donut.addEventListener('click', flyRocketAccurately);
+  }
+
+  // ✅ resize 이벤트는 필요 시 유지
+  window.addEventListener('resize', () => {
+    // 위치 보정만 필요하면 이거 유지 가능
+    console.log("창 크기 변경됨. 다음 발사 시 궤도에 반영됩니다.");
+  });
+});
+
+
+// 모든 DOM 요소가 로드되면 타이핑 실행
+document.addEventListener("DOMContentLoaded", () => {
+  // 타이핑 애니메이션을 intersection으로 감지해서 실행
+  const typingTarget = document.querySelector(".hero-title");
+
+  if (typingTarget) {
+    const observer = new IntersectionObserver((entries, observer) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          startTypingAnimation();
+          observer.unobserve(entry.target); // 1번만 실행
+        }
+      });
+    }, {
+      threshold: 0.6
+    });
+
+    observer.observe(typingTarget);
+  }
 });
 
 
