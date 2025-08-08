@@ -1690,7 +1690,7 @@ body.touch .poptrox-popup .nav-next {
 		position: absolute;
 		left: -80px;
 		bottom: 0px; /* 좌측 하단 시작 */
-		width: 200px;
+		width: 250px; /* 로켓사이즈 */
 		z-index: 2;
 		animation: rocket-fly 4s ease-in-out forwards;
 		pointer-events: none;
@@ -1698,7 +1698,7 @@ body.touch .poptrox-popup .nav-next {
 
 	@keyframes rocket-fly {
 		0% {
-			transform: translate(0,0) rotate(-15deg);
+			transform: translate(-10vh,10vh) rotate(-15deg);
 			opacity: 0;
 		}
 		50% {
