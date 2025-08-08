@@ -2141,7 +2141,7 @@ input, select, textarea {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 40vw;        /* 크기 줄임 */
+  width: 80vw;        /* 크기 */
   max-width: none;    /* 제한 해제 */
   height: auto;       /* 종횡비 유지 */
   transform: translate(-50%, -50%);
@@ -2162,13 +2162,17 @@ input, select, textarea {
 /* 마우스 올리면 안보이게 */
 .donut-back,
 .donut-front {
-  opacity: 1;
+  pointer-events: none;
   transition: opacity 0.4s ease-in-out;
-  pointer-events: auto;
 }
 
-.donut-banner:hover .donut-back,
-.donut-banner:hover .donut-front {
+.donut-hover-zone {
+  width: 60vw;
+  height: 30vw;
+	top: 47%;
+}
+.donut-hover-zone:hover .donut-back,
+.donut-hover-zone:hover .donut-front {
   opacity: 0;
 }
 
