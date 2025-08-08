@@ -1706,7 +1706,7 @@ body.touch .poptrox-popup .nav-next {
 			opacity:1;
 		}
 		100% {
-			transform: translate(110vw, -90vw) rotate(20deg);
+			transform: translate(110vw, -85vw) rotate(20deg);
 			opacity: 0;
 		}
 	}
