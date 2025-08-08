@@ -2176,6 +2176,47 @@ input, select, textarea {
   opacity: 0;
 }
 
+.stars {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* 별이반짝이는배경 */
+.stars::before,
+.stars::after {
+  content: '';
+  position: absolute;
+  width: 200%;
+  height: 200%;
+  background-image:
+    radial-gradient(1px 1px at 20% 30%, #fff 80%, transparent 100%),
+    radial-gradient(1px 1px at 70% 60%, #fff 80%, transparent 100%),
+    radial-gradient(1px 1px at 50% 90%, #fff 80%, transparent 100%),
+    radial-gradient(1px 1px at 90% 20%, #fff 80%, transparent 100%),
+    radial-gradient(1px 1px at 10% 80%, #fff 80%, transparent 100%);
+  animation: twinkle 4s linear infinite;
+  opacity: 0.6;
+}
+.stars::after {
+  animation-delay: 2s;
+}
+
+@keyframes twinkle {
+  0%, 100% {
+    opacity: 0.2;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.3);
+  }
+}
+
 /* 모바일 대응 */
 @media screen and (max-width: 768px) {
   .donut-back,
