@@ -305,13 +305,21 @@ function startTypingAnimation() {
 	
 // 로켓 애니메이션 함수
 function flyRocketAccurately() {
+	console.log("🔥 flyRocketAccurately() 실행됨");
+	
   const rocket = document.querySelector('.rocket-fly');
   const donut = document.querySelector('.donut-BG');
 
-  if (!rocket || !donut) {
-    console.warn("🚫 로켓 또는 도넛 요소 없음");
+  if (!rocket) {
+    console.warn("❌ rocket-fly 요소 없음");
     return;
   }
+
+  if (!donut) {
+    console.warn("❌ donut-BG 요소 없음");
+    return;
+  }
+
 
   console.log("🚀 로켓 발사 중!");
 
@@ -381,7 +389,14 @@ document.addEventListener("DOMContentLoaded", () => {
   // 로켓 클릭 이벤트
   const donut = document.querySelector('.donut-BG');
   if (donut) {
-    donut.addEventListener('click', flyRocketAccurately);
+    console.log("✅ 도넛 요소 찾음");
+
+    donut.addEventListener('click', () => {
+      console.log("👆 도넛 클릭됨!");
+      flyRocketAccurately(); // 로켓 발사 함수 호출
+    });
+  } else {
+    console.warn("❌ 도넛 요소를 못 찾음");
   }
 
   // 리사이즈 대응
