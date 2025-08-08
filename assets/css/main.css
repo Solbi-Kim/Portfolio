@@ -1893,6 +1893,9 @@ body.touch .poptrox-popup .nav-next {
 		-ms-flex-wrap: wrap;
 		flex-wrap: wrap;
 		-webkit-tap-highlight-color: rgba(255, 255, 255, 0);
+
+
+		gap:1em;
 	}
 
 		#main .thumb {
@@ -1905,6 +1908,9 @@ body.touch .poptrox-popup .nav-next {
 			opacity: 1;
 			overflow: hidden;
 			position: relative;
+
+			box-sizing: border-box;
+  			padding: 0.5em;
 		}
 
 			#main .thumb:after {
