@@ -324,6 +324,7 @@ function flyRocketAccurately() {
     fill: 'forwards'
   });
 }
+window.flyRocketAccurately = flyRocketAccurately;
 
 // 타이핑 애니메이션 함수
 function startTypingAnimation() {
