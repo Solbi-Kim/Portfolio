@@ -1434,14 +1434,6 @@ input, select, textarea {
   transition: all 0.2s ease;
   cursor: pointer;
   pointer-events: auto;
-
-	position: absolute;
-	top: 1.6em;
-	right: 1.6em;
-	display: flex;
-	gap: 0.6em;
-	pointer-events: auto;
-	z-index: 1001;
 }
 
 .poptrox-popup .caption .caption2 a:hover {
