@@ -316,7 +316,7 @@ function flyRocketAccurately() {
 
   rocket.animate([
     { transform: `translate(-10vw, 100vh) rotate(-15deg)`, opacity: 0 },
-    { transform: `translate(50vw, ${donutCenterY}px) rotate(0deg)`, opacity: 1 },
+    { transform: `translate(50vw, 40vh) rotate(0deg)`, opacity: 1 },
     { transform: `translate(110vw, -30vh) rotate(20deg)`, opacity: 0 }
   ], {
     duration: 4000,
