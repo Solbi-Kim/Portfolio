@@ -1666,8 +1666,8 @@ body.touch .poptrox-popup .nav-next {
 
 	#rocket-layer {
 		position: absolute;
-		width: 200%;
-		height: 200%;
+		width: 100%;
+		height: 100%;
 		z-index: 3;
 		pointer-events: none;
 	}
