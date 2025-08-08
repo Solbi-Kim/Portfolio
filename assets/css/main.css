@@ -1371,8 +1371,13 @@ input, select, textarea {
   		z-index: 1000;
 		width: 100%;
 		box-sizing: border-box;
-		padding: 0em 0em 0em 0em;  /* 상/좌/하/우 여백 */
+		padding: 1em 1.6em 1em 1.6em;  /* 상/좌/하/우 여백 */
 		bottom:calc(5vh);
+		left:0;
+
+		display: flex;
+		flex-direction: column;
+		gal:0.3em;
 	
 
 }
@@ -1390,6 +1395,15 @@ input, select, textarea {
 		margin: 0 0 0.2em 0;   /* 마지막 문장 아래 붙게 */
 		line-height: 1.22;
 
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	flex-wrap: wrap;
+	text-align: center;
+	width: 100%;
+	font-size: 0.9em;
+	padding: 0 1em;
+
 }
 
 .poptrox-popup .caption-title {
@@ -1402,8 +1416,9 @@ input, select, textarea {
 
 /* 비메오 비핸스 버튼 */
 .poptrox-popup .caption .caption2 {
-  gap: 0.6em;
-  margin-left: auto;
+  display: inline-flex;
+	gap: 0.6em;
+	margin-left: auto;
   pointer-events: auto;
   position: relative;
   z-index: 1001; /* 상위로 올려 */
