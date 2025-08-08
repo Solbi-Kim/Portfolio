@@ -1367,7 +1367,7 @@ input, select, textarea {
 		background-image: -ms-linear-gradient(to top, rgba(16,16,16,0.45) 25%, rgba(16,16,16,0) 100%);
 		background-image: linear-gradient(to top, rgba(16,16,16,0.45) 50%, rgba(16,16,16,0) 100%); 
 		position:fixed; 
-  		pointer-events: auto; /* 클릭 가능 */
+  		pointer-events: auto !important; /* 클릭 가능 */
   		z-index: 1000;
 		width: 100%;
 		box-sizing: border-box;
@@ -1423,7 +1423,7 @@ input, select, textarea {
 	right: 1.6em;
 	top: 1.6em;
 	z-index: 1001;
-	pointer-events: auto;
+	pointer-events: auto !important;
 }
 
 /* 버튼 아이콘 스타일 */
@@ -1433,7 +1433,7 @@ input, select, textarea {
   opacity: 0.85;
   transition: all 0.2s ease;
   cursor: pointer;
-  pointer-events: auto;
+  pointer-events: auto !important;
 }
 
 .poptrox-popup .caption .caption2 a:hover {
