@@ -2168,11 +2168,11 @@ input, select, textarea {
 .donut-front {
   opacity: 1;
   transition: opacity 0.4s ease-in-out;
-  pointer-events: auto; /* 마우스 이벤트를 받을 수 있게 */
+  pointer-events: auto;
 }
 
-.donut-back:hover,
-.donut-front:hover {
+.donut-banner:hover .donut-back,
+.donut-banner:hover .donut-front {
   opacity: 0;
 }
 
