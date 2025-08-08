@@ -2280,15 +2280,15 @@ input, select, textarea {
 
 @keyframes rocket-fly {
   0% {
-    transform: translate(-10vw, 100vh) rotate(-15deg);
+    transform: translate(-10vw, 0vh) rotate(-15deg);
     opacity: 0;
   }
   50% {
-    transform: translate(50vw, -50vh) rotate(0deg);
+    transform: translate(50vw, -100vh) rotate(0deg);
     opacity: 1;
   }
   100% {
-    transform: translate(110vw, -100vh) rotate(20deg);
+    transform: translate(110vw, -200vh) rotate(20deg);
     opacity: 0;
   }
 }
