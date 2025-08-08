@@ -1382,7 +1382,7 @@ input, select, textarea {
 
 		display: flex;
 		flex-direction: column;
-		gal:0.3em;
+		/* gal:0.3em; */
 	
 
 }
