@@ -1694,11 +1694,21 @@ body.touch .poptrox-popup .nav-next {
 		position: absolute;
 		left: -80px;
 		bottom: 0px; /* 좌측 하단 시작 */
-		width: 250px; /* 로켓사이즈 */
+		width: 10vw;    /* 로켓사이즈 */
+		max-width: 100px;
+		min-width: 50px;
 		z-index: 2;
 		animation: rocket-fly 4s ease-in-out forwards;
 		pointer-events: none;
 	}
+	@media screen and (max-width: 768px) {
+		.rocket-fly {
+			width: 14vw;
+			max-width: 70px;
+			left: -14vw;
+		}
+	}
+	
 
 	@keyframes rocket-fly {
 		0% {
