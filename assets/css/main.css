@@ -2261,15 +2261,7 @@ input, select, textarea {
 }
 
 .rocket-fly {
-  /* position: absolute;
-  left: -80px;
-  bottom: 0px;
-  width: 250px;
-  z-index: 2;
-  pointer-events: none;   */
-
-
-	 position: fixed; /* 🚨 absolute → fixed */
+ position: fixed; 
   left: 0;
   bottom: 0;
   opacity: 0;
