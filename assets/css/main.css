@@ -2180,9 +2180,8 @@ input, select, textarea {
 }
 
 .donut-hover-zone {
-	position: relative;
-  top: 50%;
-  left: 50%;
+position: absolute;
+
   pointer-events: auto;
   z-index: 2;
   width: 60vw;
