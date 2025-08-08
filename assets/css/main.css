@@ -2119,108 +2119,101 @@ input, select, textarea {
 
 
 /* 상단 배너 설정 */
-	.donut-banner {
-		position: relative;
-		width: 100%;
-		height: 100vh;
-		overflow: hidden;
-	}
-
-	.bg-gradient {
-		position: absolute;
-		width: 50%;
-		height: 50%;
-		background: linear-gradient(to bottom, #1a1a40, #222);
-		inset:0;
-		z-index: 0;
-	}
-
-	.donut-back,
-	.donut-front {
-		position: absolute;
-		top: 50%;
-		left: 50%;
-		width: 50vw;
-		max-width: 600px;
-		transform: translate(-50%, -50%);
-		pointer-events: none;
-	}
-		.donut-BG{
-			position: absolute;
-			top: 50%;
-			left: 50%;
-			width: auto;
-			height:80vh;
-			transform: translate(-48%, -50%);
-			pointer-events: none;
-			z-index:1;
-		}
-	@media screen and (max-width: 768px) {
-		.donut-back,
-		.donut-front,
-		.donut-BG {
-			width: 90vw;
-			height:auto;/* 모바일에선 더 작게 */
-			max-width: 320px;
-			max-height: 80vh;/* 초과 방지 */
-	}
-		
+.donut-banner {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
 }
-	.donut-BG {
-		z-index: 1;
-	}
-	.donut-back {
-		z-index: 2;
-	}
 
-	.donut-front {
-		z-index: 4;
-	}
+.bg-gradient {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to bottom, #1a1a40, #222);
+  inset: 0;
+  z-index: 0;
+}
 
-	#rocket-layer {
-		position: absolute;
-		width: 100%;
-		height: 100%;
-		z-index: 3;
-		pointer-events: none;
-	}
+.donut-back,
+.donut-front,
+.donut-BG {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
 
-	.rocket-fly {
-		position: absolute;
-		left: -80px;
-		bottom: 0px; /* 좌측 하단 시작 */
-		width: 180vw;    /* 로켓사이즈 */
-		max-width: 100px;
-		min-width: 50px;
-		width: 20vw; /* 로켓사이즈 */
-		width: 250px; /* 로켓사이즈 */
-		z-index: 2;
-		animation: rocket-fly 4s ease-in-out forwards;
-		pointer-events: none;
-	}
-	@media screen and (max-width: 768px) {
-		.rocket-fly {
-			width: 40vw;
-			max-width: 70px;
-			left: -14vw;
-		}
-	}
-	
+.donut-BG {
+  width: auto;
+  height: 80vh;
+  z-index: 1;
+}
 
-	@keyframes rocket-fly {
-		0% {
-			transform: translate(-10vh,10vh) rotate(-15deg);
-			opacity: 0;
-		}
-		50% {
-			transform: translate(50vw, -40vh) rotate(0deg);
-			opacity:1;
-		}
-		100% {
-			transform: translate(110vw, -70vw) rotate(20deg);
-			opacity: 0;
-		}
-	}
+.donut-back {
+  z-index: 2;
+}
+
+.donut-front {
+  width: 50vw;
+  max-width: 600px;
+  z-index: 4;
+}
+
+/* 모바일 대응 */
+@media screen and (max-width: 768px) {
+  .donut-back,
+  .donut-front,
+  .donut-BG {
+    width: 90vw;
+    height: auto;
+    max-width: 320px;
+    max-height: 80vh;
+  }
+}
+
+#rocket-layer {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.rocket-fly {
+  position: absolute;
+  left: -80px;
+  bottom: 0px;
+  width: 250px;
+  z-index: 2;
+  animation: rocket-fly 4s ease-in-out forwards;
+  pointer-events: none;
+}
+
+@media screen and (max-width: 768px) {
+  .rocket-fly {
+    width: 40vw;
+    max-width: 70px;
+    left: -14vw;
+  }
+}
+
+@keyframes rocket-fly {
+  0% {
+    transform: translate(-10vh, 10vh) rotate(-15deg);
+    opacity: 0;
+  }
+  50% {
+    transform: translate(50vw, -40vh) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(110vw, -70vw) rotate(20deg);
+    opacity: 0;
+  }
+}
+
 
 
 /* Footer */
