@@ -437,4 +437,34 @@ function createFloatingHeart(emoji) {
 })(jQuery);
 
 
+//로켓 날아가는 애니메이션
+<script>
+function flyRocketAccurately() {
+  const rocket = document.querySelector('.rocket-fly');
+  const donut = document.querySelector('.donut-BG');
+
+  if (!rocket || !donut) return;
+
+  const donutRect = donut.getBoundingClientRect();
+  const donutCenterY = donutRect.top + donutRect.height / 2;
+
+  rocket.animate([
+    { transform: `translate(-10vw, 100vh) rotate(-15deg)`, opacity: 0 },
+    { transform: `translate(50vw, ${donutCenterY}px) rotate(0deg)`, opacity: 1 },
+    { transform: `translate(110vw, -100px) rotate(20deg)`, opacity: 0 }
+  ], {
+    duration: 4000,
+    easing: 'ease-in-out',
+    fill: 'forwards'
+  });
+}
+
+// 페이지 로드시 자동 실행
+window.addEventListener('load', flyRocketAccurately);
+// 창 크기 변경 시도 자동 재조정
+window.addEventListener('resize', flyRocketAccurately);
+</script>
+
+
+
 })(jQuery);
