@@ -311,21 +311,12 @@ function flyRocketAccurately() {
     return;
   }
 
-  console.log("🚀 로켓 발사 중!"); // 🔥 이거 추가
-
-  // 강제로 로켓 보이게 (혹시 opacity 등으로 안 보일 경우 대비)
-  rocket.style.opacity = 1;
-  rocket.style.zIndex = 9999;
-  rocket.style.width = '200px'; // 🔥 사이즈 늘림
-  rocket.style.height = 'auto';
-
-  // 도넛 중심 위치 계산 (실패하더라도 일단 기본값으로라도 날려!)
   const donutRect = donut.getBoundingClientRect();
   const donutCenterY = donutRect.top + window.scrollY + donutRect.height / 2;
 
   rocket.animate([
     { transform: `translate(-10vw, 100vh) rotate(-15deg)`, opacity: 0 },
-    { transform: `translate(50vw, ${donutCenterY}px) rotate(0deg)`, opacity: 1 },
+    { transform: `translate(50vw, 40vh) rotate(0deg)`, opacity: 1 },
     { transform: `translate(110vw, -30vh) rotate(20deg)`, opacity: 0 }
   ], {
     duration: 4000,
@@ -334,6 +325,21 @@ function flyRocketAccurately() {
   });
 }
 window.flyRocketAccurately = flyRocketAccurately;
+
+// 타이핑 애니메이션 함수
+function startTypingAnimation() {
+  const text = "Portfolio";
+  const typedText = document.getElementById("typed-text");
+  const cursor = document.getElementById("typed-cursor");
+  let i = 0;
+
+  function type() {
+    if (i <= text.length) {
+      typedText.textContent = text.slice(0, i);
+      i++;
+      setTimeout(type, 120);
+    }
+  }
 
   type();
 }
