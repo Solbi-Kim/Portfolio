@@ -2163,6 +2163,19 @@ input, select, textarea {
   z-index: 4;
 }
 
+/* 마우스 올리면 안보이게 */
+.donut-back,
+.donut-front {
+  opacity: 1;
+  transition: opacity 0.4s ease-in-out;
+  pointer-events: auto; /* 마우스 이벤트를 받을 수 있게 */
+}
+
+.donut-back:hover,
+.donut-front:hover {
+  opacity: 0;
+}
+
 /* 모바일 대응 */
 @media screen and (max-width: 768px) {
   .donut-back,
