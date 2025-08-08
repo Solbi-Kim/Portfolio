@@ -1686,6 +1686,9 @@ body.touch .poptrox-popup .nav-next {
 	}
 		
 }
+	.donut-BG {
+		z-index: 1;
+	}
 	.donut-back {
 		z-index: 2;
 	}
