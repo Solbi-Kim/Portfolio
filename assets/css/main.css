@@ -1366,17 +1366,15 @@ input, select, textarea {
 		background-image: -webkit-linear-gradient(to top, rgba(16,16,16,0.45) 25%, rgba(16,16,16,0) 100%);
 		background-image: -ms-linear-gradient(to top, rgba(16,16,16,0.45) 25%, rgba(16,16,16,0) 100%);
 		background-image: linear-gradient(to top, rgba(16,16,16,0.45) 50%, rgba(16,16,16,0) 100%); 
-		position: relative; /* absolute or relative */
+		position:fixed; 
   		pointer-events: auto; /* 클릭 가능 */
   		z-index: 1000;
 		width: 100%;
 		box-sizing: border-box;
 		padding: 0em 1.6em 1.6em 1.6em;  /* 상/좌/하/우 여백 */
+		bottom:2em;
+		left:0;
 	
-		display: flex;
-		flex-direction: column;
-		justify-content: flex-end; /* 캡션 아래 정렬 */
-		text-align:center;
 
 }
 
@@ -1405,7 +1403,6 @@ input, select, textarea {
 
 /* 비메오 비핸스 버튼 */
 .poptrox-popup .caption .caption2 {
-  display: inline-flex;
   gap: 0.6em;
   margin-left: auto;
   pointer-events: auto;
