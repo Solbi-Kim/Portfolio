@@ -2187,6 +2187,13 @@ input, select, textarea {
     max-height: 80vh;
   }
 }
+/* 모바일에서 hover 안되게 */
+@media (hover: none) and (pointer: coarse) {
+  .donut-hover-zone:hover .donut-back,
+  .donut-hover-zone:hover .donut-front {
+    opacity: 1 !important;
+  }
+}
 
 #rocket-layer {
   position: absolute;
