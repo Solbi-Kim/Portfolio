@@ -2266,7 +2266,6 @@ input, select, textarea {
   bottom: 0px;
   width: 250px;
   z-index: 2;
-  animation: rocket-fly 4s ease-in-out forwards;
   pointer-events: none;
 }
 
