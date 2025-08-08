@@ -1688,7 +1688,7 @@ body.touch .poptrox-popup .nav-next {
 			opacity: 0;
 		}
 		50% {
-			transform: translate(50vw, 0vh) rotate(0deg);
+			transform: translate(50vw, -50vh) rotate(0deg);
 			opacity:1;
 		}
 		100% {
