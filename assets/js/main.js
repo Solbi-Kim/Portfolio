@@ -281,21 +281,51 @@
 
 		console.log("💥 poptrox 실행됨!", $('#main')[0]._poptrox);  //poptrox 디버그코드
 
-		// 반응형 제목
-		document.addEventListener("DOMContentLoaded", function () {
-  			const text = "Portfolio";
-  			const typedText = document.getElementById("typed-text");
-  			const cursor = document.getElementById("typed-cursor");
-  			let i = 0;
-  		function type() {
-    			if (i <= text.length) {
-      				typedText.textContent = text.slice(0, i);
-      				i++;
-      				setTimeout(type, 120); // 타이핑 속도 조절(밀리초)
-    			}
-  		}
-  		type();
-		});
+
+
+	//반응형 애니메이션 모음 addeventlistener
+document.addEventListener("DOMContentLoaded", function () {
+  // 👉 타이핑 애니메이션
+  const text = "Portfolio";
+  const typedText = document.getElementById("typed-text");
+  const cursor = document.getElementById("typed-cursor");
+  let i = 0;
+  function type() {
+    if (i <= text.length) {
+      typedText.textContent = text.slice(0, i);
+      i++;
+      setTimeout(type, 120);
+    }
+  }
+  type();
+
+  // 👉 로켓 애니메이션
+  function flyRocketAccurately() {
+    const rocket = document.querySelector('.rocket-fly');
+    const donut = document.querySelector('.donut-BG');
+
+    if (!rocket || !donut) return;
+
+    const donutRect = donut.getBoundingClientRect();
+    const donutCenterY = donutRect.top + donutRect.height / 2;
+
+    rocket.animate([
+      { transform: `translate(-10vw, 100vh) rotate(-15deg)`, opacity: 0 },
+      { transform: `translate(50vw, ${donutCenterY}px) rotate(0deg)`, opacity: 1 },
+      { transform: `translate(110vw, -100px) rotate(20deg)`, opacity: 0 }
+    ], {
+      duration: 4000,
+      easing: 'ease-in-out',
+      fill: 'forwards'
+    });
+  }
+
+  // 실행
+  flyRocketAccurately();
+  window.addEventListener('resize', flyRocketAccurately);
+});
+
+
 
 
 // 좋아요 숫자 카운터 불러오기(페이지 로드 시)
@@ -436,32 +466,6 @@ function createFloatingHeart(emoji) {
 	});
 })(jQuery);
 
-
-//로켓 날아가는 애니메이션
-function flyRocketAccurately() {
-  const rocket = document.querySelector('.rocket-fly');
-  const donut = document.querySelector('.donut-BG');
-
-  if (!rocket || !donut) return;
-
-  const donutRect = donut.getBoundingClientRect();
-  const donutCenterY = donutRect.top + donutRect.height / 2;
-
-  rocket.animate([
-    { transform: `translate(-10vw, 100vh) rotate(-15deg)`, opacity: 0 },
-    { transform: `translate(50vw, ${donutCenterY}px) rotate(0deg)`, opacity: 1 },
-    { transform: `translate(110vw, -100px) rotate(20deg)`, opacity: 0 }
-  ], {
-    duration: 4000,
-    easing: 'ease-in-out',
-    fill: 'forwards'
-  });
-}
-
-// 페이지 로드시 자동 실행
-window.addEventListener('load', flyRocketAccurately);
-// 창 크기 변경 시도 자동 재조정
-window.addEventListener('resize', flyRocketAccurately);
 
 
 
