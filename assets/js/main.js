@@ -302,6 +302,53 @@ function startTypingAnimation() {
 }
 
 
+	
+// 로켓 애니메이션 함수
+function flyRocketAccurately() {
+	console.log("🔥 flyRocketAccurately() 실행됨");
+	
+  const rocket = document.querySelector('.rocket-fly');
+  const donut = document.querySelector('.donut-BG');
+
+  if (!rocket) {
+    console.warn("❌ rocket-fly 요소 없음");
+    return;
+  }
+
+  if (!donut) {
+    console.warn("❌ donut-BG 요소 없음");
+    return;
+  }
+
+
+  console.log("🚀 로켓 발사 중!");
+
+  // 안전하게 스타일 설정
+ 
+    rocket.style.opacity = '1';
+    rocket.style.zIndex = '9999';
+    rocket.style.width = '200px';
+    rocket.style.height = 'auto';
+  
+  const donutRect = donut.getBoundingClientRect();
+  const donutCenterY = donutRect.top + window.scrollY + donutRect.height / 2;
+
+  // 애니메이션 실행
+  try {
+    rocket.animate([
+      { transform: `translate(-10vw, 100vh) rotate(-15deg)`, opacity: 0 },
+      { transform: `translate(50vw, ${donutCenterY}px) rotate(0deg)`, opacity: 1 },
+      { transform: `translate(110vw, -30vh) rotate(20deg)`, opacity: 0 }
+    ], {
+      duration: 4000,
+      easing: 'ease-in-out',
+      fill: 'forwards'
+    });
+  } 
+  catch (e) {
+    console.error("❌ 애니메이션 실행 실패", e);
+  }
+}
 
 
 // 타이핑 애니메이션 함수
@@ -339,6 +386,24 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     observer.observe(typingTarget);
   }
+  // 로켓 클릭 이벤트
+  const donut = document.querySelector('.donut-BG');
+  if (donut) {
+    console.log("✅ 도넛 요소 찾음");
+
+    donut.addEventListener('click', () => {
+      console.log("👆 도넛 클릭됨!");
+      flyRocketAccurately(); // 로켓 발사 함수 호출
+    });
+  } else {
+    console.warn("❌ 도넛 요소를 못 찾음");
+  }
+
+  // 리사이즈 대응
+  window.addEventListener('resize', () => {
+    console.log("창 크기 변경됨. 다음 발사 시 궤도에 반영됩니다.");
+  });
+});
 
 
 
