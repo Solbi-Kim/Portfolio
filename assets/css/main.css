@@ -1709,6 +1709,7 @@ body.touch .poptrox-popup .nav-next {
 		width: 180vw;    /* 로켓사이즈 */
 		max-width: 100px;
 		min-width: 50px;
+		width: 250px; /* 로켓사이즈 */
 		z-index: 2;
 		animation: rocket-fly 4s ease-in-out forwards;
 		pointer-events: none;
