@@ -279,6 +279,9 @@
 					$main[0]._poptrox.windowMargin = 50;
 				});
 
+
+		console.log("💥 poptrox 실행됨!", $('#main')[0]._poptrox);  //poptrox 디버그코드
+
 		// 반응형 제목
 		document.addEventListener("DOMContentLoaded", function () {
   			const text = "Portfolio";
