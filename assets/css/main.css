@@ -1192,7 +1192,7 @@ input, select, textarea {
 		text-align: center;
 		margin-top: 3em;
 		position: relative;
-		overflow: hidden;
+		overflow: visible;
 		padding-top: 8em;     /* 원하는 만큼 크게! */
 		padding-bottom: 8em;  /* 원하는 만큼 크게! */
 }
