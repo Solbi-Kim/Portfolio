@@ -1282,10 +1282,12 @@ input, select, textarea {
 		align-items: stretch;
 		box-shadow: 0 1em 3em 0.5em rgba(0,0,0,0.25);
 		background: rgba(31,34,36,0);
+		z-index: 500;
 }
 
 .poptrox-popup iframe {     
-		padding-bottom: 4em;   
+		padding-bottom: 4em;  
+		z-index: 1000;
 }
 
 
@@ -1368,7 +1370,7 @@ input, select, textarea {
 		background-image: linear-gradient(to top, rgba(16,16,16,0.45) 50%, rgba(16,16,16,0) 100%); 
 		position:fixed; 
   		pointer-events: auto !important; /* 클릭 가능 */
-  		z-index: 1000;
+  		z-index: 1050;
 		width: 100%;
 		box-sizing: border-box;
 		padding: 1em 1.6em 1em 1.6em;  /* 상/좌/하/우 여백 */
@@ -1404,6 +1406,7 @@ input, select, textarea {
 	font-size: 0.9em;
 	padding: 0em;
 	pointer-events: auto;
+	z-index: 1100;
 
 }
 
