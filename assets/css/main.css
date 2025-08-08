@@ -2216,15 +2216,15 @@ input, select, textarea {
 
 @keyframes rocket-fly {
   0% {
-    transform: translate(-10vh, 10vh) rotate(-15deg);
+    transform: translate(-10vw, 10vw) rotate(-15deg);
     opacity: 0;
   }
   50% {
-    transform: translate(50vw, -50vh) rotate(0deg);
+    transform: translate(50vw, -50vw) rotate(0deg);
     opacity: 1;
   }
   100% {
-    transform: translate(110vw, -70vh) rotate(20deg);
+    transform: translate(110vw, -110vw) rotate(20deg);
     opacity: 0;
   }
 }
