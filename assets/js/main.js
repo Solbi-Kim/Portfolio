@@ -302,6 +302,31 @@ function startTypingAnimation() {
 }
 
 // 로켓 애니메이션 함수
+function flyRocketAccurately() {
+  const rocket = document.querySelector('.rocket-fly');
+  const donut = document.querySelector('.donut-BG');
+
+  if (!rocket || !donut) {
+    console.warn("🚫 로켓 또는 도넛 요소 없음");
+    return;
+  }
+
+  const donutRect = donut.getBoundingClientRect();
+  const donutCenterY = donutRect.top + donutRect.height / 2;
+
+  rocket.animate([
+    { transform: `translate(-10vw, calc(100vh - 50px)) rotate(-15deg)`, opacity: 0 },
+    { transform: `translate(50vw, ${donutCenterY}px) rotate(0deg)`, opacity: 1 },
+    { transform: `translate(110vw, -30vh) rotate(20deg)`, opacity: 0 }
+  ], {
+    duration: 4000,
+    easing: 'ease-in-out',
+    fill: 'forwards'
+  });
+}
+
+
+	//addEventListener 반응형 애니메이션
 document.addEventListener("DOMContentLoaded", () => {
   // ✅ 1. 타이핑 애니메이션 (Intersection 감지 방식)
   const typingTarget = document.querySelector(".hero-title");
