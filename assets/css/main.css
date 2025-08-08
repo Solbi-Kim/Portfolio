@@ -1734,7 +1734,7 @@ body.touch .poptrox-popup .nav-next {
 			opacity: 0;
 		}
 		50% {
-			transform: translate(50vw, -45vh) rotate(0deg);
+			transform: translate(50vw, -40vh) rotate(0deg);
 			opacity:1;
 		}
 		100% {
