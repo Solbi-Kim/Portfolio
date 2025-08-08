@@ -1187,7 +1187,6 @@ input, select, textarea {
 /* ========================= */
 
 .hero-title {
-		height:100vh;
 		box-sizing: border-box;
 		text-align: center;
 		margin-top: 3em;
