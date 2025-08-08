@@ -1653,22 +1653,30 @@ body.touch .poptrox-popup .nav-next {
 	}
 
 	.donut-back,
-	.donut-front,
-	.donut-BG{
+	.donut-front{
 		position: absolute;
 		top: 50%;
-		left: 52%;
+		left: 50%;
 		width: auto;
 		height:80vh;
 		transform: translate(-50%, -50%);
 		pointer-events: none;
-		z-index:1;
 	}
+		.donut-BG{
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			width: auto;
+			height:80vh;
+			transform: translate(-48%, -50%);
+			pointer-events: none;
+			z-index:1;
 	@media screen and (max-width: 768px) {
 		.donut-back,
 		.donut-front,
 		.donut-BG {
-			width: 90vw;       /* 모바일에선 더 작게 */
+			width: 90vw;
+			height:auto;/* 모바일에선 더 작게 */
 			max-width: 320px;
 			max-height: 80vh;/* 초과 방지 */
 	}
@@ -1694,7 +1702,7 @@ body.touch .poptrox-popup .nav-next {
 		position: absolute;
 		left: -80px;
 		bottom: 0px; /* 좌측 하단 시작 */
-		width: 10vw;    /* 로켓사이즈 */
+		width: 180vw;    /* 로켓사이즈 */
 		max-width: 100px;
 		min-width: 50px;
 		z-index: 2;
@@ -1703,7 +1711,7 @@ body.touch .poptrox-popup .nav-next {
 	}
 	@media screen and (max-width: 768px) {
 		.rocket-fly {
-			width: 14vw;
+			width: 40vw;
 			max-width: 70px;
 			left: -14vw;
 		}
