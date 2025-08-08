@@ -301,6 +301,8 @@ function startTypingAnimation() {
   type();
 }
 
+
+	
 // 로켓 애니메이션 함수
 function flyRocketAccurately() {
   const rocket = document.querySelector('.rocket-fly');
@@ -314,15 +316,12 @@ function flyRocketAccurately() {
   console.log("🚀 로켓 발사 중!");
 
   // 안전하게 스타일 설정
-  try {
+ 
     rocket.style.opacity = '1';
     rocket.style.zIndex = '9999';
     rocket.style.width = '200px';
     rocket.style.height = 'auto';
-  } catch (e) {
-    console.error("❌ 로켓 스타일 설정 실패", e);
-  }
-
+  
   const donutRect = donut.getBoundingClientRect();
   const donutCenterY = donutRect.top + window.scrollY + donutRect.height / 2;
 
@@ -337,12 +336,12 @@ function flyRocketAccurately() {
       easing: 'ease-in-out',
       fill: 'forwards'
     });
-  } catch (e) {
+  } 
+  catch (e) {
     console.error("❌ 애니메이션 실행 실패", e);
   }
 }
 
-window.flyRocketAccurately = flyRocketAccurately;
 
 // 타이핑 애니메이션 함수
 function startTypingAnimation() {
@@ -528,8 +527,8 @@ function createFloatingHeart(emoji) {
 		}, { threshold: 0.6 });
 
 		if ($hero.length) observer.observe($hero[0]);
-	});
-})(jQuery);
+		});
+	})(jQuery);
 
 
 
