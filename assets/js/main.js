@@ -282,14 +282,13 @@
 		console.log("💥 poptrox 실행됨!", $('#main')[0]._poptrox);  //poptrox 디버그코드
 
 
-
-	//반응형 애니메이션 모음 addeventlistener
-document.addEventListener("DOMContentLoaded", function () {
-  // 👉 타이핑 애니메이션
+//타이핑 자막 애니메이션
+function startTypingAnimation() {
   const text = "Portfolio";
   const typedText = document.getElementById("typed-text");
   const cursor = document.getElementById("typed-cursor");
   let i = 0;
+
   function type() {
     if (i <= text.length) {
       typedText.textContent = text.slice(0, i);
@@ -297,9 +296,32 @@ document.addEventListener("DOMContentLoaded", function () {
       setTimeout(type, 120);
     }
   }
-  type();
 
-  // 👉 로켓 애니메이션
+  type();
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const target = document.querySelector(".hero-title");
+
+  if (!target) return;
+
+  const observer = new IntersectionObserver((entries, observer) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        startTypingAnimation();
+        observer.unobserve(entry.target); // 한 번만 실행되게!
+      }
+    });
+  }, {
+    threshold: 0.6 // 화면에 60% 이상 보이면 실행
+  });
+
+  observer.observe(target);
+});
+
+
+
+  // 로켓 애니메이션
   function flyRocketAccurately() {
     const rocket = document.querySelector('.rocket-fly');
     const donut = document.querySelector('.donut-BG');
