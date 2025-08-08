@@ -282,7 +282,8 @@
 		console.log("💥 poptrox 실행됨!", $('#main')[0]._poptrox);  //poptrox 디버그코드
 
 
-//타이핑 자막 애니메이션
+
+// 타이핑 자막 애니메이션 함수
 function startTypingAnimation() {
   const text = "Portfolio";
   const typedText = document.getElementById("typed-text");
@@ -300,53 +301,54 @@ function startTypingAnimation() {
   type();
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  const target = document.querySelector(".hero-title");
+// 로켓 애니메이션 함수
+function flyRocketAccurately() {
+  const rocket = document.querySelector('.rocket-fly');
+  const donut = document.querySelector('.donut-BG');
 
-  if (!target) return;
-
-  const observer = new IntersectionObserver((entries, observer) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        startTypingAnimation();
-        observer.unobserve(entry.target); // 한 번만 실행되게!
-      }
-    });
-  }, {
-    threshold: 0.6 // 화면에 60% 이상 보이면 실행
-  });
-
-  observer.observe(target);
-});
-
-
-
-  // 로켓 애니메이션
-  function flyRocketAccurately() {
-    const rocket = document.querySelector('.rocket-fly');
-    const donut = document.querySelector('.donut-BG');
-
-    if (!rocket || !donut) return;
-
-    const donutRect = donut.getBoundingClientRect();
-    const donutCenterY = donutRect.top + donutRect.height / 2;
-
-    rocket.animate([
-      { transform: `translate(-10vw, 100vh) rotate(-15deg)`, opacity: 0 },
-      { transform: `translate(50vw, ${donutCenterY}px) rotate(0deg)`, opacity: 1 },
-      { transform: `translate(110vw, -100px) rotate(20deg)`, opacity: 0 }
-    ], {
-      duration: 4000,
-      easing: 'ease-in-out',
-      fill: 'forwards'
-    });
+  if (!rocket || !donut) {
+    console.warn("🚫 로켓 또는 도넛 요소 없음");
+    return;
   }
 
-  // 실행
+  const donutRect = donut.getBoundingClientRect();
+  const donutCenterY = donutRect.top + donutRect.height / 2;
+
+  rocket.animate([
+    { transform: `translate(-10vw, 100vh) rotate(-15deg)`, opacity: 0 },
+    { transform: `translate(50vw, ${donutCenterY}px) rotate(0deg)`, opacity: 1 },
+    { transform: `translate(110vw, -100px) rotate(20deg)`, opacity: 0 }
+  ], {
+    duration: 4000,
+    easing: 'ease-in-out',
+    fill: 'forwards'
+  });
+}
+
+// 모든 DOM 요소가 로드되면 실행
+document.addEventListener("DOMContentLoaded", () => {
+  // 1. 타이핑 애니메이션을 intersection으로 감지해서 실행
+  const typingTarget = document.querySelector(".hero-title");
+
+  if (typingTarget) {
+    const observer = new IntersectionObserver((entries, observer) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          startTypingAnimation();
+          observer.unobserve(entry.target); // 1번만 실행
+        }
+      });
+    }, {
+      threshold: 0.6
+    });
+
+    observer.observe(typingTarget);
+  }
+
+  // 2. 로켓 애니메이션 즉시 실행
   flyRocketAccurately();
   window.addEventListener('resize', flyRocketAccurately);
 });
-
 
 
 
