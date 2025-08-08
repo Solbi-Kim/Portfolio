@@ -2038,6 +2038,190 @@ input, select, textarea {
 
 		}
 
+/* ========================= */
+/* 하단 타이틀(Portfolio) 관련 스타일 */
+/* ========================= */
+
+.hero-title {
+		box-sizing: border-box;
+		text-align: center;
+		margin-top: 3em;
+		position: relative;
+		overflow: visible;
+		padding-top: 8em;     /* 원하는 만큼 크게! */
+		padding-bottom: 8em;  /* 원하는 만큼 크게! */
+}
+.hero-title h1,
+.hero-title h2 {
+		font-family: "Playwrite AU QLD", sans-serif;
+		color: #7f7f7f;
+		text-shadow: 0 2px 18px rgba(0,0,0,0.13);
+		font-weight: 400;
+		letter-spacing: -1px;
+		text-transform: none;
+}
+.hero-title h1 {
+		font-size: 5em;
+		margin-bottom: 0.2em;
+}
+.hero-title h2 {
+		color: #404040;
+		font-size: 2em;
+}
+.hero-title p {
+		font-size: 1em;
+		font-weight: 400;
+}
+#typed-cursor {
+		display: inline-block;
+		width: 1ch;
+		animation: blink 0.7s steps(1) infinite;
+}
+@keyframes blink {
+		0%, 100% { opacity: 1; }
+		60% { opacity: 0; }
+}
+
+
+/* ========================= */
+/* 이모지(하트 등) 플로팅 애니메이션 스타일 */
+/* ========================= */
+#heart-fx-container .heart-fx {
+		position: absolute;
+		font-size: 3em;                        /* 기본 크기, JS에서 랜덤 변형 */
+		pointer-events: none;
+		will-change: transform, opacity;
+		opacity: 0;
+		transform: scale(0) rotate(0deg);
+		filter: drop-shadow(0 2px 8px #e28bd0b8);
+		animation: heart-pop 0.95s cubic-bezier(0.22,1,0.36,1) forwards;
+		user-select: none;
+}
+
+/* 이모지 넣는 Class */
+.mycaption-link {
+	font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', Pretendard, sans-serif;
+	font-size: 1.3em;
+	text-decoration: none;
+	padding: 0.15em 0.35em;
+	border-radius: 0.5em;
+	background: rgba(170,170,255,0.07);
+	transition: background 0.15s, color 0.15s;
+	color: #49f;
+	box-shadow: 0 1px 6px rgba(80,120,220,0.08);
+	cursor: pointer;
+}
+.mycaption-link:hover {
+	background: rgba(80,160,255,0.16);
+	color: #0052b7;
+	text-decoration: underline;
+}
+
+
+/* 상단 배너 설정 */
+	.donut-banner {
+		position: relative;
+		width: 100%;
+		height: 100vh;
+		overflow: hidden;
+	}
+
+	.bg-gradient {
+		position: absolute;
+		width: 100%;
+		height: 100%;
+		background: linear-gradient(to bottom, #1a1a40, #222);
+		inset:0;
+		z-index: 0;
+	}
+
+	.donut-back,
+	.donut-front{
+	.donut-front {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		width: 50vw;
+		max-width: 600px;
+		transform: translate(-50%, -50%);
+		pointer-events: none;
+	}
+		.donut-BG{
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			width: auto;
+			height:80vh;
+			transform: translate(-48%, -50%);
+			pointer-events: none;
+			z-index:1;
+	@media screen and (max-width: 768px) {
+		.donut-back,
+		.donut-front,
+		.donut-BG {
+			width: 90vw;
+			height:auto;/* 모바일에선 더 작게 */
+			max-width: 320px;
+			max-height: 80vh;/* 초과 방지 */
+	}
+		
+}
+	.donut-BG {
+		z-index: 1;
+	}
+	.donut-back {
+		z-index: 2;
+	}
+
+	.donut-front {
+		z-index: 4;
+	}
+
+	#rocket-layer {
+		position: absolute;
+		width: 100%;
+		height: 100%;
+		z-index: 3;
+		pointer-events: none;
+	}
+
+	.rocket-fly {
+		position: absolute;
+		left: -80px;
+		bottom: 0px; /* 좌측 하단 시작 */
+		width: 180vw;    /* 로켓사이즈 */
+		max-width: 100px;
+		min-width: 50px;
+		width: 250px; /* 로켓사이즈 */
+		z-index: 2;
+		animation: rocket-fly 4s ease-in-out forwards;
+		pointer-events: none;
+	}
+	@media screen and (max-width: 768px) {
+		.rocket-fly {
+			width: 40vw;
+			max-width: 70px;
+			left: -14vw;
+		}
+	}
+	
+
+	@keyframes rocket-fly {
+		0% {
+			transform: translate(-10vh,10vh) rotate(-15deg);
+			opacity: 0;
+		}
+		50% {
+			transform: translate(50vw, -40vh) rotate(0deg);
+			opacity:1;
+		}
+		100% {
+			transform: translate(110vw, -70vw) rotate(20deg);
+			opacity: 0;
+		}
+	}
+
+
 /* Footer */
 
 	#footer .copyright {
