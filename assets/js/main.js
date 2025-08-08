@@ -312,10 +312,10 @@ function flyRocketAccurately() {
   }
 
   const donutRect = donut.getBoundingClientRect();
-  const donutCenterY = donutRect.top + donutRect.height / 2;
+  const donutCenterY = donutRect.top + window.scrollY + donutRect.height / 2;
 
   rocket.animate([
-    { transform: `translate(-10vw, calc(100vh - 50px)) rotate(-15deg)`, opacity: 0 },
+    { transform: `translate(-10vw, 100vh) rotate(-15deg)`, opacity: 0 },
     { transform: `translate(50vw, ${donutCenterY}px) rotate(0deg)`, opacity: 1 },
     { transform: `translate(110vw, -30vh) rotate(20deg)`, opacity: 0 }
   ], {
