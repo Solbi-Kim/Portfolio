@@ -1644,6 +1644,7 @@ body.touch .poptrox-popup .nav-next {
 		width: 100%;
 		height: 100%;
 		background: linear-gradient(to bottom, #1a1a40, #222);
+		inset:0;
 		z-index: 0;
 	}
 
@@ -1657,21 +1658,21 @@ body.touch .poptrox-popup .nav-next {
 		height:80vh;
 		transform: translate(-50%, -50%);
 		pointer-events: none;
+		z-index:1;
 	}
-
 	.donut-back {
-		z-index: 1;
+		z-index: 2;
 	}
 
 	.donut-front {
-		z-index: 3;
+		z-index: 4;
 	}
 
 	#rocket-layer {
 		position: absolute;
 		width: 200%;
 		height: 200%;
-		z-index: 2;
+		z-index: 3;
 		pointer-events: none;
 	}
 
