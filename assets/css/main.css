@@ -2185,9 +2185,6 @@ input, select, textarea {
 .donut-hover-zone {
   width: 60vw;
   height: 30vw;
-	top:50%
-	left: 50%;
- transform: translate(-50%, -50%);
 }
 .donut-hover-zone:hover .donut-back,
 .donut-hover-zone:hover .donut-front {
