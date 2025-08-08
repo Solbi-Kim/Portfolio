@@ -403,7 +403,7 @@ function createFloatingHeart(emoji) {
 	$window.on('load', function () {
 		const $banner = $('.donut-banner');
 		const $wrapper = $('#wrapper');
-		const $hero = $('.hero-title');
+		//const $hero = $('.hero-title');
 
 		let snappedBanner = false;
 		let snappedHero = false;
