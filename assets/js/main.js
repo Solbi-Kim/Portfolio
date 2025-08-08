@@ -311,19 +311,37 @@ function flyRocketAccurately() {
     return;
   }
 
+  console.log("🚀 로켓 발사 중!");
+
+  // 안전하게 스타일 설정
+  try {
+    rocket.style.opacity = '1';
+    rocket.style.zIndex = '9999';
+    rocket.style.width = '200px';
+    rocket.style.height = 'auto';
+  } catch (e) {
+    console.error("❌ 로켓 스타일 설정 실패", e);
+  }
+
   const donutRect = donut.getBoundingClientRect();
   const donutCenterY = donutRect.top + window.scrollY + donutRect.height / 2;
 
-  rocket.animate([
-    { transform: `translate(-10vw, 100vh) rotate(-15deg)`, opacity: 0 },
-    { transform: `translate(50vw, 40vh) rotate(0deg)`, opacity: 1 },
-    { transform: `translate(110vw, -30vh) rotate(20deg)`, opacity: 0 }
-  ], {
-    duration: 4000,
-    easing: 'ease-in-out',
-    fill: 'forwards'
-  });
+  // 애니메이션 실행
+  try {
+    rocket.animate([
+      { transform: `translate(-10vw, 100vh) rotate(-15deg)`, opacity: 0 },
+      { transform: `translate(50vw, ${donutCenterY}px) rotate(0deg)`, opacity: 1 },
+      { transform: `translate(110vw, -30vh) rotate(20deg)`, opacity: 0 }
+    ], {
+      duration: 4000,
+      easing: 'ease-in-out',
+      fill: 'forwards'
+    });
+  } catch (e) {
+    console.error("❌ 애니메이션 실행 실패", e);
+  }
 }
+
 window.flyRocketAccurately = flyRocketAccurately;
 
 // 타이핑 애니메이션 함수
@@ -361,7 +379,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     observer.observe(typingTarget);
   }
-
   // 로켓 클릭 이벤트
   const donut = document.querySelector('.donut-BG');
   if (donut) {
