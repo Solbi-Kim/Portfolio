@@ -2152,14 +2152,14 @@ input, select, textarea {
 }
 
 .donut-back {
-  width: 50vw;
-  max-width: 600px;
+  width: auto;
+  height: 80vh;
   z-index: 2;
 }
 
 .donut-front {
-  width: 50vw;
-  max-width: 600px;
+ width: auto;
+  height: 80vh;
   z-index: 4;
 }
 
