@@ -2268,7 +2268,7 @@ input, select, textarea {
   opacity: 0;
   z-index: 5;
   pointer-events: none;
-  width: 100px;
+  width: 50vw;
   height: auto;
   transition: none;
 }
