@@ -2136,7 +2136,6 @@ input, select, textarea {
 	}
 
 	.donut-back,
-	.donut-front{
 	.donut-front {
 		position: absolute;
 		top: 50%;
@@ -2155,6 +2154,7 @@ input, select, textarea {
 			transform: translate(-48%, -50%);
 			pointer-events: none;
 			z-index:1;
+		}
 	@media screen and (max-width: 768px) {
 		.donut-back,
 		.donut-front,
