@@ -439,3 +439,29 @@ function createFloatingHeart(emoji) {
     } */
   });
 })(jQuery);
+
+
+// 터치 장치 여부 체크
+function isTouchDevice() {
+  return (
+    'ontouchstart' in window || 
+    navigator.maxTouchPoints > 0 || 
+    navigator.msMaxTouchPoints > 0
+  );
+}
+
+// 화면 크기 기준으로 스마트폰 / 태블릿 구분 (대략적)
+function getDeviceType() {
+  const width = window.innerWidth;
+  if (width <= 768) return 'smartphone';
+  if (width <= 1200) return 'tablet';
+  return 'desktop';
+}
+
+const html = document.documentElement;
+
+if (isTouchDevice()) {
+  html.classList.add('is-touch', getDeviceType());
+} else {
+  html.classList.add('is-desktop');
+}
