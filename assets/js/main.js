@@ -181,7 +181,7 @@
     $image_img.hide();
   });
 
-  // Poptrox.
+// Poptrox.
 $main.poptrox({
 	overlayCloser: true, // 팝업 외부 클릭 닫기 허용
 	usePopupEasyClose: false, // 팝업 본체 클릭 시 닫기 방지
@@ -246,7 +246,7 @@ $main.poptrox({
 			console.warn('[stacked] init failed', err);
 		}
 
-		// ===== 닫기 방지 로직 =====
+		// ===== 클릭 방지 로직 =====
 		// 캡션 클릭 시 닫기 방지
 		$(document)
 			.off("click.px", ".poptrox-popup .caption")
@@ -254,14 +254,19 @@ $main.poptrox({
 				e.stopPropagation();
 			});
 
-		// 캡션 내부 링크 & caption2 링크 클릭 시 닫기 방지
-		$(document)
-			.off("click.px", ".poptrox-popup .caption a, .poptrox-popup .caption2 a")
-			.on("click.px", ".poptrox-popup .caption a, .poptrox-popup .caption2 a", function (e) {
-					e.stopPropagation();   // 팝업 닫기 이벤트 막기
-					e.preventDefault();    // Poptrox 내부 링크 차단 로직 무효화
-					window.open(this.href, "_blank", "noopener"); // 새 창 열기
-			});
+		// ===== 버튼 살리기 (1번 버전) =====
+		$(".poptrox-popup .caption a, .poptrox-popup .caption2 a").each(function () {
+			$(this)
+				.off("click.poptrox") // Poptrox 내부 click 핸들러 제거
+				.on("click", function (e) {
+					e.stopPropagation(); // 닫기 막기
+					if (this.target === "_blank") {
+						window.open(this.href, "_blank", "noopener");
+					} else {
+						location.href = this.href;
+					}
+				});
+		});
 	},
 	overlayOpacity: 0,
 	popupCloserText: "",
