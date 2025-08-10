@@ -240,11 +240,17 @@
         console.warn('[stacked] init failed', err);
       }
 
+		$(document)
+  			.off("click.px", ".poptrox-popup .caption")
+  			.on("click.px", ".poptrox-popup .caption", function (e) {
+   			e.stopPropagation();
+  		});
       $(document)
         .off("click.px", ".poptrox-popup .caption, .poptrox-popup .caption a")
         .on("click.px", ".poptrox-popup .caption, .poptrox-popup .caption a", function (e) {
           e.stopPropagation();
         });
+		
     },
     overlayOpacity: 0,
     popupCloserText: "",
