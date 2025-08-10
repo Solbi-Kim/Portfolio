@@ -2199,11 +2199,25 @@ input, select, textarea {
   	width: 70vw;
   	height: 30vh;
 }
-.donut-hover-zone:hover .donut-back,
-.donut-hover-zone:hover .donut-front {
-	opacity: 0;
-	transition: opacity 0.4s ease-in-out;
+
+/* PC hover */
+.is-desktop .donut-hover-zone:hover .donut-back,
+.is-desktop .donut-hover-zone:hover .donut-front {
+  opacity: 1 !important;
+  transition: opacity 0.4s ease-in-out;
 }
+
+/* 터치 장치에서는 hover 제거, 대신 active 적용 */
+.is-touch .donut-hover-zone .donut-back,
+.is-touch .donut-hover-zone .donut-front {
+  transition: opacity 0.3s;
+}
+
+.is-touch .donut-hover-zone:active .donut-back,
+.is-touch .donut-hover-zone:active .donut-front {
+  opacity: 0 !important; /* 꾹 누르는 동안만 숨김 */
+}
+
 
 .stars {
   position: absolute;
@@ -2246,24 +2260,6 @@ input, select, textarea {
   }
 }
 
-/* 모바일 대응 */
-@media screen and (max-width: 768px) {
-  .donut-back,
-  .donut-front,
-  .donut-BG {
-    width: 120vw;
-    height: auto;
-    max-width: 320px;
-    max-height: 80vh;
-  }
-}
-/* 모바일에서 hover 안되게 */
-@media (hover: none) and (pointer: coarse) {
-  .donut-hover-zone:hover .donut-back,
-  .donut-hover-zone:hover .donut-front {
-    opacity: 1 !important;
-  }
-}
 
 #rocket-layer {
   position: absolute;
