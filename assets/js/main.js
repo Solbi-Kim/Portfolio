@@ -524,6 +524,12 @@ if (isTouchDevice()) {
  * @returns {Animation|undefined}
  */
 function flyRocketResponsive(options = {}) {
+  const duration = options.duration ?? 6000;   // 로켓 비행 속도
+  const easing   = options.easing   ?? 'cubic-bezier(0.22, 1, 0.36, 1)';
+  const rocket   = document.querySelector('.rocket-fly');
+const banner   = document.querySelector('.donut-banner');
+const donut    = document.querySelector('.donut-BG'); // donut center reference
+
   // --- PATCH: Move rocket in DOM between donut-back and donut-front during animation ---
   const donutBack = document.querySelector('.donut-back');
   const donutFront = document.querySelector('.donut-front');
@@ -535,10 +541,7 @@ function flyRocketResponsive(options = {}) {
   }
   // --- END PATCH ---
 
-  const duration = options.duration ?? 6000;   // 로켓 비행 속도
-  const easing   = options.easing   ?? 'cubic-bezier(0.22, 1, 0.36, 1)';
-  const rocket   = document.querySelector('.rocket-fly');
-  const banner   = document.querySelector('.donut-banner');
+const banner   = document.querySelector('.donut-banner');
   const donut    = document.querySelector('.donut-BG'); // donut center reference
 
   if (!rocket || !banner || !donut) {
@@ -592,7 +595,6 @@ function flyRocketResponsive(options = {}) {
       easing,
       fill: 'forwards'
     });
-    
     if (originalParent) {
       if (anim && anim.finished) {
         anim.finished.finally(() => {
@@ -610,7 +612,6 @@ function flyRocketResponsive(options = {}) {
         }
       }
     }
-
     return anim;
   } catch (e) {
     console.error('[rocket] animation failed', e);
