@@ -532,8 +532,9 @@ function flyRocketResponsive(options = {}) {
 
   // 궤도 좌표 (배너 기준)
   const start = { x: -rW, y: bannerRect.height - rH/2 + yOffsetStart };
-  const mid   = { x: (start.x + end.x) / 2, y: (start.y + end.y) / 2 };
+  
   const end   = { x: bannerRect.width + rW, y: -rH + yOffsetEnd };
+const mid   = { x: (start.x + end.x) / 2, y: (start.y + end.y) / 2 };
 
   // 애니메이션
   rocket.style.left = '0px';
