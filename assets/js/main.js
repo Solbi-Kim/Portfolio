@@ -462,24 +462,6 @@ function createFloatingHeart(emoji) {
       }
     });
 
-    /*const $hero = $(".hero-title");
-    if ($hero.length) {
-      const observer = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting && !snappedHero) {
-              snappedHero = true;
-              smoothScrollTo(entry.target.offsetTop);
-              setTimeout(() => {
-                snappedHero = false;
-              }, 1400);
-            }
-          });
-        },
-        { threshold: 0.6 }
-      );
-      observer.observe($hero[0]);
-    } */
   });
 })(jQuery);
 
@@ -523,88 +505,4 @@ if (isTouchDevice()) {
  *  - easing: string         default 'cubic-bezier(0.22, 1, 0.36, 1)'
  * @returns {Animation|undefined}
  */
-function flyRocketResponsive(options = {}) {
-  const duration = options.duration ?? 6000;
-  const easing   = options.easing   ?? 'cubic-bezier(0.22, 1, 0.36, 1)';
-  const rocket   = document.querySelector('.rocket-fly');
-  const banner   = document.querySelector('.donut-banner');
-  const donut    = document.querySelector('.donut-BG');
 
-  if (!rocket || !banner || !donut) return;
-
-  // 1) 궤도 좌표 먼저 계산
-  const bannerRect = rocket.parentNode.getBoundingClientRect();
-  const donutRect  = donut.getBoundingClientRect();
-  const yOffset = -bannerRect.height * 0.5; // shift upward
-  const donutCX = (donutRect.left - bannerRect.left) + donutRect.width / 2;
-  const donutCY = (donutRect.top - bannerRect.top) + donutRect.height / 2;
-  const rW = rocket.offsetWidth || 200;
-  const rH = rocket.offsetHeight || (rW * 0.5);
-
-  const start = { x: -0.12 * bannerRect.width - rW/2, y: 1.06 * bannerRect.height + rH/2  + yOffset};
-  const mid   = { x: donutCX - rW/2, y: donutCY - rH/2  + yOffset};
-  const end   = { x: 1.08 * bannerRect.width + rW/2, y: -0.30 * bannerRect.height - rH/2  + yOffset};
-
-  // 2) 궤도 계산 끝나면 DOM 재배치
-  const donutBack = document.querySelector('.donut-back');
-  const donutFront = document.querySelector('.donut-front');
-  let originalParent = null, originalNext = null;
-  if (rocket && donutBack && donutBack.parentNode === donutFront.parentNode) {
-    originalParent = rocket.parentNode;
-    originalNext = rocket.nextSibling;
-    donutFront.parentNode.insertBefore(rocket, donutFront);
-  }
-
-  // 3) 애니메이션
-  rocket.style.left = '0px';
-  rocket.style.top  = '0px';
-  rocket.style.opacity = '1';
-  rocket.style.zIndex  = '3';
-
-  const anim = rocket.animate([
-    { transform: `translate(${start.x}px, ${start.y}px) rotate(-18deg)`, opacity: 0  + yOffset},
-    { offset: 0.48, transform: `translate(${mid.x}px, ${mid.y}px) rotate(0deg)`, opacity: 1  + yOffset},
-    { transform: `translate(${end.x}px, ${end.y}px) rotate(22deg)`, opacity: 0  + yOffset}
-  ], { duration, easing, fill: 'forwards' });
-
-  if (originalParent) {
-    anim.finished.finally(() => {
-      if (originalNext) originalParent.insertBefore(rocket, originalNext);
-      else originalParent.appendChild(rocket);
-    });
-  }
-
-  return anim;
-}
-
-// Expose for manual triggering (console or other handlers)
-window.flyRocketResponsive = flyRocketResponsive;
-
-// Trigger on CLICK of the donut hover zone (or the banner as fallback)
-document.addEventListener('DOMContentLoaded', () => {
-  const zone = document.querySelector('.donut-hover-zone') || document.querySelector('.donut-banner');
-  if (!zone) return;
-
-  // Avoid overlapping launches
-  let busy = false;
-
-  function fire() {
-    if (busy) return;
-    busy = true;
-    const anim = flyRocketResponsive();
-    // When animation ends, release the lock
-    if (anim && anim.finished) {
-      anim.finished.finally(() => { busy = false; });
-    } else {
-      setTimeout(() => { busy = false; }, 4500);
-    }
-  }
-
-  // Click triggers
-  zone.addEventListener('click', fire);
-
-  // Keyboard accessibility (if the zone is focusable in your markup)
-  zone.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fire(); }
-  });
-});
