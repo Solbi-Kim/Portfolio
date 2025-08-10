@@ -241,20 +241,25 @@
         console.warn('[stacked] init failed', err);
       }
 
-		$(document)
-  			.off("click.px", ".poptrox-popup .caption")
-  			.on("click.px", ".poptrox-popup .caption", function (e) {
-   			e.stopPropagation();
-  		});
-      $(document)
-        .off("click.px", ".poptrox-popup .caption, .poptrox-popup .caption a")
-        .on("click.px", ".poptrox-popup .caption, .poptrox-popup .caption a", function (e) {
-          e.stopPropagation();
-        });
-		$(document).on("click", ".poptrox-popup .caption2 a", function(e) {
-    		e.stopPropagation(); // 이벤트 버블링 차단
-    		// preventDefault() 안 씀 → 링크 정상 작동
-		});
+	$(document)
+  		.off("click.px", ".poptrox-popup .caption")
+  		.on("click.px", ".poptrox-popup .caption", function(e) {
+    		e.stopPropagation();
+  	});
+
+// caption 내부의 a 클릭 → 닫기 방지, 기본 동작 허용
+	$(document)
+  		.off("click.px", ".poptrox-popup .caption a")
+  		.on("click.px", ".poptrox-popup .caption a", function(e) {
+    		e.stopPropagation();
+  	});
+
+// caption2 내부의 a 클릭 → 닫기 방지, 기본 동작 허용
+	$(document)
+  		.off("click.px", ".poptrox-popup .caption2 a")
+  		.on("click.px", ".poptrox-popup .caption2 a", function(e) {
+    		e.stopPropagation();
+  	});
 		
     },
     overlayOpacity: 0,
