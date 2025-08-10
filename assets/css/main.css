@@ -2195,7 +2195,6 @@ input, select, textarea {
 
 	aspect-ratio: 2 / 1;    
  	pointer-events: auto;
-  	z-index: 3;
   	width: 70vw;
   	height: 30vh;
 	background:transparent;
@@ -2261,14 +2260,6 @@ input, select, textarea {
   }
 }
 
-
-#rocket-layer {
-  position: absolute;
-  width: 50%;
-  height: 50%;
-  z-index: 3;
-  pointer-events: none;
-}
 .rocket-fly {
   position: absolute;
   left: 0;
