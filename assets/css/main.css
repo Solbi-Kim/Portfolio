@@ -1291,7 +1291,8 @@ input, select, textarea {
 			position: absolute;
 			text-align: center;
 			width: 100%;
-			z-index: 2;
+			pointer-events: auto;     /* 클릭 허용 */
+  			z-index: 1005;   
 		}
 
 			.poptrox-popup .caption h2, .poptrox-popup .caption h3, .poptrox-popup .caption h4, .poptrox-popup .caption h5, .poptrox-popup .caption h6 {
@@ -1300,6 +1301,9 @@ input, select, textarea {
 
 			.poptrox-popup .caption p {
 				color: #ffffff;
+			}
+			.poptrox-popup .caption a {
+  				pointer-events: auto;   
 			}
 
 		.poptrox-popup .loader {
