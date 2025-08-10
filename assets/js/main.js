@@ -505,4 +505,70 @@ if (isTouchDevice()) {
  *  - easing: string         default 'cubic-bezier(0.22, 1, 0.36, 1)'
  * @returns {Animation|undefined}
  */
+function flyRocketResponsive(options = {}) {
+  const duration = options.duration ?? 6000;
+  const easing   = options.easing   ?? 'cubic-bezier(0.22, 1, 0.36, 1)';
+  const rocket   = document.querySelector('.rocket-fly');
+  const banner   = document.querySelector('.donut-banner');
+  const donut    = document.querySelector('.donut-BG');
+
+  if (!rocket || !banner || !donut) return;
+
+  // 배너와 도넛의 위치 정보 가져오기
+  const bannerRect = banner.getBoundingClientRect();
+  const donutRect  = donut.getBoundingClientRect();
+
+  // 도넛 중심 좌표 (배너 기준)
+  const donutCX = (donutRect.left - bannerRect.left) + donutRect.width / 2;
+  const donutCY = (donutRect.top - bannerRect.top) + donutRect.height / 2;
+
+  // 로켓 크기
+  const rW = rocket.offsetWidth  || 200;
+  const rH = rocket.offsetHeight || (rW * 0.5);
+
+  // 궤도 좌표
+  const start = { x: -rW, y: bannerRect.height + rH };
+  const mid   = { x: donutCX - rW / 2, y: donutCY - rH / 2 };
+  const end   = { x: bannerRect.width + rW, y: -rH };
+
+  // 애니메이션 (z-index, DOM 위치 변경 없음)
+  rocket.style.left = '0px';
+  rocket.style.top  = '0px';
+  rocket.style.opacity = '1';
+
+  const anim = rocket.animate([
+    { transform: `translate(${start.x}px, ${start.y}px) rotate(-18deg)`, opacity: 0 },
+    { offset: 0.48, transform: `translate(${mid.x}px, ${mid.y}px) rotate(0deg)`, opacity: 1 },
+    { transform: `translate(${end.x}px, ${end.y}px) rotate(22deg)`, opacity: 0 }
+  ], {
+    duration,
+    easing,
+    fill: 'forwards'
+  });
+
+  return anim;
+}
+
+// -----------------------
+// 클릭 트리거 설정
+// -----------------------
+document.addEventListener('DOMContentLoaded', () => {
+  const zone = document.querySelector('.donut-hover-zone') || document.querySelector('.donut-banner');
+  if (!zone) return;
+
+  let busy = false; // 중복 발사 방지
+
+  function fire() {
+    if (busy) return;
+    busy = true;
+    const anim = flyRocketResponsive();
+    if (anim && anim.finished) {
+      anim.finished.finally(() => { busy = false; });
+    } else {
+      setTimeout(() => { busy = false; }, 4500);
+    }
+  }
+
+  zone.addEventListener('click', fire);
+});
 
