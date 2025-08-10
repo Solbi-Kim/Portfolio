@@ -565,9 +565,9 @@ document.addEventListener('DOMContentLoaded', () => {
     busy = true;
     const anim = flyRocketResponsive();
     if (anim && anim.finished) {
-      anim.finished.finally(() => { busy = false; });
+      anim.finished.finally(() => { busy = false; }, 100);
     } else {
-      setTimeout(() => { busy = false; }, 10); //animation delay
+      setTimeout(() => { busy = false; }, 100); //animation delay
     }
   }
 
