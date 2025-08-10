@@ -258,21 +258,16 @@ $main.poptrox({
 
 		// ===== 버튼 클릭 살리기 =====
 		$(".poptrox-popup .caption a, .poptrox-popup .caption2 a")
-			.each(function () {
-				// 1. 기존 poptrox 클릭 이벤트 제거
-				$(this).off("click");
-
-				// 2. 새 클릭 이벤트 등록
-				$(this).on("click", function (e) {
-					e.stopPropagation(); // 닫기 방지
-					// preventDefault()는 안 쓰면 원래 링크 이동 가능
-					if (this.target === "_blank") {
-						window.open(this.href, "_blank", "noopener");
-					} else {
-						window.location.href = this.href;
-					}
-				});
-			});
+    		.off("click") // poptrox 기본 핸들러 삭제
+    		.on("click", function (e) {
+       		e.stopPropagation(); // 닫기 방지
+        	// 여기서 preventDefault()는 안 쓰면 원래 링크 이동
+        	if (this.target === "_blank") {
+            	window.open(this.href, "_blank", "noopener");
+        	} else {
+            		window.location.href = this.href;
+        		}
+    	});
 	},
 	overlayOpacity: 0,
 	popupCloserText: "",
