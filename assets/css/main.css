@@ -1191,6 +1191,11 @@ input, select, textarea {
 		background: rgba(31, 34, 36, 0.25);
 		box-shadow: 0 1em 3em 0.5em rgba(0, 0, 0, 0.35);
 		cursor: default;
+
+		top: 3em;
+  		left: 3em;
+  		right: 3em;
+  		bottom: 3em;
 	}
 
 	
@@ -1272,11 +1277,11 @@ input, select, textarea {
 			-webkit-transform: scaleX(-1);
 			-ms-transform: scaleX(-1);
 			transform: scaleX(-1);
-			left: -4em;
+			left: -5em;
 		}
 
 		.poptrox-popup .nav-next {
-			right: -4em;
+			right: -5em;
 		}
 
 		.poptrox-popup .caption {
