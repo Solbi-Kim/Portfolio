@@ -258,10 +258,9 @@ $main.poptrox({
 		$(document)
 			.off("click.px", ".poptrox-popup .caption a, .poptrox-popup .caption2 a")
 			.on("click.px", ".poptrox-popup .caption a, .poptrox-popup .caption2 a", function (e) {
-				e.stopPropagation();
-				// 필요 시 새 창 강제 열기:
-				// e.preventDefault();
-				// window.open(this.href, "_blank", "noopener");
+					e.stopPropagation();   // 팝업 닫기 이벤트 막기
+					e.preventDefault();    // Poptrox 내부 링크 차단 로직 무효화
+					window.open(this.href, "_blank", "noopener"); // 새 창 열기
 			});
 	},
 	overlayOpacity: 0,
