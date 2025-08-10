@@ -183,7 +183,7 @@
 
   // Poptrox.
 $main.poptrox({
-	overlayCloser: false, // 팝업 바깥 누를 시 닫기 비활성화
+	overlayCloser: true, // 팝업 외부 클릭 닫기 허용
 	baseZIndex: 20000,
 	caption: function ($a) {
 		var s = "";
@@ -209,13 +209,10 @@ $main.poptrox({
 		} catch (err) {
 			console.warn('[stacked] cleanup failed', err);
 		}
-
 		$body.removeClass("modal-active");
 	},
 	onPopupOpen: function () {
 		$body.addClass("modal-active");
-		$(".poptrox-overlay").off("click");  //팝업 외부 클릭 닫기 강제차단
-
 		/* PATCH[stacked]: enable vertical stack and set caption height CSS var */
 		try {
 			var $popup = $('.poptrox-popup');
@@ -228,11 +225,9 @@ $main.poptrox({
 			}
 			setCapHeight();
 
-			// Recompute on resize
 			var __stackedResizeHandler = function() { setCapHeight(); };
 			window.addEventListener('resize', __stackedResizeHandler);
 
-			// Recompute on caption reflow
 			if (window.ResizeObserver && $cap[0]) {
 				var __capRO = new ResizeObserver(function(){ setCapHeight(); });
 				__capRO.observe($cap[0]);
@@ -243,23 +238,21 @@ $main.poptrox({
 			console.warn('[stacked] init failed', err);
 		}
 
-		// ===== 클릭 이벤트 정리 =====
-		// 팝업 외부 클릭 완전 차단
-		$(document).off("click.poptrox");
-		$(".poptrox-overlay").off("click");
+		// ===== 수정 부분 시작 =====
+		// 캡션 클릭 시 닫기 방지
+		$(document)
+			.off("click.px", ".poptrox-popup .caption")
+			.on("click.px", ".poptrox-popup .caption", function(e) {
+				e.stopPropagation();
+			});
 
-		// 캡션 영역 클릭 시 닫기 방지
-		$(document).off("click.px", ".poptrox-popup .caption")
-		.on("click.px", ".poptrox-popup .caption", function(e) {
-			e.stopPropagation();
-		});
-
-		// 캡션과 캡션2 내부 링크 클릭 시 닫기 방지 + 기본 동작 허용
-		$(document).off("click.px", ".poptrox-popup .caption a, .poptrox-popup .caption2 a")
-		.on("click.px", ".poptrox-popup .caption a, .poptrox-popup .caption2 a", function(e) {
-			e.stopPropagation();
-			// target="_blank" 있으면 새 창, 없으면 원래 링크 이동
-		});
+		// 캡션 & 캡션2 내부 링크 클릭 시 닫기 방지 + 기본 동작 유지
+		$(document)
+			.off("click.px", ".poptrox-popup .caption a, .poptrox-popup .caption2 a")
+			.on("click.px", ".poptrox-popup .caption a, .poptrox-popup .caption2 a", function(e) {
+				e.stopPropagation();
+			});
+		// ===== 수정 부분 끝 =====
 	},
 	overlayOpacity: 0,
 	popupCloserText: "",
@@ -274,19 +267,18 @@ $main.poptrox({
 	usePopupForceClose: true,
 	usePopupLoader: true,
 	usePopupNav: true,
-	windowMargin: 10,
+	windowMargin: 10
 });
 
-// Hack: Set margins to 0 when 'xsmall' activates.
 breakpoints.on("<=xsmall", function () {
 	$main[0]._poptrox.windowMargin = 0;
 });
-
 breakpoints.on(">xsmall", function () {
 	$main[0]._poptrox.windowMargin = 50;
 });
 
 console.log("💥 poptrox 실행됨!", $("#main")[0]._poptrox);
+
 
   // ---- Typing animation (single definition) ----
   function startTypingAnimation() {
