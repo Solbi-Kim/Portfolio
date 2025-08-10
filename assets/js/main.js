@@ -214,6 +214,8 @@ $main.poptrox({
 	},
 	onPopupOpen: function () {
 		$body.addClass("modal-active");
+		$(".poptrox-overlay").off("click");  //팝업 외부 클릭 닫기 강제차단
+
 		/* PATCH[stacked]: enable vertical stack and set caption height CSS var */
 		try {
 			var $popup = $('.poptrox-popup');
