@@ -514,11 +514,11 @@ function flyRocketResponsive(options = {}) {
 
   if (!rocket || !banner || !donut) return;
 
-  // 배너와 도넛의 위치 정보 가져오기
+  // 배너와 도넛 위치 정보
   const bannerRect = banner.getBoundingClientRect();
   const donutRect  = donut.getBoundingClientRect();
 
-  // 도넛 중심 좌표 (배너 기준)
+  // 도넛 중심 (배너 기준)
   const donutCX = (donutRect.left - bannerRect.left) + donutRect.width / 2;
   const donutCY = (donutRect.top - bannerRect.top) + donutRect.height / 2;
 
@@ -526,12 +526,16 @@ function flyRocketResponsive(options = {}) {
   const rW = rocket.offsetWidth  || 200;
   const rH = rocket.offsetHeight || (rW * 0.5);
 
-  // 궤도 좌표
-  const start = { x: -rW, y: bannerRect.height + rH };
-  const mid   = { x: donutCX - rW / 2, y: donutCY - rH / 2 };
-  const end   = { x: bannerRect.width + rW, y: -rH };
+  // **Y 좌표 보정**: 시작점은 배너 하단 살짝 아래
+  const yOffsetStart = bannerRect.height * 0.1; // 10% 아래에서 시작
+  const yOffsetEnd   = bannerRect.height * 0.1; // 10% 위에서 끝
 
-  // 애니메이션 (z-index, DOM 위치 변경 없음)
+  // 궤도 좌표 (배너 기준)
+  const start = { x: -rW, y: bannerRect.height - rH/2 + yOffsetStart };
+  const mid   = { x: donutCX - rW / 2, y: donutCY - rH / 2 };
+  const end   = { x: bannerRect.width + rW, y: -rH - yOffsetEnd };
+
+  // 애니메이션
   rocket.style.left = '0px';
   rocket.style.top  = '0px';
   rocket.style.opacity = '1';
@@ -549,15 +553,12 @@ function flyRocketResponsive(options = {}) {
   return anim;
 }
 
-// -----------------------
-// 클릭 트리거 설정
-// -----------------------
+// 클릭 트리거
 document.addEventListener('DOMContentLoaded', () => {
   const zone = document.querySelector('.donut-hover-zone') || document.querySelector('.donut-banner');
   if (!zone) return;
 
-  let busy = false; // 중복 발사 방지
-
+  let busy = false;
   function fire() {
     if (busy) return;
     busy = true;
