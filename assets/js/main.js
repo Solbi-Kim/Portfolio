@@ -527,8 +527,8 @@ function flyRocketResponsive(options = {}) {
   const rH = rocket.offsetHeight || (rW * 0.5);
 
   // **Y 좌표 보정**: 시작점은 배너 하단 살짝 아래
-  const yOffsetStart = bannerRect.height * 0.1; // 10% 아래에서 시작
-  const yOffsetEnd   = bannerRect.height * 0.1; // 10% 위에서 끝
+  const yOffsetStart = bannerRect.height * -0.5; // 
+  const yOffsetEnd   = bannerRect.height * -0.5; // 
 
   // 궤도 좌표 (배너 기준)
   const start = { x: -rW, y: bannerRect.height - rH/2 + yOffsetStart };
