@@ -260,6 +260,12 @@
   		.on("click.px", ".poptrox-popup .caption2 a", function(e) {
     		e.stopPropagation();
   	});
+
+	$(document).on("click", ".poptrox-popup .caption a, .poptrox-popup .caption2 a", function(e) {
+    	e.preventDefault(); // 팝업 닫기 동작과 충돌 방지
+    	e.stopPropagation(); // 버블링 차단
+    	window.open(this.href, '_blank'); // 새창 열기
+	});
 		
     },
     overlayOpacity: 0,
