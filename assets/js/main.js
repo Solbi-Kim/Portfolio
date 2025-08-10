@@ -259,7 +259,6 @@
         											e.stopPropagation();
       											});
   										},
-				},
 				overlayOpacity: 0,
 				popupCloserText: '',
 				popupHeight: 150,
@@ -274,7 +273,7 @@
 				usePopupLoader: true,
 				usePopupNav: true,
 				windowMargin: 10
-			);
+			});
 
 			// Hack: Set margins to 0 when 'xsmall' activates.
 				breakpoints.on('<=xsmall', function() {
