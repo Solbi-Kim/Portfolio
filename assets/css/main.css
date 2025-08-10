@@ -1188,14 +1188,16 @@ input, select, textarea {
 	}
 
 	.poptrox-popup {
-		background: rgba(31, 34, 36, 0.25);
+		background: rgba(0, 0, 0, 0.15);
 		box-shadow: 0 1em 3em 0.5em rgba(0, 0, 0, 0.35);
 		cursor: default;
 
+		position: fixed;
 		top: 3em;
   		left: 3em;
   		right: 3em;
   		bottom: 3em;
+		box-sizing: border-box;
 	}
 
 	
