@@ -181,6 +181,8 @@
     $image_img.hide();
   });
 
+
+	
 // Poptrox.
 $main.poptrox({
 	overlayCloser: true, // 팝업 외부 클릭 닫기 허용
@@ -246,7 +248,7 @@ $main.poptrox({
 			console.warn('[stacked] init failed', err);
 		}
 
-		// ===== 클릭 방지 로직 =====
+		// ===== 닫기 방지 로직 =====
 		// 캡션 클릭 시 닫기 방지
 		$(document)
 			.off("click.px", ".poptrox-popup .caption")
@@ -254,19 +256,23 @@ $main.poptrox({
 				e.stopPropagation();
 			});
 
-		// ===== 버튼 살리기 (1번 버전) =====
-		$(".poptrox-popup .caption a, .poptrox-popup .caption2 a").each(function () {
-			$(this)
-				.off("click.poptrox") // Poptrox 내부 click 핸들러 제거
-				.on("click", function (e) {
-					e.stopPropagation(); // 닫기 막기
+		// ===== 버튼 클릭 살리기 =====
+		$(".poptrox-popup .caption a, .poptrox-popup .caption2 a")
+			.each(function () {
+				// 1. 기존 poptrox 클릭 이벤트 제거
+				$(this).off("click");
+
+				// 2. 새 클릭 이벤트 등록
+				$(this).on("click", function (e) {
+					e.stopPropagation(); // 닫기 방지
+					// preventDefault()는 안 쓰면 원래 링크 이동 가능
 					if (this.target === "_blank") {
 						window.open(this.href, "_blank", "noopener");
 					} else {
-						location.href = this.href;
+						window.location.href = this.href;
 					}
 				});
-		});
+			});
 	},
 	overlayOpacity: 0,
 	popupCloserText: "",
@@ -293,6 +299,7 @@ breakpoints.on(">xsmall", function () {
 });
 
 console.log("💥 poptrox 실행됨!", $("#main")[0]._poptrox);
+
 
   // ---- Typing animation (single definition) ----
   function startTypingAnimation() {
