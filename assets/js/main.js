@@ -506,7 +506,7 @@ if (isTouchDevice()) {
  * @returns {Animation|undefined}
  */
 function flyRocketResponsive(options = {}) {
-  const duration = options.duration ?? 6000;
+  const duration = options.duration ?? 8000;
   const easing   = options.easing   ?? 'cubic-bezier(0.22, 1, 0.36, 1)';
   const rocket   = document.querySelector('.rocket-fly');
   const banner   = document.querySelector('.donut-banner');
@@ -542,9 +542,9 @@ const mid   = { x: (start.x + end.x) / 2, y: (start.y + end.y) / 2 };
   rocket.style.opacity = '1';
 
   const anim = rocket.animate([
-    { transform: `translate(${start.x}px, ${start.y}px) rotate(-18deg)`, opacity: 0 },
+    { transform: `translate(${start.x}px, ${start.y}px) rotate(18deg)`, opacity: 0 },
     { offset: 0.48, transform: `translate(${mid.x}px, ${mid.y}px) rotate(0deg)`, opacity: 1 },
-    { transform: `translate(${end.x}px, ${end.y}px) rotate(22deg)`, opacity: 0 }
+    { transform: `translate(${end.x}px, ${end.y}px) rotate(-18deg)`, opacity: 0 }
   ], {
     duration,
     easing,
@@ -567,7 +567,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (anim && anim.finished) {
       anim.finished.finally(() => { busy = false; });
     } else {
-      setTimeout(() => { busy = false; }, 100); //animation delay
+      setTimeout(() => { busy = false; }, 10); //animation delay
     }
   }
 
