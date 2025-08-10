@@ -1300,11 +1300,6 @@ input, select, textarea {
 			width: 100%;
 			pointer-events: auto;     /* 클릭 허용 */
   			z-index: 1005;   
-
-			display: flex;
-			justify-content: center;      /* 텍스트 중앙 정렬 */
-			align-items: center;
-			position: relative;
 		}
 
 			.poptrox-popup .caption h2, .poptrox-popup .caption h3, .poptrox-popup .caption h4, .poptrox-popup .caption h5, .poptrox-popup .caption h6 {
@@ -1326,6 +1321,7 @@ input, select, textarea {
 						align-items: center;
 						margin-top: 1em;
 
+						position: absolute;
 						right: 0;                     /* 오른쪽 끝에 고정 */
 						display: inline-flex;
 			}
