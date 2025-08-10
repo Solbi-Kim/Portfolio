@@ -401,7 +401,7 @@ function createFloatingHeart(emoji) {
     const $banner = $(".donut-banner"); // name kept for compatibility
     const $wrapper = $("#wrapper");
     let snappedBanner = false;
-    let snappedHero = false;
+    //let snappedHero = false;
 
     // wheel snap off banner to wrapper
     $window.on("wheel", function (e) {
@@ -419,7 +419,7 @@ function createFloatingHeart(emoji) {
       }
     });
 
-    const $hero = $(".hero-title");
+    /*const $hero = $(".hero-title");
     if ($hero.length) {
       const observer = new IntersectionObserver(
         (entries) => {
@@ -436,6 +436,6 @@ function createFloatingHeart(emoji) {
         { threshold: 0.6 }
       );
       observer.observe($hero[0]);
-    }
+    } */
   });
 })(jQuery);
