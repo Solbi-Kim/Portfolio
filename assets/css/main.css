@@ -2177,7 +2177,7 @@ input, select, textarea {
 }
 
 .donut-front {
-  z-index: 4;
+  z-index: 9999 !important;
 }
 /* 마우스 올리면 안보이게 */
 .donut-back,
