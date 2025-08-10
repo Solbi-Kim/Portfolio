@@ -2295,3 +2295,76 @@ input, select, textarea {
 		#footer .copyright a {
 			color: inherit;
 		}
+
+
+
+/* =========================================================
+   PATCH: Poptrox "stacked" popup mode
+   - Caption and media never overlap
+   - Caption always clickable (higher z-index)
+   - Media area reserves caption height via CSS var --cap-h
+   - Activated by adding .stacked to .poptrox-popup (JS does this on open)
+   ========================================================= */
+.poptrox-popup.stacked {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.poptrox-popup.stacked .image {
+  position: relative;
+  z-index: 0;                     /* below caption */
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: center;
+  overflow: hidden;
+  /* Reserve space for caption below (set via JS --cap-h) */
+  max-height: calc(100vh - var(--cap-h, 140px));
+}
+
+.poptrox-popup.stacked .image iframe,
+.poptrox-popup.stacked .image img,
+.poptrox-popup.stacked .image video {
+  position: relative;
+  z-index: 0;
+  width: 100% !important;
+  height: auto !important;
+  max-height: 100% !important;
+  object-fit: contain;
+}
+
+/* Move caption into normal flow (no absolute overlay) */
+.poptrox-popup.stacked .caption {
+  position: static !important;    /* key: participate in layout */
+  z-index: 3;                     /* above media; clickable */
+  width: 100%;
+  text-align: center;
+  background-image: linear-gradient(to top, rgba(16,16,16,0.45) 25%, rgba(16,16,16,0) 100%);
+  padding: 1.25em 1.5em 1.25em 1.5em;
+  pointer-events: auto;
+}
+
+/* Ensure nav/closer sit above if needed */
+.poptrox-popup.stacked .nav-previous,
+.poptrox-popup.stacked .nav-next,
+.poptrox-popup.stacked .closer {
+  z-index: 4;
+}
+
+/* On small screens, keep caption visible in stacked mode */
+@media screen and (max-width: 736px) {
+  .poptrox-popup.stacked .caption {
+    display: block !important; /* override any "hide caption on mobile" rules */
+  }
+}
+
+/* Optional guard: enable only if some browsers let iframe eat clicks.
+   To enable, change height to var(--cap-h) and pointer-events to auto. */
+.poptrox-popup.stacked .image::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0;
+  bottom: 0;
+  height: 0;               /* set to var(--cap-h) to guard */
+  pointer-events: none;    /* set to auto to activate guard */
+}
