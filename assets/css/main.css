@@ -2270,7 +2270,17 @@ input, select, textarea {
   pointer-events: none;
 }
 
-
+.rocket-fly {
+ position: absolute; 
+  left: 0;
+  bottom: 0;
+  opacity: 0;
+  z-index: 3;
+  pointer-events: none;
+  width: 20vw;
+  height: auto;
+  transition: none;
+}
 
 
 
