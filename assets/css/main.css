@@ -2298,7 +2298,7 @@ input, select, textarea {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-	margin: 2vh 0
+	padding: 2vh 0
 }
 
 .poptrox-popup.stacked .image {
