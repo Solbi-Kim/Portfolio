@@ -249,6 +249,18 @@ $main.poptrox({
 		}
 
 		// ===== 닫기 방지 로직 =====
+        // ===== 버튼 클릭 살리기 =====
+        $(".poptrox-popup .caption a, .poptrox-popup .caption2 a")
+            .off("click.poptrox") // poptrox 네임스페이스 핸들러만 삭제
+            .on("click", function (e) {
+                e.stopPropagation(); // 닫기 방지
+                if (this.target === "_blank") {
+                    window.open(this.href, "_blank", "noopener");
+                } else {
+                    window.location.href = this.href;
+                }
+            });
+
 		// 캡션 클릭 시 닫기 방지
 		$(document)
 			.off("click.px", ".poptrox-popup .caption")
