@@ -1313,6 +1313,36 @@ input, select, textarea {
   				pointer-events: auto;   
 			}
 
+
+			.poptrox-popup .caption2 {
+						display: inline-flex;       /* 버튼들 가로로 나란히 */
+						gap: 0.8em;                 /* 버튼 간격 */
+						justify-content: center;
+						align-items: center;
+						margin-top: 1em;
+			}
+
+			.poptrox-popup .caption2 a {
+						font-size: 1.6em;           /* 아이콘 크기 키움 */
+						width: 2.5em;               /* 버튼 크기 */
+						height: 2.5em;
+						display: flex;
+						justify-content: center;
+						align-items: center;
+						border-radius: 50%;         /* 동그랗게 */
+						background: rgba(255, 255, 255, 0.15);
+						color: white;
+						transition: transform 0.25s ease, background 0.25s ease, color 0.25s ease;
+			}
+
+			.poptrox-popup .caption2 a:hover {
+						transform: scale(1.2);      /* 살짝 확대 */
+						background: white;          /* 버튼 배경색 하얀색 */
+						color: #000;                 /* 아이콘 색은 검정으로 */
+			}
+
+
+
 		.poptrox-popup .loader {
 			-moz-animation: spinner 1s infinite linear !important;
 			-webkit-animation: spinner 1s infinite linear !important;
