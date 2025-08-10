@@ -251,6 +251,10 @@
         .on("click.px", ".poptrox-popup .caption, .poptrox-popup .caption a", function (e) {
           e.stopPropagation();
         });
+		$(document).on("click", ".poptrox-popup .caption2 a", function(e) {
+    		e.stopPropagation(); // 이벤트 버블링 차단
+    		// preventDefault() 안 씀 → 링크 정상 작동
+		});
 		
     },
     overlayOpacity: 0,
