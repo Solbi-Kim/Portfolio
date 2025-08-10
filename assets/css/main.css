@@ -1213,6 +1213,7 @@ input, select, textarea {
   			height: auto !important;
   			max-height: 100% !important;
   			object-fit: contain;
+			pointer-events: none;
 		}
 
 
@@ -1298,7 +1299,7 @@ input, select, textarea {
 			position: absolute;
 			text-align: center;
 			width: 100%;
-			pointer-events: auto;     /* 클릭 허용 */
+			pointer-events: auto !important ;    /* 클릭 허용 */
   			z-index: 1005;   
 		}
 
@@ -1310,7 +1311,7 @@ input, select, textarea {
 				color: #ffffff;
 			}
 			.poptrox-popup .caption a {
-  				pointer-events: auto;   
+  				pointer-events: auto !important ;   
 			}
 
 
@@ -1322,6 +1323,7 @@ input, select, textarea {
 						margin-top: 1em;
 						right: 1em;
 						bottom:5em
+						pointer-events: auto !important ; 
 			}
 
 			.poptrox-popup .caption2 a {
