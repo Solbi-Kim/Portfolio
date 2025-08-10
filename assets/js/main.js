@@ -246,7 +246,7 @@
           e.stopPropagation();
         });
     },
-    overlayOpacity: 0,
+    overlayOpacity: 0 + yOffset,
     popupCloserText: "",
     popupHeight: 150,
     popupLoaderText: "",
@@ -533,16 +533,17 @@ function flyRocketResponsive(options = {}) {
   if (!rocket || !banner || !donut) return;
 
   // 1) 궤도 좌표 먼저 계산
-  const bannerRect = banner.getBoundingClientRect();
+  const bannerRect = rocket.parentNode.getBoundingClientRect();
+  const yOffset = -bannerRect.height * 0.5; // shift path upward by half height
   const donutRect  = donut.getBoundingClientRect();
   const donutCX = (donutRect.left - bannerRect.left) + donutRect.width / 2;
   const donutCY = (donutRect.top - bannerRect.top) + donutRect.height / 2;
   const rW = rocket.offsetWidth || 200;
   const rH = rocket.offsetHeight || (rW * 0.5);
 
-  const start = { x: -0.12 * bannerRect.width - rW/2, y: 1.06 * bannerRect.height + rH/2 };
-  const mid   = { x: donutCX - rW/2, y: donutCY - rH/2 };
-  const end   = { x: 1.08 * bannerRect.width + rW/2, y: -0.30 * bannerRect.height - rH/2 };
+  const start = { x: -0.12 * bannerRect.width - rW/2, y: 1.06 * bannerRect.height + rH/2  + yOffset};
+  const mid   = { x: donutCX - rW/2, y: donutCY - rH/2  + yOffset};
+  const end   = { x: 1.08 * bannerRect.width + rW/2, y: -0.30 * bannerRect.height - rH/2  + yOffset};
 
   // 2) 궤도 계산 끝나면 DOM 재배치
   const donutBack = document.querySelector('.donut-back');
@@ -561,9 +562,9 @@ function flyRocketResponsive(options = {}) {
   rocket.style.zIndex  = '3';
 
   const anim = rocket.animate([
-    { transform: `translate(${start.x}px, ${start.y}px) rotate(-18deg)`, opacity: 0 },
-    { offset: 0.48, transform: `translate(${mid.x}px, ${mid.y}px) rotate(0deg)`, opacity: 1 },
-    { transform: `translate(${end.x}px, ${end.y}px) rotate(22deg)`, opacity: 0 }
+    { transform: `translate(${start.x}px, ${start.y}px) rotate(-18deg)`, opacity: 0  + yOffset},
+    { offset: 0.48, transform: `translate(${mid.x}px, ${mid.y}px) rotate(0deg)`, opacity: 1  + yOffset},
+    { transform: `translate(${end.x}px, ${end.y}px) rotate(22deg)`, opacity: 0  + yOffset}
   ], { duration, easing, fill: 'forwards' });
 
   if (originalParent) {
