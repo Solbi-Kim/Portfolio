@@ -564,7 +564,6 @@ function flyRocketResponsive(options = {}) {
   rocket.style.left = '0px';
   rocket.style.top  = '0px';
   rocket.style.opacity = '1';
-  rocket.style.zIndex  = '3'; // between donut-back(2) and donut-front(4)
 
   const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const _duration = prefersReduced ? Math.min(1200, duration) : duration;
