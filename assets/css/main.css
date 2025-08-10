@@ -1323,7 +1323,6 @@ input, select, textarea {
 
 						position: absolute;
 						right: 0;                     /* 오른쪽 끝에 고정 */
-						display: inline-flex;
 			}
 
 			.poptrox-popup .caption2 a {
