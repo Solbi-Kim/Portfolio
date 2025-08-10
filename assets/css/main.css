@@ -2195,9 +2195,10 @@ input, select, textarea {
 
 	aspect-ratio: 2 / 1;    
  	pointer-events: auto;
-  	/* z-index: 10; */
+  	z-index: 3;
   	width: 70vw;
   	height: 30vh;
+	background:transparent;
 }
 
 /* PC hover */
@@ -2270,11 +2271,11 @@ input, select, textarea {
 }
 
 .rocket-fly {
- position: fixed; 
+ position: absolute; 
   left: 0;
   bottom: 0;
   opacity: 0;
-  z-index: 5;
+  z-index: 3;
   pointer-events: none;
   width: 20vw;
   height: auto;
