@@ -184,6 +184,7 @@
   // Poptrox.
 $main.poptrox({
 	overlayCloser: true, // 팝업 외부 클릭 닫기 허용
+	usePopupEasyClose: false, // 팝업 본체 클릭 시 닫기 방지
 	baseZIndex: 20000,
 	caption: function ($a) {
 		var s = "";
@@ -205,59 +206,64 @@ $main.poptrox({
 				$popup.removeData('__stackedResizeHandler');
 			}
 			var ro = $popup.data('__capRO');
-			if (ro) { try { ro.disconnect(); } catch(e) {} $popup.removeData('__capRO'); }
+			if (ro) { try { ro.disconnect(); } catch (e) {} $popup.removeData('__capRO'); }
 		} catch (err) {
 			console.warn('[stacked] cleanup failed', err);
 		}
 		$body.removeClass("modal-active");
 	},
 	onPopupOpen: function () {
-    $body.addClass("modal-active");
+		$body.addClass("modal-active");
 
-    /* PATCH[stacked]: enable vertical stack and set caption height CSS var */
-    try {
-        var $popup = $('.poptrox-popup');
-        $popup.addClass('stacked');
+		/* PATCH[stacked]: enable vertical stack and set caption height CSS var */
+		try {
+			var $popup = $('.poptrox-popup');
+			$popup.addClass('stacked');
 
-        var $cap = $popup.find('.caption');
-        function setCapHeight() {
-            var capH = ($cap.outerHeight && $cap.outerHeight()) || ($cap[0] ? $cap[0].offsetHeight : 140) || 140;
-            if ($popup[0]) $popup[0].style.setProperty('--cap-h', capH + 'px');
-        }
-        setCapHeight();
+			var $cap = $popup.find('.caption');
+			function setCapHeight() {
+				var capH = ($cap.outerHeight && $cap.outerHeight()) || ($cap[0] ? $cap[0].offsetHeight : 140) || 140;
+				if ($popup[0]) $popup[0].style.setProperty('--cap-h', capH + 'px');
+			}
+			setCapHeight();
 
-        var __stackedResizeHandler = function() { setCapHeight(); };
-        window.addEventListener('resize', __stackedResizeHandler);
+			var __stackedResizeHandler = function () { setCapHeight(); };
+			window.addEventListener('resize', __stackedResizeHandler);
 
-        if (window.ResizeObserver && $cap[0]) {
-            var __capRO = new ResizeObserver(function(){ setCapHeight(); });
-            __capRO.observe($cap[0]);
-            $popup.data('__capRO', __capRO);
-        }
-        $popup.data('__stackedResizeHandler', __stackedResizeHandler);
+			if (window.ResizeObserver && $cap[0]) {
+				var __capRO = new ResizeObserver(function () { setCapHeight(); });
+				__capRO.observe($cap[0]);
+				$popup.data('__capRO', __capRO);
+			}
+			$popup.data('__stackedResizeHandler', __stackedResizeHandler);
 
-        // === [추가] caption을 content 안으로 이동 ===
-        var $content = $popup.find('.content');
-        if ($cap.length && $content.length) {
-            $cap.appendTo($content);
-        }
-    } catch (err) {
-        console.warn('[stacked] init failed', err);
-    }
+			// === 캡션을 .content 영역 안으로 이동 ===
+			var $content = $popup.find('.content');
+			if ($cap.length && $content.length) {
+				$cap.appendTo($content);
+			}
+		} catch (err) {
+			console.warn('[stacked] init failed', err);
+		}
 
-    // ===== 클릭 방지 로직 =====
-    $(document)
-        .off("click.px", ".poptrox-popup .caption")
-        .on("click.px", ".poptrox-popup .caption", function(e) {
-            e.stopPropagation();
-        });
+		// ===== 닫기 방지 로직 =====
+		// 캡션 클릭 시 닫기 방지
+		$(document)
+			.off("click.px", ".poptrox-popup .caption")
+			.on("click.px", ".poptrox-popup .caption", function (e) {
+				e.stopPropagation();
+			});
 
-    $(document)
-        .off("click.px", ".poptrox-popup .caption a, .poptrox-popup .caption2 a")
-        .on("click.px", ".poptrox-popup .caption a, .poptrox-popup .caption2 a", function(e) {
-            e.stopPropagation();
-        });
-},
+		// 캡션 내부 링크 & caption2 링크 클릭 시 닫기 방지
+		$(document)
+			.off("click.px", ".poptrox-popup .caption a, .poptrox-popup .caption2 a")
+			.on("click.px", ".poptrox-popup .caption a, .poptrox-popup .caption2 a", function (e) {
+				e.stopPropagation();
+				// 필요 시 새 창 강제 열기:
+				// e.preventDefault();
+				// window.open(this.href, "_blank", "noopener");
+			});
+	},
 	overlayOpacity: 0,
 	popupCloserText: "",
 	popupHeight: 150,
@@ -274,6 +280,7 @@ $main.poptrox({
 	windowMargin: 10
 });
 
+// Hack: Set margins to 0 when 'xsmall' activates.
 breakpoints.on("<=xsmall", function () {
 	$main[0]._poptrox.windowMargin = 0;
 });
@@ -282,7 +289,6 @@ breakpoints.on(">xsmall", function () {
 });
 
 console.log("💥 poptrox 실행됨!", $("#main")[0]._poptrox);
-
 
   // ---- Typing animation (single definition) ----
   function startTypingAnimation() {
