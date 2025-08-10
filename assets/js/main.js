@@ -274,7 +274,7 @@
 				usePopupLoader: true,
 				usePopupNav: true,
 				windowMargin: 10
-			});
+			);
 
 			// Hack: Set margins to 0 when 'xsmall' activates.
 				breakpoints.on('<=xsmall', function() {
