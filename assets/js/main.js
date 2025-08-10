@@ -511,6 +511,7 @@ if (isTouchDevice()) {
 
 // -----------------------------------------------------------
 // 🚀 Responsive rocket animation (absolute inside .donut-banner)
+//    Trigger: CLICK on .donut-hover-zone (fallback: .donut-banner)
 // -----------------------------------------------------------
 
 /**
@@ -520,6 +521,7 @@ if (isTouchDevice()) {
  * @param {Object} options
  *  - duration: number (ms)  default 4200
  *  - easing: string         default 'cubic-bezier(0.22, 1, 0.36, 1)'
+ * @returns {Animation|undefined}
  */
 function flyRocketResponsive(options = {}) {
   const duration = options.duration ?? 4200;
@@ -567,12 +569,10 @@ function flyRocketResponsive(options = {}) {
   const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const _duration = prefersReduced ? Math.min(1200, duration) : duration;
 
-  try {
-    rocket.getAnimations().forEach(a => a.cancel());
-  } catch(e) {}
+  try { rocket.getAnimations().forEach(a => a.cancel()); } catch(e) {}
 
   try {
-    rocket.animate([
+    const anim = rocket.animate([
       { transform: `translate(${start.x}px, ${start.y}px) rotate(-18deg)`, opacity: 0 },
       { offset: 0.48, transform: `translate(${mid.x}px, ${mid.y}px) rotate(0deg)`,   opacity: 1 },
       { transform: `translate(${end.x}px,   ${end.y}px)   rotate(22deg)`,  opacity: 0 }
@@ -581,6 +581,7 @@ function flyRocketResponsive(options = {}) {
       easing,
       fill: 'forwards'
     });
+    return anim;
   } catch (e) {
     console.error('[rocket] animation failed', e);
   }
@@ -589,28 +590,31 @@ function flyRocketResponsive(options = {}) {
 // Expose for manual triggering (console or other handlers)
 window.flyRocketResponsive = flyRocketResponsive;
 
-// Auto-fire once when banner enters viewport
+// Trigger on CLICK of the donut hover zone (or the banner as fallback)
 document.addEventListener('DOMContentLoaded', () => {
-  const banner = document.querySelector('.donut-banner');
-  if (!banner) return;
-  const io = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        flyRocketResponsive();
-        io.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.6 });
-  io.observe(banner);
-});
+  const zone = document.querySelector('.donut-hover-zone') || document.querySelector('.donut-banner');
+  if (!zone) return;
 
-// Re-fire on resize (debounced) to keep the arc feeling consistent after layout changes
-let __rocketResizeTimer = null;
-window.addEventListener('resize', () => {
-  clearTimeout(__rocketResizeTimer);
-  __rocketResizeTimer = setTimeout(() => {
-    const rocket = document.querySelector('.rocket-fly');
-    // Only re-run if the rocket is visible inside banner area
-    if (rocket) flyRocketResponsive();
-  }, 180);
+  // Avoid overlapping launches
+  let busy = false;
+
+  function fire() {
+    if (busy) return;
+    busy = true;
+    const anim = flyRocketResponsive();
+    // When animation ends, release the lock
+    if (anim && anim.finished) {
+      anim.finished.finally(() => { busy = false; });
+    } else {
+      setTimeout(() => { busy = false; }, 4500);
+    }
+  }
+
+  // Click triggers
+  zone.addEventListener('click', fire);
+
+  // Keyboard accessibility (if the zone is focusable in your markup)
+  zone.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fire(); }
+  });
 });
