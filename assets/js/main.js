@@ -536,7 +536,6 @@ function flyRocketResponsive(options = {}) {
   const bannerRect = rocket.parentNode.getBoundingClientRect();
   const donutRect  = donut.getBoundingClientRect();
   const yOffset = -bannerRect.height * 0.5; // shift upward
-  const donutRect  = donut.getBoundingClientRect();
   const donutCX = (donutRect.left - bannerRect.left) + donutRect.width / 2;
   const donutCY = (donutRect.top - bannerRect.top) + donutRect.height / 2;
   const rW = rocket.offsetWidth || 200;
