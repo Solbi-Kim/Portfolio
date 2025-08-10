@@ -252,7 +252,14 @@
 				},
 				fadeSpeed: 300,
 				onPopupClose: function() { $body.removeClass('modal-active'); },
-				onPopupOpen: function() { $body.addClass('modal-active'); },
+				onPopupOpen: function() { $body.addClass('modal-active'); 
+											 $(document)
+      											.off('click.px', '.poptrox-popup .caption, .poptrox-popup .caption a')
+      											.on('click.px', '.poptrox-popup .caption, .poptrox-popup .caption a', function (e) {
+        											e.stopPropagation();
+      											});
+  										},
+				},
 				overlayOpacity: 0,
 				popupCloserText: '',
 				popupHeight: 150,
