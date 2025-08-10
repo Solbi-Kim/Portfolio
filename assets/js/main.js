@@ -566,7 +566,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (anim && anim.finished) {
       anim.finished.finally(() => { busy = false; });
     } else {
-      setTimeout(() => { busy = false; }, 4500);
+      setTimeout(() => { busy = false; }, 1200); //animation delay
     }
   }
 
