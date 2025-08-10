@@ -182,118 +182,109 @@
   });
 
   // Poptrox.
-  $main.poptrox({
-	  overlayCloser: false, //팝업 바깥 누를시 닫기 비활성화
-    baseZIndex: 20000,
-    caption: function ($a) {
-      var s = "";
-      $a.nextAll().each(function () {
-        s += this.outerHTML;
-      });
-      return s;
-    },
-    fadeSpeed: 300,
-    onPopupClose: function () {
-      /* PATCH[stacked]: cleanup */
-      try {
-        var $popup = $('.poptrox-popup');
-        $popup.removeClass('stacked');
-        if ($popup[0]) $popup[0].style.removeProperty('--cap-h');
-        var handler = $popup.data('__stackedResizeHandler');
-        if (handler) {
-          window.removeEventListener('resize', handler);
-          $popup.removeData('__stackedResizeHandler');
-        }
-        var ro = $popup.data('__capRO');
-        if (ro) { try { ro.disconnect(); } catch(e) {} $popup.removeData('__capRO'); }
-      } catch (err) {
-        console.warn('[stacked] cleanup failed', err);
-      }
+$main.poptrox({
+	overlayCloser: false, // 팝업 바깥 누를 시 닫기 비활성화
+	baseZIndex: 20000,
+	caption: function ($a) {
+		var s = "";
+		$a.nextAll().each(function () {
+			s += this.outerHTML;
+		});
+		return s;
+	},
+	fadeSpeed: 300,
+	onPopupClose: function () {
+		/* PATCH[stacked]: cleanup */
+		try {
+			var $popup = $('.poptrox-popup');
+			$popup.removeClass('stacked');
+			if ($popup[0]) $popup[0].style.removeProperty('--cap-h');
+			var handler = $popup.data('__stackedResizeHandler');
+			if (handler) {
+				window.removeEventListener('resize', handler);
+				$popup.removeData('__stackedResizeHandler');
+			}
+			var ro = $popup.data('__capRO');
+			if (ro) { try { ro.disconnect(); } catch(e) {} $popup.removeData('__capRO'); }
+		} catch (err) {
+			console.warn('[stacked] cleanup failed', err);
+		}
 
-      $body.removeClass("modal-active");
-    },
-    onPopupOpen: function () {
-      $body.addClass("modal-active");
-      /* PATCH[stacked]: enable vertical stack and set caption height CSS var */
-      try {
-        var $popup = $('.poptrox-popup');
-        $popup.addClass('stacked');
+		$body.removeClass("modal-active");
+	},
+	onPopupOpen: function () {
+		$body.addClass("modal-active");
+		/* PATCH[stacked]: enable vertical stack and set caption height CSS var */
+		try {
+			var $popup = $('.poptrox-popup');
+			$popup.addClass('stacked');
 
-        var $cap = $popup.find('.caption');
-        function setCapHeight() {
-          var capH = ($cap.outerHeight && $cap.outerHeight()) || ($cap[0] ? $cap[0].offsetHeight : 140) || 140;
-          if ($popup[0]) $popup[0].style.setProperty('--cap-h', capH + 'px');
-        }
-        setCapHeight();
+			var $cap = $popup.find('.caption');
+			function setCapHeight() {
+				var capH = ($cap.outerHeight && $cap.outerHeight()) || ($cap[0] ? $cap[0].offsetHeight : 140) || 140;
+				if ($popup[0]) $popup[0].style.setProperty('--cap-h', capH + 'px');
+			}
+			setCapHeight();
 
-        // Recompute on resize
-        var __stackedResizeHandler = function() { setCapHeight(); };
-        window.addEventListener('resize', __stackedResizeHandler);
+			// Recompute on resize
+			var __stackedResizeHandler = function() { setCapHeight(); };
+			window.addEventListener('resize', __stackedResizeHandler);
 
-        // Recompute on caption reflow
-        if (window.ResizeObserver && $cap[0]) {
-          var __capRO = new ResizeObserver(function(){ setCapHeight(); });
-          __capRO.observe($cap[0]);
-          $popup.data('__capRO', __capRO);
-        }
-        $popup.data('__stackedResizeHandler', __stackedResizeHandler);
-      } catch (err) {
-        console.warn('[stacked] init failed', err);
-      }
+			// Recompute on caption reflow
+			if (window.ResizeObserver && $cap[0]) {
+				var __capRO = new ResizeObserver(function(){ setCapHeight(); });
+				__capRO.observe($cap[0]);
+				$popup.data('__capRO', __capRO);
+			}
+			$popup.data('__stackedResizeHandler', __stackedResizeHandler);
+		} catch (err) {
+			console.warn('[stacked] init failed', err);
+		}
 
-	$(document)
-  		.off("click.px", ".poptrox-popup .caption")
-  		.on("click.px", ".poptrox-popup .caption", function(e) {
-    		e.stopPropagation();
-  	});
+		// ===== 클릭 이벤트 정리 =====
+		// 팝업 외부 클릭 완전 차단
+		$(document).off("click.poptrox");
+		$(".poptrox-overlay").off("click");
 
-// caption 내부의 a 클릭 → 닫기 방지, 기본 동작 허용
-	$(document)
-  		.off("click.px", ".poptrox-popup .caption a")
-  		.on("click.px", ".poptrox-popup .caption a", function(e) {
-    		e.stopPropagation();
-  	});
+		// 캡션 영역 클릭 시 닫기 방지
+		$(document).off("click.px", ".poptrox-popup .caption")
+		.on("click.px", ".poptrox-popup .caption", function(e) {
+			e.stopPropagation();
+		});
 
-// caption2 내부의 a 클릭 → 닫기 방지, 기본 동작 허용
-	$(document)
-  		.off("click.px", ".poptrox-popup .caption2 a")
-  		.on("click.px", ".poptrox-popup .caption2 a", function(e) {
-    		e.stopPropagation();
-  	});
+		// 캡션과 캡션2 내부 링크 클릭 시 닫기 방지 + 기본 동작 허용
+		$(document).off("click.px", ".poptrox-popup .caption a, .poptrox-popup .caption2 a")
+		.on("click.px", ".poptrox-popup .caption a, .poptrox-popup .caption2 a", function(e) {
+			e.stopPropagation();
+			// target="_blank" 있으면 새 창, 없으면 원래 링크 이동
+		});
+	},
+	overlayOpacity: 0,
+	popupCloserText: "",
+	popupHeight: 150,
+	popupLoaderText: "",
+	popupSpeed: 300,
+	popupWidth: 150,
+	selector: ".thumb > a.image",
+	usePopupCaption: true,
+	usePopupCloser: true,
+	usePopupDefaultStyling: false,
+	usePopupForceClose: true,
+	usePopupLoader: true,
+	usePopupNav: true,
+	windowMargin: 10,
+});
 
-	$(document).on("click", ".poptrox-popup .caption a, .poptrox-popup .caption2 a", function(e) {
-    	e.preventDefault(); // 팝업 닫기 동작과 충돌 방지
-    	e.stopPropagation(); // 버블링 차단
-    	window.open(this.href, '_blank'); // 새창 열기
-	});
-		
-    },
-    overlayOpacity: 0,
-    popupCloserText: "",
-    popupHeight: 150,
-    popupLoaderText: "",
-    popupSpeed: 300,
-    popupWidth: 150,
-    selector: ".thumb > a.image",
-    usePopupCaption: true,
-    usePopupCloser: true,
-    usePopupDefaultStyling: false,
-    usePopupForceClose: true,
-    usePopupLoader: true,
-    usePopupNav: true,
-    windowMargin: 10,
-  });
+// Hack: Set margins to 0 when 'xsmall' activates.
+breakpoints.on("<=xsmall", function () {
+	$main[0]._poptrox.windowMargin = 0;
+});
 
-  // Hack: Set margins to 0 when 'xsmall' activates.
-  breakpoints.on("<=xsmall", function () {
-    $main[0]._poptrox.windowMargin = 0;
-  });
+breakpoints.on(">xsmall", function () {
+	$main[0]._poptrox.windowMargin = 50;
+});
 
-  breakpoints.on(">xsmall", function () {
-    $main[0]._poptrox.windowMargin = 50;
-  });
-
-  console.log("💥 poptrox 실행됨!", $("#main")[0]._poptrox);
+console.log("💥 poptrox 실행됨!", $("#main")[0]._poptrox);
 
   // ---- Typing animation (single definition) ----
   function startTypingAnimation() {
