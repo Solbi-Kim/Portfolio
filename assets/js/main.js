@@ -524,7 +524,7 @@ if (isTouchDevice()) {
  * @returns {Animation|undefined}
  */
 function flyRocketResponsive(options = {}) {
-  const duration = options.duration ?? 8000;   // 로켓 비행 속도
+  const duration = options.duration ?? 6000;   // 로켓 비행 속도
   const easing   = options.easing   ?? 'cubic-bezier(0.22, 1, 0.36, 1)';
   const rocket   = document.querySelector('.rocket-fly');
   const banner   = document.querySelector('.donut-banner');
