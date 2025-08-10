@@ -2274,7 +2274,7 @@ input, select, textarea {
   opacity: 0;              /* JS fades it in */
   z-index: 3;              /* between .donut-back(2) and .donut-front(4) */
   pointer-events: none;
-  width: 20vw;             /* responsive size; tweak if needed */
+  width: 15vw;             /* responsive size; tweak if needed */
   height: auto;
 }
 
