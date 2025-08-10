@@ -541,9 +541,6 @@ const donut    = document.querySelector('.donut-BG'); // donut center reference
   }
   // --- END PATCH ---
 
-const banner   = document.querySelector('.donut-banner');
-  const donut    = document.querySelector('.donut-BG'); // donut center reference
-
   if (!rocket || !banner || !donut) {
     console.warn('[rocket] missing elements', { rocket, banner, donut });
     return;
