@@ -2195,7 +2195,7 @@ input, select, textarea {
 
 	aspect-ratio: 2 / 1;    
  	pointer-events: auto;
-  	z-index: 10;
+  	/* z-index: 10; */
   	width: 70vw;
   	height: 30vh;
 }
