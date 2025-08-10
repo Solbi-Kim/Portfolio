@@ -393,21 +393,7 @@ document.addEventListener("DOMContentLoaded", () => {
     observer.observe(typingTarget);
   }
   // 로켓 클릭 이벤트
-  const donut = document.querySelector('.donut-BG');
-  if (donut) {
-    console.log("✅ 도넛 요소 찾음");
-
-    donut.addEventListener('click', () => {
-      console.log("👆 도넛 클릭됨!");
-      flyRocketAccurately(); // 로켓 발사 함수 호출
-    });
-  } else {
-    console.warn("❌ 도넛 요소를 못 찾음");
-  }
-
-  // 리사이즈 대응
-  window.addEventListener('resize', () => {
-    console.log("창 크기 변경됨. 다음 발사 시 궤도에 반영됩니다.");
+  
   });
 });
 
