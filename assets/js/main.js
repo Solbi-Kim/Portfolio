@@ -212,48 +212,52 @@ $main.poptrox({
 		$body.removeClass("modal-active");
 	},
 	onPopupOpen: function () {
-		$body.addClass("modal-active");
-		/* PATCH[stacked]: enable vertical stack and set caption height CSS var */
-		try {
-			var $popup = $('.poptrox-popup');
-			$popup.addClass('stacked');
+    $body.addClass("modal-active");
 
-			var $cap = $popup.find('.caption');
-			function setCapHeight() {
-				var capH = ($cap.outerHeight && $cap.outerHeight()) || ($cap[0] ? $cap[0].offsetHeight : 140) || 140;
-				if ($popup[0]) $popup[0].style.setProperty('--cap-h', capH + 'px');
-			}
-			setCapHeight();
+    /* PATCH[stacked]: enable vertical stack and set caption height CSS var */
+    try {
+        var $popup = $('.poptrox-popup');
+        $popup.addClass('stacked');
 
-			var __stackedResizeHandler = function() { setCapHeight(); };
-			window.addEventListener('resize', __stackedResizeHandler);
+        var $cap = $popup.find('.caption');
+        function setCapHeight() {
+            var capH = ($cap.outerHeight && $cap.outerHeight()) || ($cap[0] ? $cap[0].offsetHeight : 140) || 140;
+            if ($popup[0]) $popup[0].style.setProperty('--cap-h', capH + 'px');
+        }
+        setCapHeight();
 
-			if (window.ResizeObserver && $cap[0]) {
-				var __capRO = new ResizeObserver(function(){ setCapHeight(); });
-				__capRO.observe($cap[0]);
-				$popup.data('__capRO', __capRO);
-			}
-			$popup.data('__stackedResizeHandler', __stackedResizeHandler);
-		} catch (err) {
-			console.warn('[stacked] init failed', err);
-		}
+        var __stackedResizeHandler = function() { setCapHeight(); };
+        window.addEventListener('resize', __stackedResizeHandler);
 
-		// ===== 수정 부분 시작 =====
-		// 캡션 클릭 시 닫기 방지
-		$(document)
-			.off("click.px", ".poptrox-popup .caption")
-			.on("click.px", ".poptrox-popup .caption", function(e) {
-				e.stopPropagation();
-			});
+        if (window.ResizeObserver && $cap[0]) {
+            var __capRO = new ResizeObserver(function(){ setCapHeight(); });
+            __capRO.observe($cap[0]);
+            $popup.data('__capRO', __capRO);
+        }
+        $popup.data('__stackedResizeHandler', __stackedResizeHandler);
 
-		// 캡션 & 캡션2 내부 링크 클릭 시 닫기 방지 + 기본 동작 유지
-		$(document)
-			.off("click.px", ".poptrox-popup .caption a, .poptrox-popup .caption2 a")
-			.on("click.px", ".poptrox-popup .caption a, .poptrox-popup .caption2 a", function(e) {
-				e.stopPropagation();
-			});
-		// ===== 수정 부분 끝 =====
-	},
+        // === [추가] caption을 content 안으로 이동 ===
+        var $content = $popup.find('.content');
+        if ($cap.length && $content.length) {
+            $cap.appendTo($content);
+        }
+    } catch (err) {
+        console.warn('[stacked] init failed', err);
+    }
+
+    // ===== 클릭 방지 로직 =====
+    $(document)
+        .off("click.px", ".poptrox-popup .caption")
+        .on("click.px", ".poptrox-popup .caption", function(e) {
+            e.stopPropagation();
+        });
+
+    $(document)
+        .off("click.px", ".poptrox-popup .caption a, .poptrox-popup .caption2 a")
+        .on("click.px", ".poptrox-popup .caption a, .poptrox-popup .caption2 a", function(e) {
+            e.stopPropagation();
+        });
+},
 	overlayOpacity: 0,
 	popupCloserText: "",
 	popupHeight: 150,
