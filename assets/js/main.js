@@ -183,6 +183,7 @@
 
   // Poptrox.
   $main.poptrox({
+	  overlayCloser: false, //팝업 바깥 누를시 닫기 비활성화
     baseZIndex: 20000,
     caption: function ($a) {
       var s = "";
