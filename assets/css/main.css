@@ -2276,18 +2276,11 @@ input, select, textarea {
   opacity: 0;
   z-index: 5;
   pointer-events: none;
-  width: 50vw;
+  width: 20vw;
   height: auto;
   transition: none;
 }
 
-@media screen and (max-width: 768px) {
-  .rocket-fly {
-    width: 40vw;
-    max-width: 70px;
-    left: -14vw;
-  }
-}
 
 
 
