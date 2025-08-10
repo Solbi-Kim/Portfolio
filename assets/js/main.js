@@ -524,6 +524,17 @@ if (isTouchDevice()) {
  * @returns {Animation|undefined}
  */
 function flyRocketResponsive(options = {}) {
+  // --- PATCH: Move rocket in DOM between donut-back and donut-front during animation ---
+  const donutBack = document.querySelector('.donut-back');
+  const donutFront = document.querySelector('.donut-front');
+  let originalParent = null, originalNext = null;
+  if (rocket && donutBack && donutBack.parentNode === donutFront.parentNode) {
+    originalParent = rocket.parentNode;
+    originalNext = rocket.nextSibling;
+    donutFront.parentNode.insertBefore(rocket, donutFront);
+  }
+  // --- END PATCH ---
+
   const duration = options.duration ?? 6000;   // 로켓 비행 속도
   const easing   = options.easing   ?? 'cubic-bezier(0.22, 1, 0.36, 1)';
   const rocket   = document.querySelector('.rocket-fly');
@@ -564,6 +575,7 @@ function flyRocketResponsive(options = {}) {
   rocket.style.left = '0px';
   rocket.style.top  = '0px';
   rocket.style.opacity = '1';
+  rocket.style.zIndex  = '3'; // between donut-back(2) and donut-front(4)
 
   const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const _duration = prefersReduced ? Math.min(1200, duration) : duration;
@@ -580,6 +592,25 @@ function flyRocketResponsive(options = {}) {
       easing,
       fill: 'forwards'
     });
+    
+    if (originalParent) {
+      if (anim && anim.finished) {
+        anim.finished.finally(() => {
+          if (originalNext) {
+            originalParent.insertBefore(rocket, originalNext);
+          } else {
+            originalParent.appendChild(rocket);
+          }
+        });
+      } else {
+        if (originalNext) {
+          originalParent.insertBefore(rocket, originalNext);
+        } else {
+          originalParent.appendChild(rocket);
+        }
+      }
+    }
+
     return anim;
   } catch (e) {
     console.error('[rocket] animation failed', e);
