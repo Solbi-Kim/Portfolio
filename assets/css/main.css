@@ -2267,8 +2267,8 @@ input, select, textarea {
 
 #rocket-layer {
   position: absolute;
-  width: 100%;
-  height: 100%;
+  width: 50%;
+  height: 50%;
   z-index: 3;
   pointer-events: none;
 }
