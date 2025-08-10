@@ -1193,10 +1193,7 @@ input, select, textarea {
 		cursor: default;
 
 		position: fixed;
-  top: 3em;
-  left: 3em;
-  right: 3em;
-  bottom: 3em;
+
 
   transform: scale(0.8);        /* 크기 축소 */
   transform-origin: center center; /* 중심 기준 축소 */
