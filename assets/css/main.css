@@ -1337,6 +1337,7 @@ input, select, textarea {
 						background: rgba(255, 255, 255, 0.15);
 						color: white;
 						transition: transform 0.25s ease, background 0.25s ease, color 0.25s ease;
+						pointer-events: auto !important ; 
 			}
 
 			.poptrox-popup .caption2 a:hover {
