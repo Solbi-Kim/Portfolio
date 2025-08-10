@@ -1,4 +1,3 @@
-
 /*
 	Multiverse by HTML5 UP (customized)
 	- Removed rocket-related code and duplicate typing function
@@ -382,7 +381,7 @@ function createFloatingHeart(emoji) {
 
   const left = 10 + Math.random() * 80;
   const top = 80 + Math.random() * 20;
-  heart.style.left = `${left}%`;
+  heart.style.left = `${left}%";
   heart.style.top = `${top}%`;
 
   const rot = Math.floor(Math.random() * 60) - 30;
@@ -444,7 +443,6 @@ function createFloatingHeart(emoji) {
     const $banner = $(".donut-banner"); // name kept for compatibility
     const $wrapper = $("#wrapper");
     let snappedBanner = false;
-    //let snappedHero = false;
 
     // wheel snap off banner to wrapper
     $window.on("wheel", function (e) {
@@ -461,50 +459,111 @@ function createFloatingHeart(emoji) {
         }
       }
     });
-
-    /*const $hero = $(".hero-title");
-    if ($hero.length) {
-      const observer = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting && !snappedHero) {
-              snappedHero = true;
-              smoothScrollTo(entry.target.offsetTop);
-              setTimeout(() => {
-                snappedHero = false;
-              }, 1400);
-            }
-          });
-        },
-        { threshold: 0.6 }
-      );
-      observer.observe($hero[0]);
-    } */
   });
 })(jQuery);
 
+// -----------------------------------------------------------
+// 🚀 Responsive rocket animation (absolute inside .donut-banner)
+// -----------------------------------------------------------
 
-// 터치 장치 여부 체크
-function isTouchDevice() {
-  return (
-    'ontouchstart' in window || 
-    navigator.maxTouchPoints > 0 || 
-    navigator.msMaxTouchPoints > 0
-  );
+/**
+ * Fly the .rocket-fly from page bottom-left (off) → donut center → page top-right (off)
+ * All points are computed in the .donut-banner coordinate system (px), so it works responsively.
+ *
+ * @param {Object} options
+ *  - duration: number (ms)  default 4200
+ *  - easing: string         default 'cubic-bezier(0.22, 1, 0.36, 1)'
+ */
+function flyRocketResponsive(options = {}) {
+  const duration = options.duration ?? 4200;
+  const easing   = options.easing   ?? 'cubic-bezier(0.22, 1, 0.36, 1)';
+  const rocket   = document.querySelector('.rocket-fly');
+  const banner   = document.querySelector('.donut-banner');
+  const donut    = document.querySelector('.donut-BG'); // donut center reference
+
+  if (!rocket || !banner || !donut) {
+    console.warn('[rocket] missing elements', { rocket, banner, donut });
+    return;
+  }
+
+  const bannerRect = banner.getBoundingClientRect();
+  const donutRect  = donut.getBoundingClientRect();
+
+  // Convert donut center to banner coords
+  const donutCX = (donutRect.left - bannerRect.left) + donutRect.width  / 2;
+  const donutCY = (donutRect.top  - bannerRect.top)  + donutRect.height / 2;
+
+  // Rocket size (px). offsetWidth resolves vw just fine.
+  const rW = rocket.offsetWidth || 200;
+  const rH = rocket.offsetHeight || (rW * 0.5);
+
+  // Start / mid / end key points in banner coords
+  const start = {
+    x: -0.12 * bannerRect.width  - rW/2,
+    y:  1.06 * bannerRect.height + rH/2
+  };
+  const mid = {
+    x: donutCX - rW/2,
+    y: donutCY - rH/2
+  };
+  const end = {
+    x:  1.08 * bannerRect.width  + rW/2,
+    y: -0.30 * bannerRect.height - rH/2
+  };
+
+  // Normalize base position so translate() is absolute
+  rocket.style.left = '0px';
+  rocket.style.top  = '0px';
+  rocket.style.opacity = '1';
+  rocket.style.zIndex  = '3'; // between donut-back(2) and donut-front(4)
+
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const _duration = prefersReduced ? Math.min(1200, duration) : duration;
+
+  try {
+    rocket.getAnimations().forEach(a => a.cancel());
+  } catch(e) {}
+
+  try {
+    rocket.animate([
+      { transform: `translate(${start.x}px, ${start.y}px) rotate(-18deg)`, opacity: 0 },
+      { offset: 0.48, transform: `translate(${mid.x}px, ${mid.y}px) rotate(0deg)`,   opacity: 1 },
+      { transform: `translate(${end.x}px,   ${end.y}px)   rotate(22deg)`,  opacity: 0 }
+    ], {
+      duration: _duration,
+      easing,
+      fill: 'forwards'
+    });
+  } catch (e) {
+    console.error('[rocket] animation failed', e);
+  }
 }
 
-// 화면 크기 기준으로 스마트폰 / 태블릿 구분 (대략적)
-function getDeviceType() {
-  const width = window.innerWidth;
-  if (width <= 768) return 'smartphone';
-  if (width <= 1200) return 'tablet';
-  return 'desktop';
-}
+// Expose for manual triggering (console or other handlers)
+window.flyRocketResponsive = flyRocketResponsive;
 
-const html = document.documentElement;
+// Auto-fire once when banner enters viewport
+document.addEventListener('DOMContentLoaded', () => {
+  const banner = document.querySelector('.donut-banner');
+  if (!banner) return;
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        flyRocketResponsive();
+        io.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.6 });
+  io.observe(banner);
+});
 
-if (isTouchDevice()) {
-  html.classList.add('is-touch', getDeviceType());
-} else {
-  html.classList.add('is-desktop');
-}
+// Re-fire on resize (debounced) to keep the arc feeling consistent after layout changes
+let __rocketResizeTimer = null;
+window.addEventListener('resize', () => {
+  clearTimeout(__rocketResizeTimer);
+  __rocketResizeTimer = setTimeout(() => {
+    const rocket = document.querySelector('.rocket-fly');
+    // Only re-run if the rocket is visible inside banner area
+    if (rocket) flyRocketResponsive();
+  }, 180);
+});
