@@ -267,6 +267,16 @@ $main.poptrox({
         	} else {
             		window.location.href = this.href;
         		}
+		$(document)
+    		.off("click.px", ".poptrox-popup .caption a, .poptrox-popup .caption2 a")
+    		.on("click.px", ".poptrox-popup .caption a, .poptrox-popup .caption2 a", function(e) {
+        		e.stopPropagation(); // 닫기 방지
+        			if (this.target === "_blank") {
+            			window.open(this.href, "_blank", "noopener");
+        			} else {
+            			window.location.href = this.href;
+        			}
+    		});
     	});
 	},
 	overlayOpacity: 0,
