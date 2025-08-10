@@ -532,7 +532,7 @@ function flyRocketResponsive(options = {}) {
 
   // 궤도 좌표 (배너 기준)
   const start = { x: -rW, y: bannerRect.height - rH/2 + yOffsetStart };
-  const mid   = { x: donutCX - rW / 2, y: bannerRect.height / 2 - rH / 2  };
+  const mid   = { x: bannerRect.width / 2 - rW / 2, y: bannerRect.height / 2 - rH / 2  };
   const end   = { x: bannerRect.width + rW, y: -rH + yOffsetEnd };
 
   // 애니메이션
@@ -566,7 +566,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (anim && anim.finished) {
       anim.finished.finally(() => { busy = false; });
     } else {
-      setTimeout(() => { busy = false; }, 1200); //animation delay
+      setTimeout(() => { busy = false; }, 100); //animation delay
     }
   }
 
