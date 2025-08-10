@@ -1195,9 +1195,9 @@ input, select, textarea {
 		position: fixed;
 
 
-  transform: scale(0.8);        /* 크기 축소 */
-  transform-origin: center center; /* 중심 기준 축소 */
-  box-sizing: border-box;
+  		transform: scale(0.9);        /* 크기 축소 */
+  		transform-origin: center center; /* 중심 기준 축소 */
+  		box-sizing: border-box;
 	}
 
 	
@@ -1287,7 +1287,7 @@ input, select, textarea {
 		}
 
 		.poptrox-popup .caption {
-			padding: 2em 2em 0.1em 2em ;
+			padding: 2em 2em 0em 2em ;
 			background-image: -moz-linear-gradient(to top, rgba(16,16,16,0.45) 25%, rgba(16,16,16,0) 100%);
 			background-image: -webkit-linear-gradient(to top, rgba(16,16,16,0.45) 25%, rgba(16,16,16,0) 100%);
 			background-image: -ms-linear-gradient(to top, rgba(16,16,16,0.45) 25%, rgba(16,16,16,0) 100%);
