@@ -1,3 +1,4 @@
+
 /*
 	Multiverse by HTML5 UP (customized)
 	- Removed rocket-related code and duplicate typing function
@@ -381,7 +382,7 @@ function createFloatingHeart(emoji) {
 
   const left = 10 + Math.random() * 80;
   const top = 80 + Math.random() * 20;
-  heart.style.left = `${left}%";
+  heart.style.left = `${left}%`;
   heart.style.top = `${top}%`;
 
   const rot = Math.floor(Math.random() * 60) - 30;
@@ -443,6 +444,7 @@ function createFloatingHeart(emoji) {
     const $banner = $(".donut-banner"); // name kept for compatibility
     const $wrapper = $("#wrapper");
     let snappedBanner = false;
+    //let snappedHero = false;
 
     // wheel snap off banner to wrapper
     $window.on("wheel", function (e) {
@@ -459,8 +461,53 @@ function createFloatingHeart(emoji) {
         }
       }
     });
+
+    /*const $hero = $(".hero-title");
+    if ($hero.length) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting && !snappedHero) {
+              snappedHero = true;
+              smoothScrollTo(entry.target.offsetTop);
+              setTimeout(() => {
+                snappedHero = false;
+              }, 1400);
+            }
+          });
+        },
+        { threshold: 0.6 }
+      );
+      observer.observe($hero[0]);
+    } */
   });
 })(jQuery);
+
+
+// 터치 장치 여부 체크
+function isTouchDevice() {
+  return (
+    'ontouchstart' in window || 
+    navigator.maxTouchPoints > 0 || 
+    navigator.msMaxTouchPoints > 0
+  );
+}
+
+// 화면 크기 기준으로 스마트폰 / 태블릿 구분 (대략적)
+function getDeviceType() {
+  const width = window.innerWidth;
+  if (width <= 768) return 'smartphone';
+  if (width <= 1200) return 'tablet';
+  return 'desktop';
+}
+
+const html = document.documentElement;
+
+if (isTouchDevice()) {
+  html.classList.add('is-touch', getDeviceType());
+} else {
+  html.classList.add('is-desktop');
+}
 
 // -----------------------------------------------------------
 // 🚀 Responsive rocket animation (absolute inside .donut-banner)
