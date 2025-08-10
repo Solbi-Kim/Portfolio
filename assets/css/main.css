@@ -2269,7 +2269,16 @@ input, select, textarea {
   z-index: 3;
   pointer-events: none;
 }
-
+.rocket-fly {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  opacity: 0;              /* JS fades it in */
+  z-index: 3;              /* between .donut-back(2) and .donut-front(4) */
+  pointer-events: none;
+  width: 20vw;             /* responsive size; tweak if needed */
+  height: auto;
+}
 
 
 
