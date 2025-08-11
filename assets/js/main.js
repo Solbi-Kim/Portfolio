@@ -717,7 +717,7 @@ function flyRocketResponsive(options = {}) {
 document.addEventListener('DOMContentLoaded', () => {
   const rocket = document.querySelector('.rocket-fly');
   const totalFrames = 16;
-  let current = 1;
+  let current = 0;
 
   setInterval(() => {
     current = (current % totalFrames) + 1;
