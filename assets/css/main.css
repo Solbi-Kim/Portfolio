@@ -2426,37 +2426,33 @@ input, select, textarea {
   align-items: center;
 }
 
-/* 모달 박스 */
 .modal-content {
-  background: #fff;
-  color: #333;
+  background: #1f1f1f; /* panel 배경색에 맞춤 */
+  color: #fff;
   max-width: 400px;
   width: 90%;
   padding: 2em;
   border-radius: 0.5em;
-  box-shadow: 0 0.5em 2em rgba(0,0,0,0.3);
   text-align: center;
-  font-family: inherit;
-  animation: fadeInScale 0.3s ease;
+  animation: fadeInScale 0.4s ease;
 }
 
-/* 닫기 버튼 */
-.modal-close {
-  position: absolute;
-  top: 1em;
-  right: 1em;
-  background: transparent;
+.modal-ok {
+  background: #fff;
+  color: #000;
   border: none;
-  font-size: 1.5em;
-  color: #999;
+  padding: 0.6em 1.2em;
+  border-radius: 0.3em;
   cursor: pointer;
+  margin-top: 1.5em;
 }
 
-.modal-close:hover {
-  color: #333;
+.modal-ok:hover {
+  background: #ddd;
 }
 
 @keyframes fadeInScale {
-  from { opacity: 0; transform: scale(0.9); }
+  from { opacity: 0; transform: scale(0.85); }
   to { opacity: 1; transform: scale(1); }
 }
+
