@@ -2322,26 +2322,6 @@ input, select, textarea {
   height: auto;
 }
 
-/* 로켓 불꽃 */
-.flame {
-  position: absolute;
-  width: 18px;
-  height: 60px;
-  background: radial-gradient(ellipse at center, #fff6cc 0%, #ffcc33 40%, #ff6600 70%, transparent 100%);
-  border-radius: 50%;
-  animation: flameFlicker 0.15s infinite alternate ease-in-out;
-  filter: blur(1px);
-  transform-origin: top center;
-  pointer-events: none; /* 클릭 방해 X */
-}
-
-@keyframes flameFlicker {
-  0% { transform: scaleY(1) scaleX(1); opacity: 0.95; }
-  100% { transform: scaleY(1.2) scaleX(0.85); opacity: 0.85; }
-}
-
-
-
 
 /* Footer */
 
