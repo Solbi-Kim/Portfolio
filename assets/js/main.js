@@ -656,49 +656,60 @@ if (isTouchDevice()) {
  * @returns {Animation|undefined}
  */
 function flyRocketResponsive(options = {}) {
-  const duration = options.duration ?? 10000; // 속도 느리게 (기존 8000 → 10000)
+  const duration = options.duration ?? 8000;
+  const easing   = options.easing   ?? 'cubic-bezier(0.22, 1, 0.36, 1)';
   const rocket   = document.querySelector('.rocket-fly');
   const banner   = document.querySelector('.donut-banner');
   const donut    = document.querySelector('.donut-BG');
 
   if (!rocket || !banner || !donut) return;
 
+  // 배너와 도넛 위치 정보
   const bannerRect = banner.getBoundingClientRect();
   const donutRect  = donut.getBoundingClientRect();
 
+  // 도넛 중심 (배너 기준)
+  const donutCX = (donutRect.left - bannerRect.left) + donutRect.width / 2;
+  const donutCY = (donutRect.top - bannerRect.top) + donutRect.height / 2;
+
+  // 로켓 크기
   const rW = rocket.offsetWidth  || 200;
   const rH = rocket.offsetHeight || (rW * 0.5);
 
-  const start = { x: -rW, y: bannerRect.height - rH / 2 };
-  const mid   = { 
-    x: (donutRect.left - bannerRect.left) + donutRect.width / 2 - rW / 2, 
-    y: (donutRect.top - bannerRect.top) + donutRect.height / 2 - rH / 2 
-  };
-  const end   = { x: bannerRect.width + rW, y: -rH };
+  // **Y 좌표 보정**
+  const yOffsetStart = bannerRect.height * -0.5;
+  const yOffsetEnd   = bannerRect.height * -0.5;
 
+  // 궤도 좌표
+  const start = { x: -rW, y: bannerRect.height - rH/2 + yOffsetStart };
+  const end   = { x: bannerRect.width + rW, y: -rH + yOffsetEnd };
+  const mid   = { x: (start.x + end.x) / 2, y: (start.y + end.y) / 2 };
+
+  // 초기 상태
   rocket.style.left = '0px';
   rocket.style.top  = '0px';
   rocket.style.opacity = '1';
 
   const anim = rocket.animate([
-    {
-      transform: `translate(${start.x}px, ${start.y}px) scale(2) rotate(18deg)`,
+    { 
+      transform: `translate(${start.x}px, ${start.y}px) scale(2) rotate(18deg)`, 
       opacity: 0,
-      easing: 'cubic-bezier(0.85, 0, 0.15, 1)' // scale 크게 시작 → 부드럽게 감속
+      easing: 'cubic-bezier(0.85, 0, 0.15, 1)' // scale 크게 시작 → 부드럽게 줄이기 시작
     },
-    {
-      offset: 0.5,
-      transform: `translate(${mid.x}px, ${mid.y}px) scale(1) rotate(0deg)`,
+    { 
+      offset: 0.48, 
+      transform: `translate(${mid.x}px, ${mid.y}px) scale(1) rotate(0deg)`, 
       opacity: 1,
       easing: 'cubic-bezier(0.22, 1, 0.36, 1)' // scale 안정화
     },
-    {
-      transform: `translate(${end.x}px, ${end.y}px) scale(1) rotate(-18deg)`,
+    { 
+      transform: `translate(${end.x}px, ${end.y}px) scale(1) rotate(-18deg)`, 
       opacity: 0,
-      easing: 'cubic-bezier(0.4, 0, 1, 1)' // 빠르게 가속해 사라짐
+      easing: 'cubic-bezier(0.4, 0, 1, 1)' // 빠르게 사라짐
     }
   ], {
     duration,
+    easing,
     fill: 'forwards'
   });
 
