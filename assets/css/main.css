@@ -2445,7 +2445,6 @@ input, select, textarea {
   border-radius: 0.3em;
   cursor: pointer;
   margin-top: 1em;
-  margin-bottom:1em;
 }
 
 .modal-ok:hover {
