@@ -248,48 +248,14 @@ $main.poptrox({
 			console.warn('[stacked] init failed', err);
 		}
 
-		// ===== 닫기 방지 로직 =====
-        // ===== 버튼 클릭 살리기 =====
-        $(".poptrox-popup .caption a, .poptrox-popup .caption2 a")
-            .off("click.poptrox") // poptrox 네임스페이스 핸들러만 삭제
-            .on("click", function (e) {
-                e.stopPropagation(); // 닫기 방지
-                if (this.target === "_blank") {
-                    window.open(this.href, "_blank", "noopener");
-                } else {
-                    window.location.href = this.href;
-                }
+	
+        // === 버튼/링크 클릭 시 닫기 방지 (정리 버전) ===
+        $(document)
+            .off('click.px', '.poptrox-popup .caption a, .poptrox-popup .caption button')
+            .on('click.px', '.poptrox-popup .caption a, .poptrox-popup .caption button', function (e) {
+                e.stopPropagation(); // 팝업 닫기 방지
+                // 기본 동작 실행 (a면 링크 이동, button이면 버튼 동작)
             });
-
-		// 캡션 클릭 시 닫기 방지
-		$(document)
-			.off("click.px", ".poptrox-popup .caption")
-			.on("click.px", ".poptrox-popup .caption", function (e) {
-				e.stopPropagation();
-			});
-
-		// ===== 버튼 클릭 살리기 =====
-		$(".poptrox-popup .caption a, .poptrox-popup .caption2 a")
-    		.off("click") // poptrox 기본 핸들러 삭제
-    		.on("click", function (e) {
-       		e.stopPropagation(); // 닫기 방지
-        	// 여기서 preventDefault()는 안 쓰면 원래 링크 이동
-        	if (this.target === "_blank") {
-            	window.open(this.href, "_blank", "noopener");
-        	} else {
-            		window.location.href = this.href;
-        		}
-		$(document)
-    		.off("click.px", ".poptrox-popup .caption a, .poptrox-popup .caption2 a")
-    		.on("click.px", ".poptrox-popup .caption a, .poptrox-popup .caption2 a", function(e) {
-        		e.stopPropagation(); // 닫기 방지
-        			if (this.target === "_blank") {
-            			window.open(this.href, "_blank", "noopener");
-        			} else {
-            			window.location.href = this.href;
-        			}
-    		});
-    	});
 	},
 	overlayOpacity: 0,
 	popupCloserText: "",
