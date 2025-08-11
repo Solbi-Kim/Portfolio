@@ -692,20 +692,20 @@ function flyRocketResponsive(options = {}) {
 
   const anim = rocket.animate([
     { 
-      transform: `translate(${start.x}px, ${start.y}px) scale(2) rotate(18deg)`, 
+      transform: `translate(${start.x}px, ${start.y}px) scale(1.6) rotate(18deg)`, 
       opacity: 0,
       easing: 'cubic-bezier(0.85, 0, 0.15, 1)' // scale 크게 시작 → 부드럽게 줄이기 시작
     },
     { 
       offset: 0.6, 
-      transform: `translate(${mid.x}px, ${mid.y}px) scale(1) rotate(0deg)`, 
+      transform: `translate(${mid.x}px, ${mid.y}px) scale(0.8) rotate(0deg)`, 
       opacity: 1,
       easing: 'cubic-bezier(0.22, 1, 0.36, 1)' // scale 안정화
     },
     { 
-      transform: `translate(${end.x}px, ${end.y}px) scale(1) rotate(-18deg)`, 
+      transform: `translate(${end.x}px, ${end.y}px) scale(0.6) rotate(-18deg)`, 
       opacity: 0,
-      easing: 'cubic-bezier(0.4, 0, 1, 1)' // 빠르게 사라짐
+      easing: 'cubic-bezier(0.5, 0, 1, 1)' // 빠르게 사라짐
     }
   ], {
     duration,
