@@ -718,12 +718,35 @@ document.addEventListener('DOMContentLoaded', () => {
   const rocket = document.querySelector('.rocket-fly');
   const totalFrames = 15;  //마지막 프레임
   let current = 0;  //첫번째 프레임 
+  let seqTimer = null;
 
-  setInterval(() => {
-    current = (current % totalFrames) + 1;
-    const frameNum = String(current).padStart(5, '0'); // 0001 형식
-    rocket.src = `images/rocket_pngseq/rocket_${frameNum}.png`;
-  }, 1000/30); // 30fps
+  function startSequence() {
+    if (seqTimer) return; // 이미 실행 중이면 무시
+    current = 0;
+    seqTimer = setInterval(() => {
+      current = (current + 1) % (totalFrames + 1); // 0~15
+      const frameNum = String(current).padStart(5, '0');
+      rocket.src = `images/rocket_pngseq/rocket_${frameNum}.png`;
+    }, 1000 / 30); // 30fps
+  }
+
+  function stopSequence() {
+    if (seqTimer) {
+      clearInterval(seqTimer);
+      seqTimer = null;
+      rocket.src = `images/rocket_pngseq/rocket_00000.png`; // 첫 프레임으로 고정
+    }
+  }
+
+  // 발사 구역 클릭 시
+  const zone = document.querySelector('.donut-hover-zone') || document.querySelector('.donut-banner');
+  if (!zone) return;
+
+  zone.addEventListener('click', () => {
+    startSequence();           // 불꽃 시퀀스 시작
+    flyRocketResponsive();     // 로켓 발사
+    setTimeout(stopSequence, 3000); // 3초 후 불꽃 종료
+  });
 });
 
 // ---------------로켓발사 클릭 트리거
