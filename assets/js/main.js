@@ -683,7 +683,7 @@ function flyRocketResponsive(options = {}) {
   // 궤도 좌표
   const start = { x: -rW, y: bannerRect.height - rH/2 + yOffsetStart };
   const end   = { x: bannerRect.width + rW, y: -rH + yOffsetEnd };
-  const mid   = { x: (start.x + end.x) / 2, y: (start.y + end.y) / 2 };
+  const mid   = { x: (start.x + end.x) / 2, y: (start.y + end.y) / 2  +bannerRect.height * 0.05};
 
   // 초기 상태
   rocket.style.left = '0px';
@@ -700,7 +700,7 @@ function flyRocketResponsive(options = {}) {
       offset: 0.5, 
       transform: `translate(${mid.x}px, ${mid.y}px) scale(0.8) rotate(0deg)`, 
       opacity: 1,
-      easing: 'cubic-bezier(0.22, 1, 0.36, 1)' // scale 안정화
+      easing: 'cubic-bezier(0.5, 0, 0.1, 1)' // scale 안정화
     },
     { 
       transform: `translate(${end.x}px, ${end.y}px) scale(0.6) rotate(-18deg)`, 
