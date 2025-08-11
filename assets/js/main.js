@@ -365,7 +365,6 @@ function createStars(containerSelector, count = 80) {
         const containerRect = container.getBoundingClientRect();
 
 }
-=======
         const x1 = rect1.left + rect1.width / 2 - containerRect.left;
         const y1 = rect1.top + rect1.height / 2 - containerRect.top;
         const x2 = rect2.left + rect2.width / 2 - containerRect.left;
