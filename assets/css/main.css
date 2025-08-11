@@ -2438,7 +2438,7 @@ input, select, textarea {
 }
 
 .modal-ok {
-  background: #fff;
+  background: #333;
   color: #000;
   border: none;
   padding: 0.6em 1.2em;
@@ -2448,7 +2448,7 @@ input, select, textarea {
 }
 
 .modal-ok:hover {
-  background: #ddd;
+  background: #666;
 }
 
 @keyframes fadeInScale {
