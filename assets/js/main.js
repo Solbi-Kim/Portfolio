@@ -657,7 +657,6 @@ if (isTouchDevice()) {
  */
 function flyRocketResponsive(options = {}) {
   const duration = options.duration ?? 8000;
-  const easing   = options.easing   ?? 'cubic-bezier(0.22, 1, 0.36, 1)';
   const rocket   = document.querySelector('.rocket-fly');
   const banner   = document.querySelector('.donut-banner');
   const donut    = document.querySelector('.donut-BG');
@@ -668,7 +667,7 @@ function flyRocketResponsive(options = {}) {
   const bannerRect = banner.getBoundingClientRect();
   const donutRect  = donut.getBoundingClientRect();
 
-  // 도넛 중심 (배너 기준)
+  // 도넛 중심 (배너 기준) — 필요 시 활용
   const donutCX = (donutRect.left - bannerRect.left) + donutRect.width / 2;
   const donutCY = (donutRect.top - bannerRect.top) + donutRect.height / 2;
 
@@ -676,33 +675,58 @@ function flyRocketResponsive(options = {}) {
   const rW = rocket.offsetWidth  || 200;
   const rH = rocket.offsetHeight || (rW * 0.5);
 
-  // **Y 좌표 보정**: 시작점은 배너 하단 살짝 아래
-  const yOffsetStart = bannerRect.height * -0.5; // 
-  const yOffsetEnd   = bannerRect.height * -0.5; // 
+  // Y 좌표 보정
+  const yOffsetStart = bannerRect.height * -0.5;
+  const yOffsetEnd   = bannerRect.height * -0.5;
 
-  // 궤도 좌표 (배너 기준)
-  const start = { x: -rW, y: bannerRect.height - rH/2 + yOffsetStart };
-  
+  // 궤도 좌표
+  const start = { x: -rW, y: bannerRect.height - rH / 2 + yOffsetStart };
   const end   = { x: bannerRect.width + rW, y: -rH + yOffsetEnd };
-const mid   = { x: (start.x + end.x) / 2, y: (start.y + end.y) / 2 };
+  const mid   = { x: (start.x + end.x) / 2, y: (start.y + end.y) / 2 };
 
-  // 애니메이션
+  // 곡선 제어점 — mid보다 조금 위로
+  const control = { 
+    x: (start.x + mid.x) / 2, 
+    y: mid.y - bannerRect.height * 0.3 
+  };
+
+  // 초기 스타일
   rocket.style.left = '0px';
   rocket.style.top  = '0px';
   rocket.style.opacity = '1';
 
+  // 애니메이션
   const anim = rocket.animate([
-    { transform: `translate(${start.x}px, ${start.y}px) rotate(18deg)`, opacity: 0 },
-    { offset: 0.48, transform: `translate(${mid.x}px, ${mid.y}px) rotate(0deg)`, opacity: 1 },
-    { transform: `translate(${end.x}px, ${end.y}px) rotate(-18deg)`, opacity: 0 }
+    {
+      transform: `translate(${start.x}px, ${start.y}px) scale(2) rotate(18deg)`,
+      opacity: 0,
+      easing: 'cubic-bezier(0.8, 0, 0.2, 1)' // 출발 부드럽게
+    },
+    {
+      offset: 0.25,
+      transform: `translate(${control.x}px, ${control.y}px) scale(1.4) rotate(10deg)`,
+      opacity: 1,
+      easing: 'cubic-bezier(0.22, 1, 0.36, 1)' // 살짝 위로 튀어오름
+    },
+    {
+      offset: 0.48,
+      transform: `translate(${mid.x}px, ${mid.y}px) scale(1) rotate(0deg)`,
+      opacity: 1,
+      easing: 'cubic-bezier(0.22, 1, 0.36, 1)' // 안정적인 통과
+    },
+    {
+      transform: `translate(${end.x}px, ${end.y}px) scale(1) rotate(-18deg)`,
+      opacity: 0,
+      easing: 'cubic-bezier(0.4, 0, 1, 1)' // 가속하며 사라짐
+    }
   ], {
     duration,
-    easing,
     fill: 'forwards'
   });
 
   return anim;
 }
+
 
 // 클릭 트리거
 document.addEventListener('DOMContentLoaded', () => {
