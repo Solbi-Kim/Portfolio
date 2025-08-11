@@ -2114,7 +2114,6 @@ input, select, textarea {
 .hero-title {
 		box-sizing: border-box;
 		text-align: center;
-		margin-top: 3em;
 		position: relative;
 		overflow: visible;
 		padding-top: 8em;     /* 원하는 만큼 크게! */
