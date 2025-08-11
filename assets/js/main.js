@@ -305,6 +305,85 @@ function createStars(containerSelector, count = 80) {
 createStars('.stars', 100); // .stars 안에 100개 생성
 
 
+//  -------별자리 그리기 로직--------
+function createStars(containerSelector, count = 80) {
+    const container = document.querySelector(containerSelector);
+    if (!container) return;
+
+    const starChars = ['\u2726', '\u2727', '\u2722']; // ✦, ✧, ✢
+    let connectMode = false;
+    let lastStar = null;
+
+    // SVG 레이어 생성
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.classList.add("star-lines");
+    svg.setAttribute("width", "100%");
+    svg.setAttribute("height", "100%");
+    svg.style.position = "absolute";
+    svg.style.top = "0";
+    svg.style.left = "0";
+    svg.style.zIndex = "0"; // 별보다 뒤에
+    container.appendChild(svg);
+
+    for (let i = 0; i < count; i++) {
+        const star = document.createElement('span');
+        star.className = 'star';
+        star.textContent = starChars[Math.floor(Math.random() * starChars.length)];
+        star.style.top = `${Math.random() * 100}%`;
+        star.style.left = `${Math.random() * 100}%`;
+        star.style.fontSize = `${Math.random() * 11 + 3}px`; // 3~14px
+        star.style.animationDelay = `${Math.random() * 3}s`;
+
+        // 클릭 이벤트
+        star.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (!connectMode) {
+                // 첫 클릭 → 연결 모드 켜기
+                connectMode = true;
+                lastStar = e.target;
+            } else {
+                // 두 번째 이후 클릭 → 선 그리기
+                drawLine(lastStar, e.target);
+                lastStar = e.target;
+            }
+        });
+
+        container.appendChild(star);
+    }
+
+    // 우클릭 → 모드 해제
+    document.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        connectMode = false;
+        lastStar = null;
+    });
+
+    // 선 그리기 함수
+    function drawLine(star1, star2) {
+        const rect1 = star1.getBoundingClientRect();
+        const rect2 = star2.getBoundingClientRect();
+        const containerRect = container.getBoundingClientRect();
+
+        const x1 = rect1.left + rect1.width / 2 - containerRect.left;
+        const y1 = rect1.top + rect1.height / 2 - containerRect.top;
+        const x2 = rect2.left + rect2.width / 2 - containerRect.left;
+        const y2 = rect2.top + rect2.height / 2 - containerRect.top;
+
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute("x1", x1);
+        line.setAttribute("y1", y1);
+        line.setAttribute("x2", x2);
+        line.setAttribute("y2", y2);
+        line.classList.add("star-line");
+
+        svg.appendChild(line);
+    }
+}
+
+createStars('.stars', 100);
+
+
+
 
   // ---- Typing animation (single definition) ----
   function startTypingAnimation() {
