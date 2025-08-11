@@ -716,7 +716,36 @@ function flyRocketResponsive(options = {}) {
   return anim;
 }
 
-// 클릭 트리거
+
+//--------------로켓 뒤 불꽃
+document.addEventListener('DOMContentLoaded', () => {
+  const rocket = document.querySelector('.rocket-fly');
+  const flame = document.querySelector('.flame');
+  if (!rocket || !flame) return;
+
+  function updateFlamePosition() {
+    const rect = rocket.getBoundingClientRect();
+    const flameX = rect.left + rect.width / 2;
+    const flameY = rect.bottom; // 로켓 하단
+
+    flame.style.left = `${flameX}px`;
+    flame.style.top = `${flameY}px`;
+
+    // 로켓 회전값 읽기
+    const style = getComputedStyle(rocket);
+    const matrix = new DOMMatrixReadOnly(style.transform);
+    const angle = Math.atan2(matrix.b, matrix.a) * (180 / Math.PI);
+
+    // 불꽃은 로켓 방향과 같게
+    flame.style.transform = `translate(-50%, 0) rotate(${angle}deg)`;
+  }
+
+  // 애니메이션 중에도 계속 추적
+  setInterval(updateFlamePosition, 16); // 약 60fps
+});
+
+
+// ---------------로켓발사 클릭 트리거
 document.addEventListener('DOMContentLoaded', () => {
   const zone = document.querySelector('.donut-hover-zone') || document.querySelector('.donut-banner');
   if (!zone) return;
