@@ -450,7 +450,6 @@ function createStars(containerSelector, count = 80) {
       observer.observe(typingTarget);
     }
   });
-})(jQuery);
 
 /* ---------------- Like counter & Heart FX (plain JS) ---------------- */
 
