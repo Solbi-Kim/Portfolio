@@ -2277,34 +2277,35 @@ input, select, textarea {
   pointer-events: none;
 }
 
-/* 별이반짝이는배경 */
-.stars::before,
-.stars::after {
+/* 랜덤 별 배경 */
+.stars::before {
   content: '';
   position: absolute;
-  width: 200%;
-  height: 200%;
+  width: 100%;
+  height: 100%;
+
+  /* 여기서 radial-gradient 여러 개로 별 만들기 */
   background-image:
-    radial-gradient(1px 1px at 20% 30%, #fff 80%, transparent 100%),
-    radial-gradient(1px 1px at 70% 60%, #fff 80%, transparent 100%),
-    radial-gradient(1px 1px at 50% 90%, #fff 80%, transparent 100%),
-    radial-gradient(1px 1px at 90% 20%, #fff 80%, transparent 100%),
-    radial-gradient(1px 1px at 10% 80%, #fff 80%, transparent 100%);
-  animation: twinkle 4s linear infinite;
-  opacity: 0.6;
-}
-.stars::after {
-  animation-delay: 2s;
+    radial-gradient(1px 1px at 10% 20%, #fff 80%, transparent 100%),
+    radial-gradient(2px 2px at 30% 40%, #fff 80%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 50% 70%, #fff 80%, transparent 100%),
+    radial-gradient(2.5px 2.5px at 70% 10%, #fff 80%, transparent 100%),
+    radial-gradient(1px 1px at 80% 80%, #fff 80%, transparent 100%),
+    radial-gradient(2px 2px at 90% 50%, #fff 80%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 20% 85%, #fff 80%, transparent 100%),
+    radial-gradient(2px 2px at 60% 30%, #fff 80%, transparent 100%);
+  
+  background-repeat: no-repeat;
+  background-size: cover;
+  animation: star-blink 3s infinite;
 }
 
-@keyframes twinkle {
+@keyframes star-blink {
   0%, 100% {
     opacity: 0.2;
-    transform: scale(1);
   }
   50% {
     opacity: 1;
-    transform: scale(1.3);
   }
 }
 
