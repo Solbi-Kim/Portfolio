@@ -1327,11 +1327,10 @@ input, select, textarea {
 						justify-content: center;
 						align-items: center;
 						margin-top: 1em;
+						position:absolute;
 						right: 1em;
 						bottom:5em
 						pointer-events: auto !important ; 
-
-						float: right;
 			}
 
 			.poptrox-popup .caption2 a {
