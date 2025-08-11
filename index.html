@@ -223,8 +223,7 @@ document.addEventListener("DOMContentLoaded", () => {
       mode: "no-cors"
     }).then(() => {
       form.reset();
-      footerPanel.style.transform = "translateY(100%)";
-      footerPanel.style.transition = "transform 0.4s ease";
+      footerPanel.classList.remove("active");
       modal.style.display = "flex";
     }).catch(() => {
       alert("전송 실패! 다시 시도해주세요.");
@@ -240,5 +239,6 @@ document.addEventListener("DOMContentLoaded", () => {
 </body>
 
 </html>
+
 
 
