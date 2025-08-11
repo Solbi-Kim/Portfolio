@@ -288,9 +288,6 @@ breakpoints.on(">xsmall", function () {
 
 console.log("💥 poptrox 실행됨!", $("#main")[0]._poptrox);
 
-//StarsCreation 별이빛나는배경 
- // .stars 안에 100개 생성
-
 
 //  -------별자리 그리기 로직--------
 // -------------------------
@@ -716,7 +713,18 @@ function flyRocketResponsive(options = {}) {
   return anim;
 }
 
+	//로켓 시퀀스 프레임순환
+document.addEventListener('DOMContentLoaded', () => {
+  const rocket = document.querySelector('.rocket-fly');
+  const totalFrames = 16;
+  let current = 1;
 
+  setInterval(() => {
+    current = (current % totalFrames) + 1;
+    const frameNum = String(current).padStart(5, '0'); // 0001 형식
+    rocket.src = `images/rocket_${frameNum}.png`;
+  }, 1000/30); // 30fps
+});
 
 // ---------------로켓발사 클릭 트리거
 document.addEventListener('DOMContentLoaded', () => {
