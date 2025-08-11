@@ -409,6 +409,7 @@ function createStars(containerSelector, count = 80) {
     // 선 그리기 함수
     function drawLine(star1, star2) {
 
+}
 
 
 
