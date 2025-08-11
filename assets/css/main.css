@@ -2285,6 +2285,11 @@ input, select, textarea {
   animation: blink 2s infinite;
   cursor: pointer;
   pointer-events: auto; /* 별은 클릭 가능 */
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+.stars .star:hover {
+    transform: scale(1.6);
+    opacity: 1; /* hover 시 더 밝게 */
 }
 
 @keyframes blink {
