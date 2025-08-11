@@ -158,7 +158,7 @@
 							<div>
 								<section>
 									<h2>Get in touch</h2>
-									<form method="post" action="https://docs.google.com/forms/u/0/d/e/1FAIpQLSeM6wz9bMsdSqUaiWFN2k9fUvxzGfwXp4Nqj-a9cGwSDeH0oQ/formResponse">
+									<form id="customForm">
 										<div class="fields">
 											<div class="field half">
 												<input type="text" name="entry.1442179257" id="name" placeholder="Name" />
@@ -196,89 +196,49 @@
 
 		
 
-	</body>
+	
+<!-- 모달 -->
+<div id="formModal" class="modal-overlay">
+  <div class="modal-content">
+    <button class="modal-close">&times;</button>
+    <h2>Message Sended!</h2>
+    <p>Thank you for your message. We will get back to you soon.</p>
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.querySelector("#customForm");
+  const modal = document.querySelector("#formModal");
+  const closeBtn = modal.querySelector(".modal-close");
+
+  form.addEventListener("submit", function(e) {
+    e.preventDefault();
+    const formData = new FormData(form);
+
+    fetch("https://docs.google.com/forms/d/e/1FAIpQLSeM6wz9bMsdSqUaiWFN2k9fUvxzGfwXp4Nqj-a9cGwSDeH0oQ/formResponse", {
+      method: "POST",
+      body: formData,
+      mode: "no-cors"
+    }).then(() => {
+      form.reset();
+      modal.style.display = "flex";
+    }).catch(() => {
+      alert("전송 실패! 다시 시도해주세요.");
+    });
+  });
+
+  closeBtn.addEventListener("click", () => modal.style.display = "none");
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) modal.style.display = "none";
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") modal.style.display = "none";
+  });
+});
+</script>
+
+</body>
 
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
