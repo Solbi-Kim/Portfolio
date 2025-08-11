@@ -217,6 +217,11 @@ $main.poptrox({
 	onPopupOpen: function () {
 		$body.addClass("modal-active");
 
+		$(window).trigger('resize');
+    	// 이미지 max-height 직접 계산해서 적용
+    	var capHeight = $('.poptrox-popup .caption').outerHeight() || 140;
+    	$('.poptrox-popup .image').css('max-height', (window.innerHeight - capHeight) + 'px');
+
 		/* PATCH[stacked]: enable vertical stack and set caption height CSS var */
 		try {
 			var $popup = $('.poptrox-popup');
