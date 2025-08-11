@@ -2201,6 +2201,7 @@ input, select, textarea {
   background: linear-gradient(to bottom, #1a1a40, #222);
   inset: 0;
   z-index: 0;
+  pointer-events: none;
 }
 
 .donut-back,
