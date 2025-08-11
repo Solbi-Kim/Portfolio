@@ -200,9 +200,9 @@
 <!-- 모달 -->
 <div id="formModal" class="modal-overlay">
   <div class="modal-content">
-    <button class="modal-close">&times;</button>
     <h2>Message Sended!</h2>
     <p>Thank you for your message. We will get back to you soon.</p>
+    <button class="modal-ok">OK</button>
   </div>
 </div>
 
@@ -210,7 +210,8 @@
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.querySelector("#customForm");
   const modal = document.querySelector("#formModal");
-  const closeBtn = modal.querySelector(".modal-close");
+  const okBtn = modal.querySelector(".modal-ok");
+  const footerPanel = document.querySelector("#footer");
 
   form.addEventListener("submit", function(e) {
     e.preventDefault();
@@ -222,18 +223,17 @@ document.addEventListener("DOMContentLoaded", () => {
       mode: "no-cors"
     }).then(() => {
       form.reset();
+      footerPanel.style.transform = "translateY(100%)";
+      footerPanel.style.transition = "transform 0.4s ease";
       modal.style.display = "flex";
     }).catch(() => {
       alert("전송 실패! 다시 시도해주세요.");
     });
   });
 
-  closeBtn.addEventListener("click", () => modal.style.display = "none");
-  modal.addEventListener("click", (e) => {
-    if (e.target === modal) modal.style.display = "none";
-  });
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") modal.style.display = "none";
+  okBtn.addEventListener("click", () => {
+    modal.style.display = "none";
+    footerPanel.style.transform = "translateY(0)";
   });
 });
 </script>
