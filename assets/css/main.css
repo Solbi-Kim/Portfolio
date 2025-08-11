@@ -2297,6 +2297,11 @@ input, select, textarea {
     stroke: rgba(255, 255, 255, 0.7);
     stroke-width: 1px;
 }
+.temp-line {
+    stroke: rgba(255, 255, 255, 0.4);
+    stroke-width: 1px;
+    /* stroke-dasharray: 4; /* 점선 효과 */
+}
 
 
 
