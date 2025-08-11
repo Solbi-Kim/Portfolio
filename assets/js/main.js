@@ -284,23 +284,26 @@ breakpoints.on(">xsmall", function () {
 console.log("💥 poptrox 실행됨!", $("#main")[0]._poptrox);
 
 //StarsCreation 별이빛나는배경 
-function createStars(containerSelector, count = 50) {
+function createStars(containerSelector, count = 80) {
   const container = document.querySelector(containerSelector);
   if (!container) return;
+
+  const starChars = ['\u2726', '\u2727', '\u2722']; // ✦, ✧, ✢
 
   for (let i = 0; i < count; i++) {
     const star = document.createElement('span');
     star.className = 'star';
-    star.textContent = '✦'; // 사각별 문자
+    star.textContent = starChars[Math.floor(Math.random() * starChars.length)];
     star.style.top = `${Math.random() * 100}%`;
     star.style.left = `${Math.random() * 100}%`;
-    star.style.fontSize = `${Math.random() * 8 + 6}px`; // 6~14px
+    star.style.fontSize = `${Math.random() * 11 + 1}px`; // 1~14px
     star.style.animationDelay = `${Math.random() * 3}s`;
     container.appendChild(star);
   }
 }
 
-createStars('.stars', 80); // .stars 안에 80개 생성
+createStars('.stars', 100); // .stars 안에 100개 생성
+
 
 
   // ---- Typing animation (single definition) ----
