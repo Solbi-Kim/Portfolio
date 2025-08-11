@@ -378,17 +378,18 @@ function createStars(containerSelector, count = 80) {
         }
     });
 
-    // 우클릭 → 모드 해제
-    document.addEventListener('contextmenu', (e) => {
-        e.preventDefault();
+    // 별 아닌 곳 클릭 시 모드 해제
+    document.addEventListener('click', (e) => {
+    // 클릭한 게 별이 아닐 때만
+    if (!e.target.classList.contains('star')) {
         connectMode = false;
         lastStar = null;
         if (tempLine) {
             tempLine.remove();
             tempLine = null;
         }
-    });
-
+    }
+});
     // 선 그리기 함수
     function drawLine(star1, star2) {
         const rect1 = star1.getBoundingClientRect();
