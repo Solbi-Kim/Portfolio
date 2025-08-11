@@ -2393,6 +2393,9 @@ input, select, textarea {
 
 /* Optional guard: enable only if some browsers let iframe eat clicks.
    To enable, change height to var(--cap-h) and pointer-events to auto. */
+.poptrox-popup.stacked::before {
+    pointer-events: none !important;
+}
 .poptrox-popup.stacked .image::after {
   content: '';
   position: absolute;
