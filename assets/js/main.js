@@ -722,7 +722,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setInterval(() => {
     current = (current % totalFrames) + 1;
     const frameNum = String(current).padStart(5, '0'); // 0001 형식
-    rocket.src = `images/rocket_${frameNum}.png`;
+    rocket.src = `images/rocket_pngseq/rocket_${frameNum}.png`;
   }, 1000/30); // 30fps
 });
 
