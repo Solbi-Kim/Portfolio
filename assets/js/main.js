@@ -735,17 +735,10 @@ document.addEventListener('DOMContentLoaded', () => {
   function fire() {
     if (busy) return;
     busy = true;
-    const anim = flyRocketResponsive();
-    if (anim && anim.finished) {
-      anim.finished.finally(() => {
-        setTimeout(() => { busy = false; }, 3000); // 3초 대기 후 재발사 가능
-      });
-    } else {
-      setTimeout(() => { busy = false; }, 3000); // 애니메이션 없으면 그냥 3초 후 해제
+    flyRocketResponsive();
+	setTimeout(() => { busy = false; }, 3000); // 3초후 재발사 가능
     }
-  }
-
-  zone.addEventListener('click', fire);
+	zone.addEventListener('click', fire);
 });
 
 
