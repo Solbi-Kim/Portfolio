@@ -686,4 +686,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
   zone.addEventListener('click', fire);
 });
-})(jQuery);
