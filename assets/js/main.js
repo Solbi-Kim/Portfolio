@@ -716,8 +716,8 @@ function flyRocketResponsive(options = {}) {
 	//로켓 시퀀스 프레임순환
 document.addEventListener('DOMContentLoaded', () => {
   const rocket = document.querySelector('.rocket-fly');
-  const totalFrames = 16;
-  let current = 0;
+  const totalFrames = 15;  //마지막 프레임
+  let current = 0;  //첫번째 프레임 
 
   setInterval(() => {
     current = (current % totalFrames) + 1;
