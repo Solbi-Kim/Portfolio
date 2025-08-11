@@ -2282,6 +2282,8 @@ input, select, textarea {
   color: #fff;
   opacity: 0.2;
   animation: blink 2s infinite;
+  cursor: pointer;
+  pointer-events: auto; /* 별은 클릭 가능 */
 }
 
 @keyframes blink {
