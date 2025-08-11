@@ -656,7 +656,7 @@ if (isTouchDevice()) {
  * @returns {Animation|undefined}
  */
 function flyRocketResponsive(options = {}) {
-  const duration = options.duration ?? 8000;
+  const duration = options.duration ?? 12000;
   const easing   = options.easing   ?? 'cubic-bezier(0.22, 1, 0.36, 1)';
   const rocket   = document.querySelector('.rocket-fly');
   const banner   = document.querySelector('.donut-banner');
@@ -697,7 +697,7 @@ function flyRocketResponsive(options = {}) {
       easing: 'cubic-bezier(0.85, 0, 0.15, 1)' // scale 크게 시작 → 부드럽게 줄이기 시작
     },
     { 
-      offset: 0.48, 
+      offset: 0.6, 
       transform: `translate(${mid.x}px, ${mid.y}px) scale(1) rotate(0deg)`, 
       opacity: 1,
       easing: 'cubic-bezier(0.22, 1, 0.36, 1)' // scale 안정화
