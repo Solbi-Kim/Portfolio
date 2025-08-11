@@ -2289,6 +2289,12 @@ input, select, textarea {
   50% { opacity: 0.7; }
 }
 
+/* 별자리 선 스타일 */
+.star-line {
+    stroke: rgba(255, 255, 255, 0.7);
+    stroke-width: 1px;
+}
+
 
 
 /* 로켓 */
