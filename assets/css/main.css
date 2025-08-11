@@ -2341,6 +2341,7 @@ input, select, textarea {
   flex-direction: column;
   align-items: stretch;
 	padding: 2vh 0
+	pointer-events: none;
 }
 
 .poptrox-popup.stacked .image {
@@ -2373,7 +2374,7 @@ input, select, textarea {
   text-align: center;
   background-image: linear-gradient(to top, rgba(16,16,16,0.45) 25%, rgba(16,16,16,0) 100%);
   padding: 1.25em 1.5em 1.25em 1.5em;
-  pointer-events: auto;
+  pointer-events: none;
 }
 
 /* Ensure nav/closer sit above if needed */
