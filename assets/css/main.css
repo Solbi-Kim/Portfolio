@@ -1768,9 +1768,6 @@ input, select, textarea {
 			opacity: 0;
 		}
 		
-		body.is-preload #main .thumb .image img {  /* 스피너 보임 제거 */
- 			 display: none;
-		}
 
 		#main .thumb {
 			-moz-transition-delay: 2.525s;
