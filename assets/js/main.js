@@ -185,7 +185,8 @@
         }
       });
     }, { threshold: 0.4 });
-    thumbs.forEach(thumb => thumbObserver.observe(thumb))
+    thumbs.forEach(thumb => thumbObserver.observe(thumb));
+  }); // Close .each() block
 
 
 	
