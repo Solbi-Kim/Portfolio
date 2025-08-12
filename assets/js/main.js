@@ -172,16 +172,20 @@
     if ((x = $image_img.data("position"))) $image.css("background-position", x);
 
     $image_img.hide();
-    // Animate thumbs when visible (like heroTitle)
+    // Animate thumbs when visible (trigger by removing thumb-preload)
+    document.body.classList.add('thumb-preload');
     const thumbs = document.querySelectorAll('#main > .thumb');
-	const bodyEl = document.body;
-
     const thumbObserver = new IntersectionObserver((entries, obs) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      requestAnimationFrame(() => {
-        bodyEl.classList.remove('is-preload');
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          requestAnimationFrame(() => {
+            document.body.classList.remove('thumb-preload');
+          });
+          thumbs.forEach(t => obs.unobserve(t));
+        }
       });
+    }, { threshold: 0.4 });
+    thumbs.forEach(thumb => thumbObserver.observe(thumb))
       thumbs.forEach(t => obs.unobserve(t));
     }
   });
