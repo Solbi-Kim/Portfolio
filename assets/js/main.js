@@ -172,25 +172,7 @@
     if ((x = $image_img.data("position"))) $image.css("background-position", x);
 
     $image_img.hide();
-<<<<<<< HEAD
-    // Animate thumbs when visible (trigger by removing thumb-preload)
-    document.body.classList.add('thumb-preload');
-    const thumbs = document.querySelectorAll('#main > .thumb');
-    const thumbObserver = new IntersectionObserver((entries, obs) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          requestAnimationFrame(() => {
-            document.body.classList.remove('thumb-preload');
-          });
-          thumbs.forEach(t => obs.unobserve(t));
-        }
-      });
-    }, { threshold: 0.4 });
-    thumbs.forEach(thumb => thumbObserver.observe(thumb));
-  }); // Close .each() block
-=======
   });
->>>>>>> parent of 9893eb9 (Update main.js)
 
 
 	
