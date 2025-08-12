@@ -1750,14 +1750,14 @@ input, select, textarea {
 				background: rgba(36, 38, 41, 0.55);
 			}
 
-		body.content-active #main {
+		body.donut-active #main {
 			-moz-filter: blur(6px);
 			-webkit-filter: blur(6px);
 			-ms-filter: blur(6px);
 			filter: blur(6px);
 		}
 
-			body.content-active #main:after {
+			body.donut-active #main:after {
 				pointer-events: auto;
 				opacity: 1;
 				visibility: visible;
