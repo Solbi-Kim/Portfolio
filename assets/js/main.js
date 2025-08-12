@@ -179,6 +179,18 @@
     if ((x = $image_img.data("position"))) $image.css("background-position", x);
 
     $image_img.hide();
+    // Animate thumbs when visible (like heroTitle)
+    const thumbs = document.querySelectorAll('#main > .thumb');
+    const thumbObserver = new IntersectionObserver((entries, obs) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible'); // trigger CSS animation
+          obs.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.4 });
+    thumbs.forEach(thumb => thumbObserver.observe(thumb));
+
   });
 
 
