@@ -186,13 +186,6 @@
       });
     }, { threshold: 0.4 });
     thumbs.forEach(thumb => thumbObserver.observe(thumb))
-      thumbs.forEach(t => obs.unobserve(t));
-    }
-  });
-}, { threshold: 0.4 });
-    thumbs.forEach(thumb => thumbObserver.observe(thumb));
-
-  });
 
 
 	
