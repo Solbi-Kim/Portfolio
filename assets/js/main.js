@@ -30,6 +30,13 @@
 
   // Transitions supported?
   if (browser.canUse("transition")) {
+    // Play initial animations on page load.
+    $window.on("load", function () {
+      window.setTimeout(function () {
+        $body.removeClass("is-preload");
+      }, 100);
+    });
+
     // Prevent transitions/animations on resize.
     var resizeTimeout;
 
@@ -69,14 +76,14 @@
       })
       .on("---show", function () {
         // Hide other content.
-        if ($body.hasClass("donut-active")) $panels.trigger("---hide");
+        if ($body.hasClass("content-active")) $panels.trigger("---hide");
 
         // Activate content, toggles.
         $this.addClass("active");
         $toggles.addClass("active");
 
         // Activate body.
-        $body.addClass("donut-active");
+        $body.addClass("content-active");
       })
       .on("---hide", function () {
         // Deactivate content, toggles.
@@ -84,7 +91,7 @@
         $toggles.removeClass("active");
 
         // Deactivate body.
-        $body.removeClass("donut-active");
+        $body.removeClass("content-active");
       });
 
     // Toggles.
@@ -100,7 +107,7 @@
 
   // Global events.
   $body.on("click", function (event) {
-    if ($body.hasClass("donut-active")) {
+    if ($body.hasClass("content-active")) {
       event.preventDefault();
       event.stopPropagation();
       $panels.trigger("---hide");
@@ -108,7 +115,7 @@
   });
 
   $window.on("keyup", function (event) {
-    if (event.keyCode == 27 && $body.hasClass("donut-active")) {
+    if (event.keyCode == 27 && $body.hasClass("content-active")) {
       event.preventDefault();
       event.stopPropagation();
       $panels.trigger("---hide");
@@ -286,7 +293,7 @@ console.log("💥 poptrox 실행됨!", $("#main")[0]._poptrox);
 // -------------------------
 // 랜덤 별 생성 + 별자리 연결 로직
 // -------------------------
-function createStars(containerSelector, count = 512) {  //별 개수
+function createStars(containerSelector, count = 256) {  //별 개수
     const container = document.querySelector(containerSelector);
     if (!container) return;
 
