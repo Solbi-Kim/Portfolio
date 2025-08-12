@@ -177,13 +177,15 @@
 	const bodyEl = document.body;
 
     const thumbObserver = new IntersectionObserver((entries, obs) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-	   		bodyEl.classList.remove('is-preload'); // CSS 애니메이션 발동
-			thumbs.forEach(t => obs.unobserve(t)); // 모든 thumb 관찰 해제
-        }
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      requestAnimationFrame(() => {
+        bodyEl.classList.remove('is-preload');
       });
-    }, { threshold: 0.4 });
+      thumbs.forEach(t => obs.unobserve(t));
+    }
+  });
+}, { threshold: 0.4 });
     thumbs.forEach(thumb => thumbObserver.observe(thumb));
 
   });
