@@ -221,7 +221,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (!name || !email || !message) {
     modal.querySelector("h2").textContent = "Missing Information";
-    modal.querySelector("p").textContent = "Please fill out all required fields before sending your message.";
+    modal.querySelector("p").innerHTML = "Please fill out all required fields<br>before sending your message.";
     footerPanel.classList.remove("active");
     modal.style.display = "flex";
     return;
@@ -237,7 +237,7 @@ document.addEventListener("DOMContentLoaded", () => {
       form.reset();
       footerPanel.classList.remove("active");
       modal.querySelector("h2").textContent = "Message Sended!";
-    modal.querySelector("p").textContent = "Thank you for your message.<br>We will get back to you soon.";
+    modal.querySelector("p").innerHTML = "Thank you for your message.<br>We will get back to you soon.";
     modal.style.display = "flex";
   }).catch(() => {
     alert("전송 실패! 다시 시도해주세요.");
@@ -253,6 +253,7 @@ document.addEventListener("DOMContentLoaded", () => {
 </body>
 
 </html>
+
 
 
 
