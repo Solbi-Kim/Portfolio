@@ -1763,7 +1763,7 @@ input, select, textarea {
 				visibility: visible;
 			}
 
-		body.is-preload #main .thumb {
+		body.thumb-preload #main .thumb {
 			pointer-events: none;
 			opacity: 0;
 		}
