@@ -305,7 +305,7 @@ console.log("💥 poptrox 실행됨!", $("#main")[0]._poptrox);
 // -------------------------
 // 랜덤 별 생성 + 별자리 연결 로직
 // -------------------------
-function createStars(containerSelector, count = 256) {  //별 개수
+function createStars(containerSelector, count = 512) {  //별 개수
     const container = document.querySelector(containerSelector);
     if (!container) return;
 
