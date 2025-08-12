@@ -13,7 +13,7 @@
     $body = $("body"),
     $wrapper = $("#wrapper");
 
-  // Breakpoints
+  // Breakpoints.
   breakpoints({
     xlarge: ["1281px", "1680px"],
     large: ["981px", "1280px"],
@@ -701,7 +701,7 @@ function flyRocketResponsive(options = {}) {
   const anim = rocket.animate([
     { 
       transform: `translate(${start.x}px, ${start.y}px) scale(1.6) rotate(18deg)`, 
-      opacity: 1,
+      opacity: 0,
       easing: 'cubic-bezier(0.2, 0.6, 0.5, 1)' // scale 크게 시작 → 부드럽게 줄이기 시작
     },
     { 
