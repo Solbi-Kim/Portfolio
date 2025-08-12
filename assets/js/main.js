@@ -69,14 +69,14 @@
       })
       .on("---show", function () {
         // Hide other content.
-        if ($body.hasClass("content-active")) $panels.trigger("---hide");
+        if ($body.hasClass("donut-active")) $panels.trigger("---hide");
 
         // Activate content, toggles.
         $this.addClass("active");
         $toggles.addClass("active");
 
         // Activate body.
-        $body.addClass("content-active");
+        $body.addClass("donut-active");
       })
       .on("---hide", function () {
         // Deactivate content, toggles.
@@ -84,7 +84,7 @@
         $toggles.removeClass("active");
 
         // Deactivate body.
-        $body.removeClass("content-active");
+        $body.removeClass("donut-active");
       });
 
     // Toggles.
@@ -100,7 +100,7 @@
 
   // Global events.
   $body.on("click", function (event) {
-    if ($body.hasClass("content-active")) {
+    if ($body.hasClass("donut-active")) {
       event.preventDefault();
       event.stopPropagation();
       $panels.trigger("---hide");
@@ -108,7 +108,7 @@
   });
 
   $window.on("keyup", function (event) {
-    if (event.keyCode == 27 && $body.hasClass("content-active")) {
+    if (event.keyCode == 27 && $body.hasClass("donut-active")) {
       event.preventDefault();
       event.stopPropagation();
       $panels.trigger("---hide");
