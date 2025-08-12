@@ -181,11 +181,13 @@
     $image_img.hide();
     // Animate thumbs when visible (like heroTitle)
     const thumbs = document.querySelectorAll('#main > .thumb');
+	const bodyEl = document.body;
+
     const thumbObserver = new IntersectionObserver((entries, obs) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
-          entry.target.classList.add('visible'); // trigger CSS animation
-          obs.unobserve(entry.target);
+	   		bodyEl.classList.remove('is-preload'); // CSS 애니메이션 발동
+			thumbs.forEach(t => obs.unobserve(t)); // 모든 thumb 관찰 해제
         }
       });
     }, { threshold: 0.4 });
