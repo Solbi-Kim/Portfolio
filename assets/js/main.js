@@ -216,9 +216,6 @@ $main.poptrox({
 		$body.removeClass("modal-active");
 	},
 	onPopupOpen: function () {
-		$body.addClass("modal-active");
-    	$('.poptrox-popup').addClass('fadein');
-		// 배경 페이드인용 클래스 추가
 		
 		$body.addClass("modal-active");
 
