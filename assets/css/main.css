@@ -1188,7 +1188,7 @@ input, select, textarea {
 	}
 
 	.poptrox-popup {
-		background: rgba(0, 0, 0, 0.15);
+		background: none;
 		box-shadow: 0 1em 3em 0.5em rgba(0, 0, 0, 0.35);
 		cursor: default;
 
@@ -1199,6 +1199,21 @@ input, select, textarea {
   		transform-origin: center center; /* 중심 기준 축소 */
   		box-sizing: border-box;
 	}
+	.poptrox-popup::before {    /* 팝업 배경 페이드인*/
+  		content: "";
+  		position: fixed;
+  		inset: 0;
+  		background: rgba(0, 0, 0, 0.15);
+  		opacity: 0;
+  		transition: opacity 0.4s ease;
+  		pointer-events: none;
+		}
+
+		/* fadein 클래스가 붙으면 배경이 스르륵 */
+		.poptrox-popup.fadein::before {
+  			opacity: 1;
+		}
+
 
 	
 		.poptrox-popup .image {
