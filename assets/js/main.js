@@ -216,60 +216,57 @@ $main.poptrox({
 		$body.removeClass("modal-active");
 	},
 	onPopupOpen: function () {
-    // 🔥 팝업 열릴 때 body에 modal-active 클래스 → blur 효과 트랜지션
-    // 한 프레임 늦춰서 붙여야 열릴 때도 트랜지션 먹음
-    requestAnimationFrame(() => {
-        $body.addClass("modal-active");
-    });
+		$body.addClass("modal-active");
+    	$('.poptrox-popup').addClass('fadein');
+		// 배경 페이드인용 클래스 추가
+		
+		$body.addClass("modal-active");
 
-    // 🔥 배경 페이드인 (popup 자체의 background opacity 전환용)
-    $('.poptrox-popup').addClass('fadein');
+		$(window).trigger('resize');
+    	// 이미지 max-height 직접 계산해서 적용
+    	var capHeight = $('.poptrox-popup .caption').outerHeight() || 140;
+    	$('.poptrox-popup .image').css('max-height', (window.innerHeight - capHeight) + 'px');
 
-    $(window).trigger('resize');
+		/* PATCH[stacked]: enable vertical stack and set caption height CSS var */
+		try {
+			var $popup = $('.poptrox-popup');
+			$popup.addClass('stacked');
 
-    // === 이미지 max-height 직접 계산해서 적용 ===
-    var capHeight = $('.poptrox-popup .caption').outerHeight() || 140;
-    $('.poptrox-popup .image').css('max-height', (window.innerHeight - capHeight) + 'px');
+			var $cap = $popup.find('.caption');
+			function setCapHeight() {
+				var capH = ($cap.outerHeight && $cap.outerHeight()) || ($cap[0] ? $cap[0].offsetHeight : 140) || 140;
+				if ($popup[0]) $popup[0].style.setProperty('--cap-h', capH + 'px');
+			}
+			setCapHeight();
 
-    /* PATCH[stacked]: enable vertical stack and set caption height CSS var */
-    try {
-        var $popup = $('.poptrox-popup');
-        $popup.addClass('stacked');
+			var __stackedResizeHandler = function () { setCapHeight(); };
+			window.addEventListener('resize', __stackedResizeHandler);
 
-        var $cap = $popup.find('.caption');
-        function setCapHeight() {
-            var capH = ($cap.outerHeight && $cap.outerHeight()) || ($cap[0] ? $cap[0].offsetHeight : 140) || 140;
-            if ($popup[0]) $popup[0].style.setProperty('--cap-h', capH + 'px');
-        }
-        setCapHeight();
+			if (window.ResizeObserver && $cap[0]) {
+				var __capRO = new ResizeObserver(function () { setCapHeight(); });
+				__capRO.observe($cap[0]);
+				$popup.data('__capRO', __capRO);
+			}
+			$popup.data('__stackedResizeHandler', __stackedResizeHandler);
 
-        var __stackedResizeHandler = function () { setCapHeight(); };
-        window.addEventListener('resize', __stackedResizeHandler);
+			// === 캡션을 .content 영역 안으로 이동 ===
+			var $content = $popup.find('.content');
+			if ($cap.length && $content.length) {
+				$cap.appendTo($content);
+			}
+		} catch (err) {
+			console.warn('[stacked] init failed', err);
+		}
 
-        if (window.ResizeObserver && $cap[0]) {
-            var __capRO = new ResizeObserver(function () { setCapHeight(); });
-            __capRO.observe($cap[0]);
-            $popup.data('__capRO', __capRO);
-        }
-        $popup.data('__stackedResizeHandler', __stackedResizeHandler);
-
-        // === 캡션을 .content 영역 안으로 이동 ===
-        var $content = $popup.find('.content');
-        if ($cap.length && $content.length) {
-            $cap.appendTo($content);
-        }
-    } catch (err) {
-        console.warn('[stacked] init failed', err);
-    }
-
-    // === 버튼/링크 클릭 시 닫기 방지 (정리 버전) ===
-    $(document)
-        .off('click.px', '.poptrox-popup .caption a, .poptrox-popup .caption button')
-        .on('click.px', '.poptrox-popup .caption a, .poptrox-popup .caption button', function (e) {
-            e.stopPropagation(); // 팝업 닫기 방지
-            // 기본 동작 실행 (a면 링크 이동, button이면 버튼 동작)
-        });
-}, //OnPopupOpen 내용끝!
+	
+        // === 버튼/링크 클릭 시 닫기 방지 (정리 버전) ===
+        $(document)
+            .off('click.px', '.poptrox-popup .caption a, .poptrox-popup .caption button')
+            .on('click.px', '.poptrox-popup .caption a, .poptrox-popup .caption button', function (e) {
+                e.stopPropagation(); // 팝업 닫기 방지
+                // 기본 동작 실행 (a면 링크 이동, button이면 버튼 동작)
+            });
+	},
 	overlayOpacity: 0,
 	popupCloserText: "",
 	popupHeight: 150,
