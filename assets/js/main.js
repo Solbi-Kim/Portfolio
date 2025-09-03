@@ -215,7 +215,6 @@ $main.poptrox({
 		$body.removeClass("modal-active");
 	},
 	onPopupOpen: function () {
-		
 		$body.addClass("modal-active");
 
 		$(window).trigger('resize');
