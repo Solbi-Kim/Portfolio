@@ -1466,6 +1466,7 @@ input, select, textarea {
 			-webkit-filter: blur(8px);
 			-ms-filter: blur(8px);
 			filter: blur(8px);
+			transition: filter 0.5s ease;
 		}
 
 			body.modal-active #wrapper:after {
