@@ -217,6 +217,10 @@ $main.poptrox({
 	},
 	onPopupOpen: function () {
 		$body.addClass("modal-active");
+    	$('.poptrox-popup').addClass('fadein');
+		// 배경 페이드인용 클래스 추가
+		
+		$body.addClass("modal-active");
 
 		$(window).trigger('resize');
     	// 이미지 max-height 직접 계산해서 적용
