@@ -212,6 +212,7 @@ $main.poptrox({
 		} catch (err) {
 			console.warn('[stacked] cleanup failed', err);
 		}
+		$('.poptrox-popup').removeClass('fadein'); //배경페이드인클래스 제거
 		$body.removeClass("modal-active");
 	},
 	onPopupOpen: function () {
