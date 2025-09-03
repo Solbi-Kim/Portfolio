@@ -218,7 +218,9 @@
 			$body.removeClass("modal-active");
 		},
 		onPopupOpen: function () {
-			$body.addClass("modal-active");
+			requestAnimationFrame(() => {
+				$body.addClass("modal-active");
+			});
 
 			$(window).trigger('resize');
 			// 이미지 max-height 직접 계산해서 적용
