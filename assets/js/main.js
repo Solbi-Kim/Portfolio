@@ -184,109 +184,112 @@
 
 	
 // -- Poptrox.
-$main.poptrox({
-	overlayCloser: true, // 팝업 외부 클릭 닫기 허용
-	usePopupEasyClose: false, // 팝업 본체 클릭 시 닫기 방지
-	baseZIndex: 20000,
-	caption: function ($a) {
-		var s = "";
-		$a.nextAll().each(function () {
-			s += this.outerHTML;
-		});
-		return s;
-	},
-	fadeSpeed: 300,
-	onPopupClose: function () {
-		/* PATCH[stacked]: cleanup */
-		try {
-			var $popup = $('.poptrox-popup');
-			$popup.removeClass('stacked');
-			if ($popup[0]) $popup[0].style.removeProperty('--cap-h');
-			var handler = $popup.data('__stackedResizeHandler');
-			if (handler) {
-				window.removeEventListener('resize', handler);
-				$popup.removeData('__stackedResizeHandler');
+	$main.poptrox({
+		overlayCloser: true, // 팝업 외부 클릭 닫기 허용
+		usePopupEasyClose: false, // 팝업 본체 클릭 시 닫기 방지
+		baseZIndex: 20000,
+		caption: function ($a) {
+			var s = "";
+			$a.nextAll().each(function () {
+				s += this.outerHTML;
+			});
+			return s;
+		},
+		fadeSpeed: 300,
+		onPopupClose: function () {
+			/* PATCH[stacked]: cleanup */
+			try {
+				var $popup = $('.poptrox-popup');
+				$popup.removeClass('stacked');
+				if ($popup[0]) $popup[0].style.removeProperty('--cap-h');
+				var handler = $popup.data('__stackedResizeHandler');
+				if (handler) {
+					window.removeEventListener('resize', handler);
+					$popup.removeData('__stackedResizeHandler');
+				}
+				var ro = $popup.data('__capRO');
+				if (ro) { 
+					try { ro.disconnect(); } catch (e) {} 
+					$popup.removeData('__capRO'); 
+				}
+			} catch (err) {
+				console.warn('[stacked] cleanup failed', err);
 			}
-			var ro = $popup.data('__capRO');
-			if (ro) { try { ro.disconnect(); } catch (e) {} $popup.removeData('__capRO'); }
-		} catch (err) {
-			console.warn('[stacked] cleanup failed', err);
-		}
-		$body.removeClass("modal-active");
-	},
-	onPopupOpen: function () {
-		$body.addClass("modal-active");
+			$body.removeClass("modal-active");
+		},
+		onPopupOpen: function () {
+			$body.addClass("modal-active");
 
-		$(window).trigger('resize');
-    	// 이미지 max-height 직접 계산해서 적용
-    	var capHeight = $('.poptrox-popup .caption').outerHeight() || 140;
-    	$('.poptrox-popup .image').css('max-height', (window.innerHeight - capHeight) + 'px');
+			$(window).trigger('resize');
+			// 이미지 max-height 직접 계산해서 적용
+			var capHeight = $('.poptrox-popup .caption').outerHeight() || 140;
+			$('.poptrox-popup .image').css('max-height', (window.innerHeight - capHeight) + 'px');
 
-		/* PATCH[stacked]: enable vertical stack and set caption height CSS var */
-		try {
-			var $popup = $('.poptrox-popup');
-			$popup.addClass('stacked');
+			/* PATCH[stacked]: enable vertical stack and set caption height CSS var */
+			try {
+				var $popup = $('.poptrox-popup');
+				$popup.addClass('stacked');
 
-			var $cap = $popup.find('.caption');
-			function setCapHeight() {
-				var capH = ($cap.outerHeight && $cap.outerHeight()) || ($cap[0] ? $cap[0].offsetHeight : 140) || 140;
-				if ($popup[0]) $popup[0].style.setProperty('--cap-h', capH + 'px');
+				var $cap = $popup.find('.caption');
+				function setCapHeight() {
+					var capH = ($cap.outerHeight && $cap.outerHeight()) || ($cap[0] ? $cap[0].offsetHeight : 140) || 140;
+					if ($popup[0]) $popup[0].style.setProperty('--cap-h', capH + 'px');
+				}
+				setCapHeight();
+
+				var __stackedResizeHandler = function () { setCapHeight(); };
+				window.addEventListener('resize', __stackedResizeHandler);
+
+				if (window.ResizeObserver && $cap[0]) {
+					var __capRO = new ResizeObserver(function () { setCapHeight(); });
+					__capRO.observe($cap[0]);
+					$popup.data('__capRO', __capRO);
+				}
+				$popup.data('__stackedResizeHandler', __stackedResizeHandler);
+
+				// === 캡션을 .content 영역 안으로 이동 ===
+				var $content = $popup.find('.content');
+				if ($cap.length && $content.length) {
+					$cap.appendTo($content);
+				}
+			} catch (err) {
+				console.warn('[stacked] init failed', err);
 			}
-			setCapHeight();
 
-			var __stackedResizeHandler = function () { setCapHeight(); };
-			window.addEventListener('resize', __stackedResizeHandler);
+			// === 버튼/링크 클릭 시 닫기 방지 (정리 버전) ===
+			$(document)
+				.off('click.px', '.poptrox-popup .caption a, .poptrox-popup .caption button')
+				.on('click.px', '.poptrox-popup .caption a, .poptrox-popup .caption button', function (e) {
+					e.stopPropagation(); // 팝업 닫기 방지
+					// 기본 동작 실행 (a면 링크 이동, button이면 버튼 동작)
+				});
+		},
+		overlayOpacity: 0,
+		popupCloserText: "",
+		popupHeight: 150,
+		popupLoaderText: "",
+		popupSpeed: 300,
+		popupWidth: 150,
+		selector: ".thumb > a.image",
+		usePopupCaption: true,
+		usePopupCloser: true,
+		usePopupDefaultStyling: false,
+		usePopupForceClose: true,
+		usePopupLoader: true,
+		usePopupNav: true,
+		windowMargin: 10
+	});
 
-			if (window.ResizeObserver && $cap[0]) {
-				var __capRO = new ResizeObserver(function () { setCapHeight(); });
-				__capRO.observe($cap[0]);
-				$popup.data('__capRO', __capRO);
-			}
-			$popup.data('__stackedResizeHandler', __stackedResizeHandler);
+	// -- Hack: Set margins to 0 when 'xsmall' activates.
+	breakpoints.on("<=xsmall", function () {
+		$main[0]._poptrox.windowMargin = 0;
+	});
+	breakpoints.on(">xsmall", function () {
+		$main[0]._poptrox.windowMargin = 50;
+	});
 
-			// === 캡션을 .content 영역 안으로 이동 ===
-			var $content = $popup.find('.content');
-			if ($cap.length && $content.length) {
-				$cap.appendTo($content);
-			}
-		} catch (err) {
-			console.warn('[stacked] init failed', err);
-		}
+	console.log("💥 poptrox 실행됨!", $("#main")[0]._poptrox);  //수정됨
 
-	
-        // === 버튼/링크 클릭 시 닫기 방지 (정리 버전) ===
-        $(document)
-            .off('click.px', '.poptrox-popup .caption a, .poptrox-popup .caption button')
-            .on('click.px', '.poptrox-popup .caption a, .poptrox-popup .caption button', function (e) {
-                e.stopPropagation(); // 팝업 닫기 방지
-                // 기본 동작 실행 (a면 링크 이동, button이면 버튼 동작)
-            });
-	},
-	overlayOpacity: 0,
-	popupCloserText: "",
-	popupHeight: 150,
-	popupLoaderText: "",
-	popupSpeed: 300,
-	popupWidth: 150,
-	selector: ".thumb > a.image",
-	usePopupCaption: true,
-	usePopupCloser: true,
-	usePopupDefaultStyling: false,
-	usePopupForceClose: true,
-	usePopupLoader: true,
-	usePopupNav: true,
-	windowMargin: 10
-});
-
-// -- Hack: Set margins to 0 when 'xsmall' activates.
-breakpoints.on("<=xsmall", function () {
-	$main[0]._poptrox.windowMargin = 0;
-});
-breakpoints.on(">xsmall", function () {
-	$main[0]._poptrox.windowMargin = 50;
-});
-
-console.log("💥 poptrox 실행됨!", $("#main")[0]._poptrox);
 
 
 //  -------별자리 그리기 로직--------
