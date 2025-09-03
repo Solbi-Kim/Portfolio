@@ -1433,7 +1433,7 @@ input, select, textarea {
 /* Wrapper */
 
 	#wrapper {
-		filter: blur(0px);
+		filter: none;
 		transition: filter 0.5s ease;
 		position: relative;
 	}
