@@ -769,5 +769,36 @@ document.addEventListener('DOMContentLoaded', () => {
 	zone.addEventListener('click', fire);
 });
 
+// ===== Donut intro crossfade =====
+document.addEventListener("DOMContentLoaded", () => {
+	const banner = document.querySelector(".donut-banner");
+	if (!banner) return;
+
+	const video = banner.querySelector(".donut-intro");
+	if (!video) return;
+
+	// 영상 재생이 끝나면: 비디오 페이드아웃 + 이미지 페이드인
+	video.addEventListener("ended", () => {
+		banner.classList.add("reveal");
+	});
+
+	// 자동재생 실패나 에러 시: 바로 이미지로 폴백
+	const revealFallback = () => banner.classList.add("reveal");
+	video.addEventListener("error", revealFallback);
+
+	// canplay 되면 한 번 더 재생 시도 (모바일 정책 대비)
+	const tryPlay = () => {
+		if (video.paused) {
+			video.play().catch(revealFallback);
+		}
+	};
+	video.addEventListener("canplay", tryPlay);
+	video.addEventListener("canplaythrough", tryPlay);
+
+	// 즉시 시도
+	tryPlay();
+});
+
+
 
 })(jQuery);  //necessary line
