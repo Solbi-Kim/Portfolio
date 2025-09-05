@@ -2277,7 +2277,8 @@ input, select, textarea {
 	left: 50%;
 	top: 50%;
 	transform: translate(-50%, -50%); /* 정확히 중앙 고정 */
-	width: clamp(240px, 60vmin, 960px); /* 크기: 필요하면 조절 */
+	width: 100vw;     /* 뷰포트 너비 꽉 채움 */
+	max-width: 1200px; /* 필요시 상한선 */
 	height: auto;
 	opacity: 0;
 	transition: opacity 0.8s ease;
