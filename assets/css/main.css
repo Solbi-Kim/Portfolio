@@ -2253,38 +2253,43 @@ input, select, textarea {
 .donut-banner { position: relative; overflow: hidden; }
 
 .donut-banner .donut-hover-zone {
-	position: relative;
+	position: relative;   /* 기준점은 그대로 둠 */
 }
 
-/* 인트로 비디오: 섹션 꽉 채우기 (투명 WebM) */
+/* 인트로 비디오 */
 .donut-banner .donut-intro {
 	position: absolute;
 	inset: 0;
 	width: 100%;
 	height: 100%;
-	object-fit: cover; /* 필요시 contain으로 변경 */
+	object-fit: cover;
 	opacity: 1;
 	transition: opacity 0.8s ease;
-	pointer-events: none; /* 인터랙션 막기 */
+	pointer-events: none;
 	z-index: 1;
 }
 
-/* 정적 이미지 3종: 초기엔 숨김 → reveal 시 나타남 */
+/* 정적 이미지 3종: 겹치게 배치 */
 .donut-banner .donut-BG,
 .donut-banner .donut-back,
 .donut-banner .donut-front {
-	position: relative;   /* 기존 레이아웃 유지 */
+	position: absolute;          /* ✅ relative → absolute */
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%, -50%);
+	max-width: min(60vmin, 640px);
+	width: 100%;
+	height: auto;
 	opacity: 0;
 	transition: opacity 0.8s ease;
 	z-index: 2;
 }
 
-/* 전환: 비디오는 사라지고, 이미지들은 나타남 */
+/* 전환 */
 .donut-banner.reveal .donut-intro { opacity: 0; }
 .donut-banner.reveal .donut-BG,
 .donut-banner.reveal .donut-back,
 .donut-banner.reveal .donut-front { opacity: 1; }
-
 
 
 
