@@ -2273,13 +2273,11 @@ input, select, textarea {
 .donut-banner .donut-BG,
 .donut-banner .donut-back,
 .donut-banner .donut-front {
-	position: absolute;          /* ✅ relative → absolute */
-	left: 50%;
-	top: 50%;
-	transform: translate(-50%, -50%);
-	max-width: min(60vmin, 640px);
+	position: absolute;
+	inset: 0;               /* 부모(.donut-hover-zone) 전체 채움 */
 	width: 100%;
-	height: auto;
+	height: 100%;
+	object-fit: contain;    /* 도넛 비율 유지하면서 맞춤 */
 	opacity: 0;
 	transition: opacity 0.8s ease;
 	z-index: 2;
