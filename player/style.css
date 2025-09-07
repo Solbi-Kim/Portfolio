@@ -1,5 +1,5 @@
 :root {
-  --bg: #0f1115;
+  --bg: transparent;
   --panel: #111622;
   --text: #e9eef5;
   --brand: #00adef; /* 진행바/포커스 색 */
