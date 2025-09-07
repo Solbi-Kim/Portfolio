@@ -89,3 +89,8 @@ html, body {
 .vjs-ccv {
   background: transparent !important;
 }
+
+/* Video.js 기본 배경 제거 */
+.video-js {
+  background-color: transparent !important;
+}
