@@ -1329,14 +1329,14 @@ input, select, textarea {
 						margin-top: 1em;
 						position:absolute;
 						right: 1em;
-						bottom:6em
+						bottom:10em
 						pointer-events: auto !important ; 
 			}
 
 			.poptrox-popup .caption2 a {
 						font-size: 1.2em;           /* 아이콘 크기 */
-						width: 1.6em;               /* 버튼 크기 */
-						height: 1.6em;
+						width: 2em;               /* 버튼 크기 */
+						height: 2em;
 						display: flex;
 						justify-content: center;
 						align-items: center;
