@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>영상 인포메이션 | shovideo</title>
+  <title>Info | shovideo</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root {
@@ -38,39 +38,105 @@
 </head>
 <body>
   <header>
-    <button onclick="history.back()">← 뒤로가기</button>
-    <span style="margin-left:8px; font-weight:600;">영상 인포메이션</span>
+    <button onclick="history.back()">← Back</button>
+    <span style="margin-left:8px; font-weight:600;">Video Information</span>
   </header>
-  <main id="pdf-container">PDF 로딩 중...</main>
+  <main id="pdf-container">Loading PDF...</main>
 
-  <script type="module">
-    import * as pdfjsLib from './pdfjs/pdf.mjs';
+<script type="module">
+  import * as pdfjsLib from './pdfjs/pdf.mjs';
+  pdfjsLib.GlobalWorkerOptions.workerSrc = './pdfjs/pdf.worker.mjs';
 
-    // 워커 경로 설정
-    pdfjsLib.GlobalWorkerOptions.workerSrc = './pdfjs/pdf.worker.mjs';
+  const PDF_URL = '/assets/PDF/CK_X_Cha_Eun_Woo.pdf'; // ← ❤️PDF
+  const container = document.getElementById('pdf-container');
 
-    const PDF_URL = '../assets/PDF/Are_you_sure.pdf';
-    const container = document.getElementById('pdf-container');
-    container.textContent = 'Loading PDF…';
+  let pdfDoc = null;
+  let basePageWidth = null; // 페이지 1의 'scale:1' 기준 너비
+  let scale = 1;            // 현재 스케일
+  const MIN_SCALE = 0.5;
+  const MAX_SCALE = 3.0;
+  const DPR = Math.max(1, window.devicePixelRatio || 1);
 
-    const scale = 1.2;
+  // 컨테이너 너비에 맞춰 스케일 계산
+  function computeScale() {
+    const w = container.clientWidth;        // 패딩 포함 컨테이너 가로
+    if (!basePageWidth) return 1;
+    const s = w / basePageWidth;
+    return Math.min(MAX_SCALE, Math.max(MIN_SCALE, s));
+  }
 
-    const pdf = await pdfjsLib.getDocument(PDF_URL).promise;
-    container.textContent = ''; // 초기 텍스트 지움
+  async function renderPage(pageNum) {
+    const page = await pdfDoc.getPage(pageNum);
+    const viewport = page.getViewport({ scale });
 
-    for (let n = 1; n <= pdf.numPages; n++) {
-      const page = await pdf.getPage(n);
-      const viewport = page.getViewport({ scale });
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
 
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
+    // HiDPI 선명도
+    const outScale = DPR;
+    canvas.width  = Math.floor(viewport.width  * outScale);
+    canvas.height = Math.floor(viewport.height * outScale);
+    canvas.style.width  = Math.floor(viewport.width) + 'px';
+    canvas.style.height = Math.floor(viewport.height) + 'px';
 
-      canvas.width = viewport.width;
-      canvas.height = viewport.height;
+    const renderContext = {
+      canvasContext: ctx,
+      viewport,
+      transform: outScale !== 1 ? [outScale, 0, 0, outScale, 0, 0] : null
+    };
 
-      await page.render({ canvasContext: ctx, viewport }).promise;
-      container.appendChild(canvas);
+    await page.render(renderContext).promise;
+    container.appendChild(canvas);
+  }
+
+  async function renderAll() {
+    container.innerHTML = '';
+    for (let n = 1; n <= pdfDoc.numPages; n++) {
+      await renderPage(n);
     }
-  </script>
+  }
+
+  // 디바운스(리사이즈 과도 호출 방지)
+  function debounce(fn, ms = 150) {
+    let t; return (...args) => {
+      clearTimeout(t); t = setTimeout(() => fn(...args), ms);
+    };
+  }
+
+  // 초기 로드: 1페이지로 기준 너비 측정 → 스케일 계산 → 전체 렌더
+  (async () => {
+    const loadingText = container.textContent;
+    try {
+      container.textContent = 'Loading PDF…';
+      pdfDoc = await pdfjsLib.getDocument(PDF_URL).promise;
+
+      // 기준 폭 측정 (page1, scale:1)
+      const page1 = await pdfDoc.getPage(1);
+      basePageWidth = page1.getViewport({ scale: 1 }).width;
+
+      scale = computeScale();
+      await renderAll();
+    } catch (e) {
+      console.error(e);
+      container.textContent = 'PDF load failed 😢';
+      return;
+    }
+    container.textContent = '';
+  })();
+
+  // 리사이즈/회전 시 자동 재맞춤
+  const onResize = debounce(async () => {
+    if (!pdfDoc || !basePageWidth) return;
+    const next = computeScale();
+    if (Math.abs(next - scale) < 0.02) return; // 미세변화 무시
+    scale = next;
+    await renderAll();
+  }, 200);
+
+  window.addEventListener('resize', onResize);
+  // 컨테이너 자체 크기 변화를 감지하고 싶다면:
+  new ResizeObserver(onResize).observe(container);
+</script>
+
 </body>
 </html>
