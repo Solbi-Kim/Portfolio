@@ -26,13 +26,14 @@ html, body {
 
 /* Video.js 컨테이너 */
 .vjs-ccv {
-  width: min(92vw, 176vh);    /* 16:9를 대략적으로 맞추는 뷰 */
+  width: 100%;   
   height: auto;
-  aspect-ratio: 16/9;
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 10px 30px rgba(0,0,0,.35);
-  max-width: 1280px;   /* 최대 1280px까지만 커짐 */
+  max-width: 100vw; 
+  max-height: 100vh;
+  object-fit:contain;
   margin: 0 auto;      /* 가운데 정렬 */
 }
 
