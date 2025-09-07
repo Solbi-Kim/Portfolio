@@ -600,11 +600,13 @@ function createFloatingHeart(emoji) {
 
     // wheel snap off banner to wrapper
     $window.on("wheel", function (e) {
+      if (window.__InertiaScrollInit) return; // inertia active -> skip snap
       if (!$banner.length) return;
       if (!snappedBanner && e.originalEvent.deltaY > 0) {
         const bannerBottom = $banner.offset().top + $banner.outerHeight();
         if (window.scrollY < bannerBottom - 100) {
-          e.preventDefault();
+          e.stopImmediatePropagation();
+      e.preventDefault();
           snappedBanner = true;
           smoothScrollTo($wrapper.offset().top);
           setTimeout(() => {
@@ -806,6 +808,7 @@ document.addEventListener("DOMContentLoaded", () => {
   window.__InertiaScrollInit = true;
 
   function initInertiaScroll(opts = {}) {
+    try { document.documentElement.style.scrollBehavior = 'auto'; } catch (e) {}
     const {
       friction = 0.92,      // 0.85~0.97에서 조절: 낮을수록 더 길게 흐름
       wheelBoost = 1.0,     // 휠 1틱당 가속도 배율
@@ -816,7 +819,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // 접근성/터치 디바이스에서 비활성
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-    if (isTouch) return;
+    if (isTouch && !opts.force) return;
 
     let rafId = 0;
     let vy = 0;                  // 세로 속도(픽셀/프레임)
@@ -869,7 +872,7 @@ document.addEventListener("DOMContentLoaded", () => {
         animating = true;
         rafId = requestAnimationFrame(loop);
       }
-    }, { passive: false });
+    }, { capture: true, passive: false });
 
     // 키보드도 관성에 태움 (선택)
     window.addEventListener('keydown', (e) => {
@@ -905,9 +908,10 @@ document.addEventListener("DOMContentLoaded", () => {
   window.initInertiaScroll = initInertiaScroll;
   // 바로 적용
   initInertiaScroll({
-    friction: 0.93,     // 더 길게 흐르게 하고 싶으면 0.95 근처
-    wheelBoost: 1.0,    // 0.8~1.2 사이 취향 조절
-    maxSpeed: 70
+    friction: 0.945,    // 꼬리 더 길게
+    wheelBoost: 1.15,   // 감도 약간 상향
+    maxSpeed: 70,
+    force: true         // 터치/트랙패드 환경에서도 강제 적용
   });
 })();
 
