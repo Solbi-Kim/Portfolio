@@ -800,55 +800,41 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
-// ===== Momentum Smooth Scroll (Framer-ish) =====
-// 전역 모듈. main.js에 붙이고 맨 아래 initMomentumScroll() 호출.
-// 내부 스크롤 영역(.scroll-native, [data-native-scroll])은 네이티브 그대로 둔다.
-(function () {
-  if (window.__MomentumScrollInit) return;
-  window.__MomentumScrollInit = true;
+<script>
+(() => {
+  if (window.__InertiaScrollInit) return;
+  window.__InertiaScrollInit = true;
 
-  function initMomentumScroll(opts = {}) {
+  function initInertiaScroll(opts = {}) {
     const {
-      // === 튜닝 포인트 ===
-      frictionPF = 0.94,    // per-frame 마찰(60fps 기준). 0.92~0.96 사이에서 취향 조절
-      accel = 0.0042,       // 휠 delta → 속도(px/ms) 변환 계수 (크면 더 휘청)
-      maxVel = 3.2,         // 최대 속도(px/ms) 제한 (너무 미끄러지면 낮춰)
-      minVel = 0.02,        // 이거보다 작아지면 정지
-      pageRatio = 0.9,      // PageUp/Down/Space 이동 비율(화면 높이의 n%)
-      headerOffset = (() => {
-        const v = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--header-h')) || 0;
-        return v;
-      })(),
-      allowNativeInside = '[data-native-scroll], .scroll-native'
+      friction = 0.92,      // 0.85~0.97에서 조절: 낮을수록 더 길게 흐름
+      wheelBoost = 1.0,     // 휠 1틱당 가속도 배율
+      maxSpeed = 60,        // 프레임당 최대 이동(px)
+      allowNativeInside = '[data-native-scroll], .scroll-native',
     } = opts;
 
-    // 접근성/터치 디바이스는 네이티브 유지
+    // 접근성/터치 디바이스에서 비활성
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
     if (isTouch) return;
 
-    // 상태
-    let anim = false;
-    let last = 0;
-    let vel = 0; // px/ms
-    const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
-    const maxScroll = () => Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    let rafId = 0;
+    let vy = 0;                  // 세로 속도(픽셀/프레임)
+    let targetY = window.scrollY;
+    let animating = false;
 
-    // dt 보정된 friction: 60fps 기준 frictionPF를 실제 프레임 간격에 맞춰 거듭제곱
-    function frictionFor(dtMs) {
-      const base = 1000 / 60; // 16.666...
-      return Math.pow(frictionPF, dtMs / base);
-    }
+    const clamp = (v,min,max)=>Math.min(max,Math.max(min,v));
+    const maxScroll = () =>
+      Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
 
-    function canScrollNative(el, deltaY) {
+    function canScroll(el, deltaY) {
       if (el.closest(allowNativeInside)) return true;
-      // overflow 컨테이너면 네이티브 통과
       let n = el;
       while (n && n !== document.documentElement) {
         const cs = getComputedStyle(n);
         const oy = cs.overflowY;
-        const scrollable = (oy === 'auto' || oy === 'scroll') && n.scrollHeight > n.clientHeight;
-        if (scrollable) {
+        const scrollable = (oy === 'auto' || oy === 'scroll');
+        if (scrollable && n.scrollHeight > n.clientHeight) {
           if (deltaY > 0 && n.scrollTop + n.clientHeight < n.scrollHeight) return true;
           if (deltaY < 0 && n.scrollTop > 0) return true;
         }
@@ -857,125 +843,74 @@ document.addEventListener("DOMContentLoaded", () => {
       return false;
     }
 
-    function start() {
-      if (anim) return;
-      anim = true;
-      last = performance.now();
-      requestAnimationFrame(tick);
-    }
-
-    function tick(now) {
-      const dt = now - last;
-      last = now;
-
-      // 위치 업데이트
-      let y = window.scrollY + vel * dt;
-
-      // 경계 처리(상단/하단에서 튕김 없이 멈추게)
-      if (y <= 0) {
-        y = 0;
-        vel = 0;
-      } else {
-        const mx = maxScroll();
-        if (y >= mx) {
-          y = mx;
-          vel = 0;
-        }
-      }
-
-      window.scrollTo(0, y);
-
-      // 감속
-      vel *= frictionFor(dt);
-
-      // 아주 느려지면 종료
-      if (Math.abs(vel) < minVel) {
-        anim = false;
-        vel = 0;
+    function loop() {
+      // 감속 이징(관성)
+      vy *= friction;
+      if (Math.abs(vy) < 0.08) { // 거의 멈췄으면 종료
+        animating = false;
+        rafId = 0;
         return;
       }
-      requestAnimationFrame(tick);
+      targetY = clamp(targetY + clamp(vy, -maxSpeed, maxSpeed), 0, maxScroll());
+      window.scrollTo(0, targetY);
+      rafId = requestAnimationFrame(loop);
     }
 
-    // Wheel → 속도에 '킥'을 줌 (끝나도 관성으로 더 미끄러짐)
     window.addEventListener('wheel', (e) => {
-      const delta = e.deltaY || e.wheelDeltaY || (e.wheelDelta * -1) || 0;
+      const delta = e.deltaY || 0;
       if (!delta) return;
-      if (canScrollNative(e.target, delta)) return; // 내부 스크롤은 통과
+      if (canScroll(e.target, delta)) return;  // 내부 스크롤 통과
 
       e.preventDefault();
-      // delta → 속도(px/ms)로 변환, 누적. 상한 제한
-      vel = clamp(vel + delta * accel, -maxVel, maxVel);
-      start();
+      // 휠 입력 → 속도에 가산 (휠 멈춰도 vy가 남아 부드럽게 감속)
+      vy += delta * wheelBoost * 0.2; // 0.2는 감도, 취향껏 0.15~0.3
+      targetY = clamp(window.scrollY, 0, maxScroll());
+      if (!animating) {
+        animating = true;
+        rafId = requestAnimationFrame(loop);
+      }
     }, { passive: false });
 
-    // 키보드 이동도 동일 엔진으로
+    // 키보드도 관성에 태움 (선택)
     window.addEventListener('keydown', (e) => {
-      if (e.defaultPrevented) return;
       const tag = document.activeElement?.tagName?.toLowerCase();
       if (tag === 'input' || tag === 'textarea') return;
 
       const h = window.innerHeight;
-      let impulse = 0; // 속도에 더해줄 킥(px/ms)
-      if (e.key === 'ArrowDown')   impulse = +h * 0.0015;
-      if (e.key === 'ArrowUp')     impulse = -h * 0.0015;
-      if (e.key === 'PageDown')    impulse = +h * pageRatio * 0.003;
-      if (e.key === 'PageUp')      impulse = -h * pageRatio * 0.003;
-      if (e.key === ' ' && !e.shiftKey) impulse = +h * pageRatio * 0.003;
-      if (e.key === ' ' &&  e.shiftKey) impulse = -h * pageRatio * 0.003;
-      if (e.key === 'Home')        { window.scrollTo(0, 0); vel = 0; return e.preventDefault(); }
-      if (e.key === 'End')         { window.scrollTo(0, maxScroll()); vel = 0; return e.preventDefault(); }
+      let dy = 0;
+      if (e.key === 'ArrowDown') dy = 80;
+      if (e.key === 'ArrowUp')   dy = -80;
+      if (e.key === 'PageDown' || (e.key === ' ' && !e.shiftKey)) dy = h * 0.9;
+      if (e.key === 'PageUp'   || (e.key === ' ' &&  e.shiftKey)) dy = -h * 0.9;
+      if (e.key === 'Home')     targetY = 0;
+      if (e.key === 'End')      targetY = maxScroll();
+      if (!dy && e.key !== 'Home' && e.key !== 'End') return;
 
-      if (impulse !== 0) {
-        e.preventDefault();
-        vel = clamp(vel + impulse, -maxVel, +maxVel);
-        start();
+      e.preventDefault();
+      if (dy) vy += dy * 0.25; // 키 입력도 관성에 합산
+      if (!animating) {
+        animating = true;
+        rafId = requestAnimationFrame(loop);
       }
     }, { passive: false });
 
-    // 내부 앵커 이동도 부드럽게: 타깃까지의 거리 비례로 속도 킥
-    document.addEventListener('click', (e) => {
-      const a = e.target.closest('a[href^="#"]');
-      if (!a) return;
-      try {
-        const u = new URL(a.href, location.href);
-        if (u.origin !== location.origin || u.pathname !== location.pathname || !u.hash) return;
-      } catch { return; }
-
-      const id = decodeURIComponent(a.getAttribute('href').slice(1));
-      const el = document.getElementById(id);
-      if (!el) return;
-
-      e.preventDefault();
-      const rectTop = el.getBoundingClientRect().top;
-      const dstY = window.scrollY + rectTop - headerOffset;
-      const dist = dstY - window.scrollY;
-
-      // 거리 비례 속도 킥 (가까우면 짧게, 멀면 길게)
-      vel = clamp(dist * 0.0025, -maxVel, +maxVel);
-      start();
-      history.pushState(null, '', `#${id}`);
-    });
-
-    // 리사이즈 시 위치 보정
-    window.addEventListener('resize', () => {
-      const y = clamp(window.scrollY, 0, maxScroll());
-      window.scrollTo(0, y);
+    // 리사이즈 보정
+    addEventListener('resize', () => {
+      targetY = clamp(targetY, 0, maxScroll());
+      if (!animating) window.scrollTo(0, targetY);
     });
   }
 
-  window.initMomentumScroll = initMomentumScroll;
+  // 전역 노출
+  window.initInertiaScroll = initInertiaScroll;
+  // 바로 적용
+  initInertiaScroll({
+    friction: 0.93,     // 더 길게 흐르게 하고 싶으면 0.95 근처
+    wheelBoost: 1.0,    // 0.8~1.2 사이 취향 조절
+    maxSpeed: 70
+  });
 })();
-
-// 페이지에서 한 줄로 실행
-initMomentumScroll({
-  // 프리셋: Framer 느낌 더 강하게 하려면 아래 주석 해제해서 조절
-  // frictionPF: 0.945, // 꼬리 더 길게
-  // accel: 0.0052,     // 휠당 더 강하게 밀기
-  // maxVel: 3.6,       // 속도 상한 조금 올림
-  // minVel: 0.018
-});
-
+</script>
 
 
 
