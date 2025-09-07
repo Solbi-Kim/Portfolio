@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>영상 인포메이션 | shovideo</title>
+  <title>Info | shovideo</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root {
@@ -38,16 +38,16 @@
 </head>
 <body>
   <header>
-    <button onclick="history.back()">← 뒤로가기</button>
-    <span style="margin-left:8px; font-weight:600;">영상 인포메이션</span>
+    <button onclick="history.back()">← Back</button>
+    <span style="margin-left:8px; font-weight:600;">Video Information</span>
   </header>
-  <main id="pdf-container">PDF 로딩 중...</main>
+  <main id="pdf-container">Loading PDF...</main>
 
 <script type="module">
   import * as pdfjsLib from './pdfjs/pdf.mjs';
   pdfjsLib.GlobalWorkerOptions.workerSrc = './pdfjs/pdf.worker.mjs';
 
-  const PDF_URL = '/assets/PDF/Are_you_sure.pdf'; // ← 경로는 네 파일 위치에 맞게
+  const PDF_URL = '/assets/PDF/Are_you_sure.pdf'; // ← ❤️PDF
   const container = document.getElementById('pdf-container');
 
   let pdfDoc = null;
@@ -118,7 +118,7 @@
       await renderAll();
     } catch (e) {
       console.error(e);
-      container.textContent = 'PDF 로딩 실패 😢';
+      container.textContent = 'PDF load failed 😢';
       return;
     }
     container.textContent = '';
