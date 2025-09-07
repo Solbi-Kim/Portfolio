@@ -909,7 +909,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // 바로 적용
   initInertiaScroll({
     friction: 0.945,    // 꼬리 더 길게
-    wheelBoost: 0.9,   // 감도 
+    wheelBoost: 0.5,   // 감도 
 	keyStep: 64,          // ← 화살표 키 이동 px
   	pageRatio: 0.85,      // ← PageUp/Down 비율 
     maxSpeed: 70,
