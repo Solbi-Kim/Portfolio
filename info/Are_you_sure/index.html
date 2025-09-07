@@ -35,35 +35,34 @@
       border-radius:6px;
     }
   </style>
-  <header class="pdf-header">
-	  <button id="zoomOutBtn" aria-label="ZoonOut">🔍–</button>
-	  <button id="zoomInBtn"  aria-label="ZoomIn">🔍+</button>
-  </header>
 </head>
 <body>
+  <!-- 메인 헤더 -->
   <header>
     <button onclick="history.back()">← Back</button>
     <span style="margin-left:8px; font-weight:600;">Video Information</span>
+    <button id="zoomOutBtn" aria-label="ZoomOut" style="margin-left:auto;">🔍–</button>
+    <button id="zoomInBtn"  aria-label="ZoomIn">🔍+</button>
   </header>
+
   <main id="pdf-container">Loading PDF...</main>
 
 <script type="module">
   import * as pdfjsLib from './pdfjs/pdf.mjs';
   pdfjsLib.GlobalWorkerOptions.workerSrc = './pdfjs/pdf.worker.mjs';
 
-  const PDF_URL = '/assets/PDF/Are_you_sure.pdf'; // ← ❤️PDF
+  const PDF_URL = '/assets/PDF/Are_you_sure.pdf';
   const container = document.getElementById('pdf-container');
 
   let pdfDoc = null;
-  let basePageWidth = null; // 페이지 1의 'scale:1' 기준 너비
-  let scale = 1;            // 현재 스케일
+  let basePageWidth = null;
+  let scale = 1;
   const MIN_SCALE = 0.5;
   const MAX_SCALE = 3.0;
   const DPR = Math.max(1, window.devicePixelRatio || 1);
 
-  // 컨테이너 너비에 맞춰 스케일 계산
   function computeScale() {
-    const w = container.clientWidth;        // 패딩 포함 컨테이너 가로
+    const w = container.clientWidth;
     if (!basePageWidth) return 1;
     const s = w / basePageWidth;
     return Math.min(MAX_SCALE, Math.max(MIN_SCALE, s));
@@ -76,7 +75,6 @@
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
 
-    // HiDPI 선명도
     const outScale = DPR;
     canvas.width  = Math.floor(viewport.width  * outScale);
     canvas.height = Math.floor(viewport.height * outScale);
@@ -100,21 +98,16 @@
     }
   }
 
-  // 디바운스(리사이즈 과도 호출 방지)
   function debounce(fn, ms = 150) {
     let t; return (...args) => {
       clearTimeout(t); t = setTimeout(() => fn(...args), ms);
     };
   }
 
-  // 초기 로드: 1페이지로 기준 너비 측정 → 스케일 계산 → 전체 렌더
   (async () => {
-    const loadingText = container.textContent;
     try {
-      container.textContent = 'Loading PDF…';
       pdfDoc = await pdfjsLib.getDocument(PDF_URL).promise;
 
-      // 기준 폭 측정 (page1, scale:1)
       const page1 = await pdfDoc.getPage(1);
       basePageWidth = page1.getViewport({ scale: 1 }).width;
 
@@ -123,78 +116,43 @@
     } catch (e) {
       console.error(e);
       container.textContent = 'PDF load failed 😢';
-      return;
     }
-    container.textContent = '';
   })();
 
-  // 리사이즈/회전 시 자동 재맞춤
   const onResize = debounce(async () => {
     if (!pdfDoc || !basePageWidth) return;
     const next = computeScale();
-    if (Math.abs(next - scale) < 0.02) return; // 미세변화 무시
+    if (Math.abs(next - scale) < 0.02) return;
     scale = next;
     await renderAll();
   }, 200);
 
   window.addEventListener('resize', onResize);
-  // 컨테이너 자체 크기 변화를 감지하고 싶다면:
   new ResizeObserver(onResize).observe(container);
 
-  // 버튼 참조
-const zoomInBtn  = document.getElementById('zoomInBtn');
-const zoomOutBtn = document.getElementById('zoomOutBtn');
+  const zoomInBtn  = document.getElementById('zoomInBtn');
+  const zoomOutBtn = document.getElementById('zoomOutBtn');
 
-// 스크롤 보정용: 현재 스크롤 위치를 비율로 저장했다가 재렌더 후 복원
-function rememberScrollRatio() {
-  const max = Math.max(1, container.scrollHeight - container.clientHeight);
-  return window.scrollY / max;
-}
-function restoreScrollRatio(ratio) {
-  const max = Math.max(1, document.body.scrollHeight - window.innerHeight);
-  window.scrollTo({ top: ratio * max, behavior: 'instant' in window ? 'instant' : 'auto' });
-}
-
-// 확대/축소 실행 (0.1씩 증감; 원하면 1.1배/0.9배 곱셈식도 가능)
-async function doZoom(delta) {
-  const ratio = rememberScrollRatio();
-  const next = Math.max(MIN_SCALE, Math.min(MAX_SCALE, +(scale + delta).toFixed(2)));
-  if (Math.abs(next - scale) < 0.01) return; // 변화 없음
-  scale = next;
-  await renderAll();
-  restoreScrollRatio(ratio);
-}
-
-// 버튼 이벤트
-zoomInBtn?.addEventListener('click',  () => doZoom(+0.1));
-zoomOutBtn?.addEventListener('click', () => doZoom(-0.1));
-
-// 키보드 단축키: + / - / Ctrl+0 (리셋)
-window.addEventListener('keydown', (e) => {
-  // 입력창에 포커스 있으면 무시
-  const tag = (e.target && e.target.tagName) || '';
-  if (['INPUT','TEXTAREA'].includes(tag)) return;
-
-  // + 또는 = (일부 키보드에서 +가 Shift+=)
-  if ((e.key === '+' || e.key === '=') && !e.ctrlKey && !e.metaKey) {
-    e.preventDefault();
-    doZoom(+0.1);
+  function rememberScrollRatio() {
+    const max = Math.max(1, container.scrollHeight - container.clientHeight);
+    return window.scrollY / max;
   }
-  // - 또는 _
-  if ((e.key === '-' || e.key === '_') && !e.ctrlKey && !e.metaKey) {
-    e.preventDefault();
-    doZoom(-0.1);
+  function restoreScrollRatio(ratio) {
+    const max = Math.max(1, document.body.scrollHeight - window.innerHeight);
+    window.scrollTo({ top: ratio * max, behavior: 'auto' });
   }
-  // Ctrl/Cmd + 0 → 화면맞춤(컨테이너 폭 기준 다시 계산)
-  if (e.key === '0' && (e.ctrlKey || e.metaKey)) {
-    e.preventDefault();
+
+  async function doZoom(delta) {
     const ratio = rememberScrollRatio();
-    scale = computeScale();       // 너가 이미 넣어둔 computeScale() 사용
-    renderAll().then(() => restoreScrollRatio(ratio));
+    const next = Math.max(MIN_SCALE, Math.min(MAX_SCALE, +(scale + delta).toFixed(2)));
+    if (Math.abs(next - scale) < 0.01) return;
+    scale = next;
+    await renderAll();
+    restoreScrollRatio(ratio);
   }
-});
 
+  zoomInBtn?.addEventListener('click',  () => doZoom(+0.1));
+  zoomOutBtn?.addEventListener('click', () => doZoom(-0.1));
 </script>
-
 </body>
 </html>
