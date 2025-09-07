@@ -24,21 +24,23 @@
       border:none; padding:6px 12px; border-radius:8px; cursor:pointer;
     }
     #pdf-container {
-      width:80vw;
-      margin:0 auto;
-      padding:16px;
-      min-height:calc(100vh - var(--header-h));
-      box-sizing:border-box;
-    }
+      width: 80vw;
+      margin: 0 auto;
+      padding: 16px;
+      min-height: calc(100vh - var(--header-h));
+      box-sizing: border-box;
+      display: flex;           
+      flex-direction: column;  
+      align-items: center;       
     canvas {
-      display: block;
-      margin: 0 auto 16px;
+      display:block;
+      margin: 0 0 16px;          /* 변경: 좌우 auto 제거 */
       box-shadow: 0 2px 8px rgba(0,0,0,0.35);
-      background: white;
-      border-radius: 6px;
-      opacity: 0;                  /* 처음엔 안 보이게 */
-      transform: translateY(40px); /* 살짝 밑에서 올라오게 */
-      transition: opacity 0.6s ease, transform 0.6s ease;
+      background:#fff;
+      border-radius:6px;
+      opacity:0;
+      transform: translateY(40px);
+      transition: opacity .6s ease, transform .6s ease;
     }
     canvas.show {
       opacity: 1;
