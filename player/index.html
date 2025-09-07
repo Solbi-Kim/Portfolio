@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>Player</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Video.js CSS (CDN) -->
+  <link rel="stylesheet" href="https://unpkg.com/video.js@8/dist/video-js.css">
+
+  <!-- 우리 CSS -->
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main class="ccv-wrap">
+    <!-- 우하단 CC 뱃지 -->
+    <div class="ccv-badge">CC</div>
+
+    <!-- 비디오 -->
+    <video
+      id="shoviPlayer"
+      class="video-js vjs-ccv"
+      controls
+      playsinline
+      preload="metadata"
+      poster=""
+    ></video>
+  </main>
+
+  <!-- CDN JS -->
+  <script src="https://unpkg.com/video.js@8/dist/video.min.js"></script>
+  <script src="https://unpkg.com/hls.js@latest"></script>
+
+  <!-- 우리 JS -->
+  <script src="./app.js"></script>
+</body>
+</html>
