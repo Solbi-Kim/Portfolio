@@ -37,13 +37,7 @@ html, body {
 
 /* 큰 재생 버튼 */
 .vjs-ccv .vjs-big-play-button {
-  background: rgba(17,22,34,.92);
-  border: 1px solid rgba(255,255,255,.12);
-  border-radius: 12px;
-  width: 74px; height: 50px;
-  line-height: 50px;
-  font-size: 2rem;
-  box-shadow: 0 6px 18px rgba(0,0,0,.45);
+  display:none;
 }
 .vjs-ccv .vjs-big-play-button:hover { filter: brightness(1.08); }
 
