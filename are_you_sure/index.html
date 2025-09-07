@@ -1,23 +1,76 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <title>영상 인포메이션</title>
+  <meta charset="UTF-8" />
+  <title>영상 인포메이션 | shovideo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
+    :root {
+      --header-h: 56px;
+      --bg: #0f1115;
+      --panel: #1b1f2a;
+      --text: #e9eef5;
+      --muted: #9aa4b2;
     }
-    iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
+    html, body { height:100%; margin:0; background:var(--bg); color:var(--text); font-family: sans-serif; }
+    header {
+      position: sticky; top:0; z-index:1000;
+      height: var(--header-h);
+      display:flex; align-items:center; gap:8px;
+      padding:0 12px; background:#111622; border-bottom:1px solid rgba(255,255,255,0.1);
+    }
+    header button {
+      background:var(--panel); color:var(--text);
+      border:none; padding:6px 12px; border-radius:8px; cursor:pointer;
+    }
+    #pdf-container {
+      padding: 16px;
+      min-height: calc(100vh - var(--header-h));
+    }
+    canvas {
+      display:block;
+      margin: 0 auto 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+      background:white;
+      border-radius:6px;
     }
   </style>
 </head>
 <body>
-  <!-- PDF 파일 경로는 네 assets 폴더 구조에 맞게 수정 -->
-  <iframe src="../assets/PDF/Are_you_sure.pdf"></iframe>
+  <header>
+    <button onclick="history.back()">← 뒤로가기</button>
+    <span style="margin-left:8px; font-weight:600;">영상 인포메이션</span>
+  </header>
+  <main id="pdf-container">PDF 로딩 중...</main>
+
+  <script type="module">
+    import * as pdfjsLib from './pdfjs/pdf.mjs';
+
+    // 워커 경로 설정
+    pdfjsLib.GlobalWorkerOptions.workerSrc = './pdfjs/pdf.worker.mjs';
+
+    const PDF_URL = '../assets/are_you_sure.pdf';
+    const container = document.getElementById('pdf-container');
+    container.textContent = 'Loading PDF…';
+
+    const scale = 1.2;
+
+    const pdf = await pdfjsLib.getDocument(PDF_URL).promise;
+    container.textContent = ''; // 초기 텍스트 지움
+
+    for (let n = 1; n <= pdf.numPages; n++) {
+      const page = await pdf.getPage(n);
+      const viewport = page.getViewport({ scale });
+
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+
+      await page.render({ canvasContext: ctx, viewport }).promise;
+      container.appendChild(canvas);
+    }
+  </script>
 </body>
 </html>
