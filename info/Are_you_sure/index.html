@@ -31,8 +31,18 @@
       box-sizing:border-box;
     }
     canvas {
-      display:block;
+      display: block;
       margin: 0 auto 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+      background: white;
+      border-radius: 6px;
+      opacity: 0;                  /* 처음엔 안 보이게 */
+      transform: translateY(40px); /* 살짝 밑에서 올라오게 */
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    canvas.show {
+      opacity: 1;
+      transform: translateY(0);
     }
   </style>
 </head>
@@ -68,28 +78,41 @@
     return Math.min(MAX_SCALE, Math.max(MIN_SCALE, w / basePageWidth));
   }
 
-  async function renderPage(pageNum) {
-    const page = await pdfDoc.getPage(pageNum);
-    const viewport = page.getViewport({ scale });
+async function renderPage(pageNum) {
+  const page = await pdfDoc.getPage(pageNum);
+  const viewport = page.getViewport({ scale });
 
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
 
-    const outScale = DPR;
-    canvas.width  = Math.floor(viewport.width  * outScale);
-    canvas.height = Math.floor(viewport.height * outScale);
-    canvas.style.width  = Math.floor(viewport.width) + 'px';
-    canvas.style.height = Math.floor(viewport.height) + 'px';
+  const outScale = DPR;
+  canvas.width  = Math.floor(viewport.width  * outScale);
+  canvas.height = Math.floor(viewport.height * outScale);
+  canvas.style.width  = Math.floor(viewport.width) + 'px';
+  canvas.style.height = Math.floor(viewport.height) + 'px';
 
-    const renderContext = {
-      canvasContext: ctx,
-      viewport,
-      transform: outScale !== 1 ? [outScale, 0, 0, outScale, 0, 0] : null
-    };
+  const renderContext = {
+    canvasContext: ctx,
+    viewport,
+    transform: outScale !== 1 ? [outScale, 0, 0, outScale, 0, 0] : null
+  };
 
-    await page.render(renderContext).promise;
-    container.appendChild(canvas);
-  }
+  await page.render(renderContext).promise;
+  container.appendChild(canvas);
+
+  // IntersectionObserver 등록
+  const observer = new IntersectionObserver((entries)=>{
+    entries.forEach(entry=>{
+      if(entry.isIntersecting){
+        entry.target.classList.add('show');
+        observer.unobserve(entry.target); // 한번만 실행
+      }
+    });
+  },{ threshold: 0.1 });
+
+  observer.observe(canvas);
+}
+
 
   async function renderAll() {
     container.innerHTML = '';
