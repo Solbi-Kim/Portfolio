@@ -37,7 +37,11 @@ html, body {
 
 /* 큰 재생 버튼 */
 .vjs-ccv .vjs-big-play-button {
-  display:none;
+  background: none !important;   /* 반투명 박스 제거 */
+  border: none !important;       /* 외곽선 제거 */
+  box-shadow: none !important;   /* 그림자 제거 */
+  color: white;                  /* ▶ 아이콘만 남김 */
+  font-size: 3rem;               /* 아이콘 크기 키우기 (선택) */
 }
 .vjs-ccv .vjs-big-play-button:hover { filter: brightness(1.08); }
 
