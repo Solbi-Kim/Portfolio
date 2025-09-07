@@ -948,7 +948,10 @@ document.addEventListener("DOMContentLoaded", () => {
 })();
 
 
+initSmoothScroll();
 
+// 커스텀 옵션 예시
+// initSmoothScroll({ duration: 600, step: 140, pageStepRatio: 0.85 });
 
 
 
