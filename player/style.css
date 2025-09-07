@@ -28,6 +28,11 @@ html, body {
   height: min(100vh, calc(100vw * (9 / 16)));
 }
 
+.vjs-ccv.video-js .vjs-poster {
+  display: none !important;
+}
+
+
 /* Video.js 컨테이너 */
 .vjs-ccv {
   width: 100% !important;
