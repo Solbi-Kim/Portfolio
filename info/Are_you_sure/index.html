@@ -37,12 +37,12 @@
   </style>
 </head>
 <body>
-  <!-- 메인 헤더 -->
   <header>
     <button onclick="history.back()">← Back</button>
     <span style="margin-left:8px; font-weight:600;">Video Information</span>
     <button id="zoomOutBtn" aria-label="ZoomOut" style="margin-left:auto;">🔍–</button>
     <button id="zoomInBtn"  aria-label="ZoomIn">🔍+</button>
+    <button id="fitBtn" aria-label="Fit to screen">⤢ Fit</button>
   </header>
 
   <main id="pdf-container">Loading PDF...</main>
@@ -57,6 +57,7 @@
   let pdfDoc = null;
   let basePageWidth = null;
   let scale = 1;
+  let fitMode = true; // 화면맞춤 모드 on/off
   const MIN_SCALE = 0.5;
   const MAX_SCALE = 3.0;
   const DPR = Math.max(1, window.devicePixelRatio || 1);
@@ -64,8 +65,7 @@
   function computeScale() {
     const w = container.clientWidth;
     if (!basePageWidth) return 1;
-    const s = w / basePageWidth;
-    return Math.min(MAX_SCALE, Math.max(MIN_SCALE, s));
+    return Math.min(MAX_SCALE, Math.max(MIN_SCALE, w / basePageWidth));
   }
 
   async function renderPage(pageNum) {
@@ -107,7 +107,6 @@
   (async () => {
     try {
       pdfDoc = await pdfjsLib.getDocument(PDF_URL).promise;
-
       const page1 = await pdfDoc.getPage(1);
       basePageWidth = page1.getViewport({ scale: 1 }).width;
 
@@ -119,8 +118,9 @@
     }
   })();
 
+  // resize: 화면맞춤 모드일 때만 동작
   const onResize = debounce(async () => {
-    if (!pdfDoc || !basePageWidth) return;
+    if (!pdfDoc || !basePageWidth || !fitMode) return;
     const next = computeScale();
     if (Math.abs(next - scale) < 0.02) return;
     scale = next;
@@ -132,6 +132,7 @@
 
   const zoomInBtn  = document.getElementById('zoomInBtn');
   const zoomOutBtn = document.getElementById('zoomOutBtn');
+  const fitBtn     = document.getElementById('fitBtn');
 
   function rememberScrollRatio() {
     const max = Math.max(1, container.scrollHeight - container.clientHeight);
@@ -143,6 +144,7 @@
   }
 
   async function doZoom(delta) {
+    fitMode = false; // 수동 줌 모드로 전환
     const ratio = rememberScrollRatio();
     const next = Math.max(MIN_SCALE, Math.min(MAX_SCALE, +(scale + delta).toFixed(2)));
     if (Math.abs(next - scale) < 0.01) return;
@@ -153,6 +155,24 @@
 
   zoomInBtn?.addEventListener('click',  () => doZoom(+0.1));
   zoomOutBtn?.addEventListener('click', () => doZoom(-0.1));
+
+  // 화면맞춤 복귀 버튼
+  fitBtn?.addEventListener('click', async () => {
+    fitMode = true;
+    scale = computeScale();
+    await renderAll();
+    window.scrollTo({ top: 0 });
+  });
+
+  // Ctrl+0 단축키로 화면맞춤
+  window.addEventListener('keydown', (e) => {
+    if (e.key === '0' && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      fitMode = true;
+      scale = computeScale();
+      renderAll().then(() => window.scrollTo({ top: 0 }));
+    }
+  });
 </script>
 </body>
 </html>
