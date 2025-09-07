@@ -800,165 +800,182 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
-// ===== Global Smooth Scroll (wheel/keys/anchors) — reusable =====
-(function(){
-  if (window.__SmoothScrollInit) return; // 중복 방지
-  window.__SmoothScrollInit = true;
+// ===== Momentum Smooth Scroll (Framer-ish) =====
+// 전역 모듈. main.js에 붙이고 맨 아래 initMomentumScroll() 호출.
+// 내부 스크롤 영역(.scroll-native, [data-native-scroll])은 네이티브 그대로 둔다.
+(function () {
+  if (window.__MomentumScrollInit) return;
+  window.__MomentumScrollInit = true;
 
-function initSmoothScroll(opts = {}) {
-  const {
-    // === 튜닝값 ===
-    baseDuration = 450,          // 최소 지속시간(ms)
-    addDurationPer1000 = 180,    // |deltaY| 1000 당 추가되는 시간(ms) → 관성 길이
-    distanceScale = 0.55,        // deltaY → px 변환 스케일 (크면 더 많이 감)
-    momentumRatio = 0.18,        // 애니메이션 끝에서 추가로 더 미끄러질 비율
-    pageStepRatio = 0.9,         // PageUp/Down 이동 비율(화면 높이 대비)
-    headerOffset = (() => {
-      const h = parseInt(getComputedStyle(document.documentElement)
-                .getPropertyValue('--header-h')) || 0;
-      return h;
-    })(),
-    // === 이징: 강한 ease-out (Framer 느낌)
-    ease = (t) => 1 - Math.pow(1 - t, 5), // easeOutQuint
-    // 네이티브 스크롤 허용 구역
-    allowNativeInside = '[data-native-scroll], .scroll-native',
-  } = opts;
+  function initMomentumScroll(opts = {}) {
+    const {
+      // === 튜닝 포인트 ===
+      frictionPF = 0.94,    // per-frame 마찰(60fps 기준). 0.92~0.96 사이에서 취향 조절
+      accel = 0.0042,       // 휠 delta → 속도(px/ms) 변환 계수 (크면 더 휘청)
+      maxVel = 3.2,         // 최대 속도(px/ms) 제한 (너무 미끄러지면 낮춰)
+      minVel = 0.02,        // 이거보다 작아지면 정지
+      pageRatio = 0.9,      // PageUp/Down/Space 이동 비율(화면 높이의 n%)
+      headerOffset = (() => {
+        const v = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--header-h')) || 0;
+        return v;
+      })(),
+      allowNativeInside = '[data-native-scroll], .scroll-native'
+    } = opts;
 
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-  if (isTouch) return;
+    // 접근성/터치 디바이스는 네이티브 유지
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    if (isTouch) return;
 
-  let animating = false;
-  let startY = window.scrollY;
-  let targetY = window.scrollY;
-  let startTime = 0;
-  let duration = baseDuration;
+    // 상태
+    let anim = false;
+    let last = 0;
+    let vel = 0; // px/ms
+    const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+    const maxScroll = () => Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
 
-  const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
-  const maxScroll = () => Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    // dt 보정된 friction: 60fps 기준 frictionPF를 실제 프레임 간격에 맞춰 거듭제곱
+    function frictionFor(dtMs) {
+      const base = 1000 / 60; // 16.666...
+      return Math.pow(frictionPF, dtMs / base);
+    }
 
-  // 내부 스크롤 허용 판단
-  function canScroll(el, deltaY){
-    if (el.closest(allowNativeInside)) return true;
-    let n = el;
-    while (n && n !== document.documentElement) {
-      const cs = getComputedStyle(n);
-      const canY = (cs.overflowY === 'auto' || cs.overflowY === 'scroll');
-      if (canY && n.scrollHeight > n.clientHeight) {
-        if (deltaY > 0 && n.scrollTop + n.clientHeight < n.scrollHeight) return true;
-        if (deltaY < 0 && n.scrollTop > 0) return true;
+    function canScrollNative(el, deltaY) {
+      if (el.closest(allowNativeInside)) return true;
+      // overflow 컨테이너면 네이티브 통과
+      let n = el;
+      while (n && n !== document.documentElement) {
+        const cs = getComputedStyle(n);
+        const oy = cs.overflowY;
+        const scrollable = (oy === 'auto' || oy === 'scroll') && n.scrollHeight > n.clientHeight;
+        if (scrollable) {
+          if (deltaY > 0 && n.scrollTop + n.clientHeight < n.scrollHeight) return true;
+          if (deltaY < 0 && n.scrollTop > 0) return true;
+        }
+        n = n.parentElement;
       }
-      n = n.parentElement;
+      return false;
     }
-    return false;
-  }
 
-  function animateTo(y, customDuration){
-    targetY = clamp(Math.round(y), 0, maxScroll());
-    duration = customDuration ?? baseDuration;
-    if (!animating) {
-      animating = true;
-      startY = window.scrollY;
-      startTime = performance.now();
+    function start() {
+      if (anim) return;
+      anim = true;
+      last = performance.now();
       requestAnimationFrame(tick);
     }
-  }
 
-  function tick(now){
-    const p = clamp((now - startTime) / duration, 0, 1);
-    const e = ease(p);
-    const y = startY + (targetY - startY) * e;
-    window.scrollTo(0, y);
+    function tick(now) {
+      const dt = now - last;
+      last = now;
 
-    if (p < 1 && Math.abs(targetY - y) > 0.5) {
+      // 위치 업데이트
+      let y = window.scrollY + vel * dt;
+
+      // 경계 처리(상단/하단에서 튕김 없이 멈추게)
+      if (y <= 0) {
+        y = 0;
+        vel = 0;
+      } else {
+        const mx = maxScroll();
+        if (y >= mx) {
+          y = mx;
+          vel = 0;
+        }
+      }
+
+      window.scrollTo(0, y);
+
+      // 감속
+      vel *= frictionFor(dt);
+
+      // 아주 느려지면 종료
+      if (Math.abs(vel) < minVel) {
+        anim = false;
+        vel = 0;
+        return;
+      }
       requestAnimationFrame(tick);
-    } else {
-      animating = false;
-      window.scrollTo(0, targetY);
     }
-  }
 
-  // ===== Wheel: delta 기반 동적 거리 + 지속시간 + 관성 꼬리 =====
-  window.addEventListener('wheel', (e) => {
-    const raw = e.deltaY || e.wheelDeltaY || (e.wheelDelta * -1) || 0;
-    if (!raw) return;
-    if (canScroll(e.target, raw)) return;
+    // Wheel → 속도에 '킥'을 줌 (끝나도 관성으로 더 미끄러짐)
+    window.addEventListener('wheel', (e) => {
+      const delta = e.deltaY || e.wheelDeltaY || (e.wheelDelta * -1) || 0;
+      if (!delta) return;
+      if (canScrollNative(e.target, delta)) return; // 내부 스크롤은 통과
 
-    e.preventDefault();
-
-    // 1) delta 크기 기반 이동량(px)
-    const dist = raw * distanceScale; // 양수: 아래, 음수: 위
-    // 2) delta 크기 기반 지속시간(ms)
-    const add = Math.min(700, (Math.abs(raw) / 1000) * addDurationPer1000);
-    const dur = baseDuration + add;
-
-    // 3) 현재 타깃 기준 누적 + 관성 꼬리
-    //    새로운 입력이 들어오면 타깃을 갱신해 더 멀리 미끄러지도록
-    const nextTarget = (animating ? targetY : window.scrollY) + dist;
-    const tail = dist * momentumRatio; // 끝에서 약간 더 미끄러짐
-    animateTo(nextTarget + tail, dur);
-  }, { passive: false });
-
-  // ===== Keyboard (화면 단위 이동은 snap 느낌 유지, easeOut 적용) =====
-  window.addEventListener('keydown', (e) => {
-    if (e.defaultPrevented) return;
-    const tag = document.activeElement?.tagName?.toLowerCase();
-    if (tag === 'input' || tag === 'textarea') return;
-
-    const h = window.innerHeight;
-    let next = null;
-
-    if (e.key === 'ArrowDown')   next = (animating ? targetY : window.scrollY) + h * 0.15;
-    if (e.key === 'ArrowUp')     next = (animating ? targetY : window.scrollY) - h * 0.15;
-    if (e.key === 'PageDown')    next = (animating ? targetY : window.scrollY) + h * pageStepRatio;
-    if (e.key === 'PageUp')      next = (animating ? targetY : window.scrollY) - h * pageStepRatio;
-    if (e.key === 'Home')        next = 0;
-    if (e.key === 'End')         next = maxScroll();
-    if (e.key === ' ' && !e.shiftKey) next = (animating ? targetY : window.scrollY) + h * pageStepRatio;
-    if (e.key === ' ' &&  e.shiftKey) next = (animating ? targetY : window.scrollY) - h * pageStepRatio;
-
-    if (next !== null) {
       e.preventDefault();
-      animateTo(next, baseDuration + 150); // 키 이동은 살짝 짧게
-    }
-  }, { passive: false });
+      // delta → 속도(px/ms)로 변환, 누적. 상한 제한
+      vel = clamp(vel + delta * accel, -maxVel, maxVel);
+      start();
+    }, { passive: false });
 
-  // ===== 내부 앵커(해시) 이동도 동일 easeOut로 처리 =====
-  document.addEventListener('click', (e) => {
-    const a = e.target.closest('a[href^="#"]');
-    if (!a) return;
-    try{
-      const u = new URL(a.href, location.href);
-      if (u.origin !== location.origin || u.pathname !== location.pathname || !u.hash) return;
-    }catch{ return; }
+    // 키보드 이동도 동일 엔진으로
+    window.addEventListener('keydown', (e) => {
+      if (e.defaultPrevented) return;
+      const tag = document.activeElement?.tagName?.toLowerCase();
+      if (tag === 'input' || tag === 'textarea') return;
 
-    const id = decodeURIComponent(a.getAttribute('href').slice(1));
-    const el = document.getElementById(id);
-    if (!el) return;
+      const h = window.innerHeight;
+      let impulse = 0; // 속도에 더해줄 킥(px/ms)
+      if (e.key === 'ArrowDown')   impulse = +h * 0.0015;
+      if (e.key === 'ArrowUp')     impulse = -h * 0.0015;
+      if (e.key === 'PageDown')    impulse = +h * pageRatio * 0.003;
+      if (e.key === 'PageUp')      impulse = -h * pageRatio * 0.003;
+      if (e.key === ' ' && !e.shiftKey) impulse = +h * pageRatio * 0.003;
+      if (e.key === ' ' &&  e.shiftKey) impulse = -h * pageRatio * 0.003;
+      if (e.key === 'Home')        { window.scrollTo(0, 0); vel = 0; return e.preventDefault(); }
+      if (e.key === 'End')         { window.scrollTo(0, maxScroll()); vel = 0; return e.preventDefault(); }
 
-    e.preventDefault();
-    const rectTop = el.getBoundingClientRect().top;
-    const y = window.scrollY + rectTop - headerOffset;
-    animateTo(y, baseDuration + 120);
-    history.pushState(null, '', `#${id}`);
-  });
+      if (impulse !== 0) {
+        e.preventDefault();
+        vel = clamp(vel + impulse, -maxVel, +maxVel);
+        start();
+      }
+    }, { passive: false });
 
-  window.addEventListener('resize', () => {
-    targetY = clamp(targetY, 0, maxScroll());
-    if (!animating) window.scrollTo(0, targetY);
-  });
-}
+    // 내부 앵커 이동도 부드럽게: 타깃까지의 거리 비례로 속도 킥
+    document.addEventListener('click', (e) => {
+      const a = e.target.closest('a[href^="#"]');
+      if (!a) return;
+      try {
+        const u = new URL(a.href, location.href);
+        if (u.origin !== location.origin || u.pathname !== location.pathname || !u.hash) return;
+      } catch { return; }
 
+      const id = decodeURIComponent(a.getAttribute('href').slice(1));
+      const el = document.getElementById(id);
+      if (!el) return;
 
-  // 전역 내보내기
-  window.initSmoothScroll = initSmoothScroll;
+      e.preventDefault();
+      const rectTop = el.getBoundingClientRect().top;
+      const dstY = window.scrollY + rectTop - headerOffset;
+      const dist = dstY - window.scrollY;
+
+      // 거리 비례 속도 킥 (가까우면 짧게, 멀면 길게)
+      vel = clamp(dist * 0.0025, -maxVel, +maxVel);
+      start();
+      history.pushState(null, '', `#${id}`);
+    });
+
+    // 리사이즈 시 위치 보정
+    window.addEventListener('resize', () => {
+      const y = clamp(window.scrollY, 0, maxScroll());
+      window.scrollTo(0, y);
+    });
+  }
+
+  window.initMomentumScroll = initMomentumScroll;
 })();
 
+// 페이지에서 한 줄로 실행
+initMomentumScroll({
+  // 프리셋: Framer 느낌 더 강하게 하려면 아래 주석 해제해서 조절
+  // frictionPF: 0.945, // 꼬리 더 길게
+  // accel: 0.0052,     // 휠당 더 강하게 밀기
+  // maxVel: 3.6,       // 속도 상한 조금 올림
+  // minVel: 0.018
+});
 
-initSmoothScroll();
-
-// 커스텀 옵션 예시
-// initSmoothScroll({ duration: 600, step: 140, pageStepRatio: 0.85 });
 
 
 
