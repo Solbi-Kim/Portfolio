@@ -14,14 +14,18 @@ html, body {
 }
 
 .ccv-wrap {
-  width: min(100vw, calc(100vh * (16 / 9)));
-  height: min(100vh, calc(100vw * (9 / 16)));
+  width: 100vw; height: 100vh;
   margin: 0 auto;           /* 가로 중앙 */
   display: grid;
   place-items: center;       /* 세로 중앙까지 */
   overflow: hidden;          /* 혹시 모를 넘침 방지 */
   background: transparent;   /* 전역 bg 변수 영향 차단 */
   box-sizing: border-box;
+}
+
+.ccv-frame {
+  width: min(100vw, calc(100vh * (16 / 9)));
+  height: min(100vh, calc(100vw * (9 / 16)));
 }
 
 /* Video.js 컨테이너 */
@@ -80,17 +84,4 @@ html, body {
   pointer-events: none;
   user-select: none;
   z-index: 10;
-}
-
-.ccv-wrap {
-  background: transparent !important;
-}
-
-.vjs-ccv {
-  background: transparent !important;
-}
-
-/* Video.js 기본 배경 제거 */
-.video-js {
-  background: transparent !important;
 }
