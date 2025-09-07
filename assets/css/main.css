@@ -2508,13 +2508,3 @@ input, select, textarea {
 }
 
 
-.main-scroll {
-  height: 100svh;
-  overflow-y: auto;
-  scroll-snap-type: y proximity;
-  scroll-behavior: smooth;
-}
-.section {
-  scroll-snap-align: start;
-  min-height: 100svh;
-}
