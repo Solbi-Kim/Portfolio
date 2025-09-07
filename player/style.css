@@ -29,10 +29,11 @@ html, body {
   width: min(92vw, 176vh);    /* 16:9를 대략적으로 맞추는 뷰 */
   height: auto;
   aspect-ratio: 16/9;
-  background: #0f1115;
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 10px 30px rgba(0,0,0,.35);
+  max-width: 1280px;   /* 최대 1280px까지만 커짐 */
+  margin: 0 auto;      /* 가운데 정렬 */
 }
 
 /* 큰 재생 버튼 */
