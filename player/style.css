@@ -63,7 +63,6 @@ html, body {
 
 /* 캡션 배경(있을 경우) */
 .vjs-ccv .vjs-text-track-display div {
-  background: rgba(0,0,0,.55) !important;
   padding: .2em .5em !important;
   border-radius: 6px !important;
 }
