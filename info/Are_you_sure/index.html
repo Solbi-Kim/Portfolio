@@ -12,33 +12,44 @@
       --text: #e9eef5;
       --muted: #9aa4b2;
     }
-    html, body { height:100%; margin:0; background:var(--bg); color:var(--text); font-family: sans-serif; }
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: sans-serif;
+      overflow-x: hidden; /* 1px 가로 스크롤 방지 */
+    }
     header {
       position: sticky; top:0; z-index:1000;
       height: var(--header-h);
       display:flex; align-items:center; gap:8px;
-      padding:0 12px; background:#111622; border-bottom:1px solid rgba(255,255,255,0.1);
+      padding:0 12px; background:#111622;
+      border-bottom:1px solid rgba(255,255,255,0.1);
     }
     header button {
       background:var(--panel); color:var(--text);
       border:none; padding:6px 12px; border-radius:8px; cursor:pointer;
     }
+    /* 컨테이너: 80vw 기준, 내부 중앙 정렬 */
     #pdf-container {
       width: 80vw;
       margin: 0 auto;
       padding: 16px;
       min-height: calc(100vh - var(--header-h));
       box-sizing: border-box;
-      display: flex;           
-      flex-direction: column;  
-      align-items: center;       
+      display: flex;
+      flex-direction: column;
+      align-items: center; /* 가로 중앙 */
+    }
+    /* PDF 페이지 캔버스: 등장 애니메이션 포함 */
     canvas {
-      display:block;
-      margin: 0 0 16px;          /* 변경: 좌우 auto 제거 */
+      display: block;
+      margin: 0 0 16px; /* 좌우 auto 제거 (플렉스에서 중앙정렬) */
       box-shadow: 0 2px 8px rgba(0,0,0,0.35);
-      background:#fff;
-      border-radius:6px;
-      opacity:0;
+      background: #fff;
+      border-radius: 6px;
+      opacity: 0;
       transform: translateY(40px);
       transition: opacity .6s ease, transform .6s ease;
     }
@@ -54,151 +65,171 @@
     <span style="margin-left:8px; font-weight:600;">Video Information</span>
     <button id="zoomOutBtn" aria-label="ZoomOut" style="margin-left:auto;">🔍–</button>
     <button id="zoomInBtn"  aria-label="ZoomIn">🔍+</button>
-    <button id="fitBtn" aria-label="Fit to screen">⤢ Fit</button>
+    <button id="fitBtn" aria-label="Fit to 80vw">⤢ Fit</button>
   </header>
 
   <main id="pdf-container">Loading PDF...</main>
 
-<script type="module">
-  import * as pdfjsLib from './pdfjs/pdf.mjs';
-  pdfjsLib.GlobalWorkerOptions.workerSrc = './pdfjs/pdf.worker.mjs';
+  <!-- Consolidated PDF.js logic -->
+  <script type="module">
+    import * as pdfjsLib from './pdfjs/pdf.mjs';
+    pdfjsLib.GlobalWorkerOptions.workerSrc = './pdfjs/pdf.worker.mjs';
 
-  const PDF_URL = '/assets/PDF/Are_you_sure.pdf';
-  const container = document.getElementById('pdf-container');
+    // ===== 설정 =====
+    const PDF_URL = '/assets/PDF/Are_you_sure.pdf';
+    const container = document.getElementById('pdf-container');
 
-  let pdfDoc = null;
-  let basePageWidth = null;
-  let scale = 1;
-  let fitMode = true; // 화면맞춤 모드 on/off
-  const MIN_SCALE = 0.5;
-  const MAX_SCALE = 3.0;
-  const DPR = Math.max(1, window.devicePixelRatio || 1);
+    // 스케일 한계 (fit 모드에선 더 낮게 허용)
+    const MIN_SCALE = 0.1;     // 수동 줌 최소
+    const MAX_SCALE = 3.0;     // 최대 줌
+    const DPR = Math.min(2, Math.max(1, window.devicePixelRatio || 1)); // 과한 뭉개짐 방지
+    const ZOOM_STEP = 0.1;
 
-  function computeScale() {
-    const w = container.clientWidth;
-    if (!basePageWidth) return 1;
-    return Math.min(MAX_SCALE, Math.max(MIN_SCALE, w / basePageWidth));
-  }
+    let pdfDoc = null;
+    let basePageWidth = null;  // PDF 100% viewport width
+    let scale = 1;
+    let fitMode = true;        // true = 80vw 맞춤
 
-async function renderPage(pageNum) {
-  const page = await pdfDoc.getPage(pageNum);
-  const viewport = page.getViewport({ scale });
+    // ===== 유틸 =====
+    const cssPx = (v) => `${Math.round(v * 100) / 100}px`; // 소수점 2자리
+    const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
+    function getInnerWidth(el){
+      const cs = getComputedStyle(el);
+      const pad = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
+      // clientWidth는 패딩 포함 → 패딩 제외한 내부 컨텐츠 폭으로 변환
+      return el.clientWidth - pad;
+    }
+    function clampScale(s, isFit = false){
+      const min = isFit ? 0.05 : MIN_SCALE; // fit 상태에선 더 작게 허용
+      return clamp(s, min, MAX_SCALE);
+    }
+    function computeScaleFit(){
+      const w = getInnerWidth(container); // 80vw 내부폭
+      if (!basePageWidth) return 1;
+      return w / basePageWidth;
+    }
+    function debounce(fn, ms = 150){
+      let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+    }
 
-  const outScale = DPR;
-  canvas.width  = Math.floor(viewport.width  * outScale);
-  canvas.height = Math.floor(viewport.height * outScale);
-  canvas.style.width  = Math.floor(viewport.width) + 'px';
-  canvas.style.height = Math.floor(viewport.height) + 'px';
+    // ===== 캔버스 등장 애니메이션 옵저버 (공용) =====
+    const appearObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting){
+          entry.target.classList.add('show');
+          appearObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 });
 
-  const renderContext = {
-    canvasContext: ctx,
-    viewport,
-    transform: outScale !== 1 ? [outScale, 0, 0, outScale, 0, 0] : null
-  };
+    // ===== 렌더링 =====
+    async function renderPage(pageNum){
+      const page = await pdfDoc.getPage(pageNum);
+      const viewport = page.getViewport({ scale });
 
-  await page.render(renderContext).promise;
-  container.appendChild(canvas);
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
 
-  // IntersectionObserver 등록
-  const observer = new IntersectionObserver((entries)=>{
-    entries.forEach(entry=>{
-      if(entry.isIntersecting){
-        entry.target.classList.add('show');
-        observer.unobserve(entry.target); // 한번만 실행
+      const outScale = DPR;
+      canvas.width  = Math.floor(viewport.width  * outScale);
+      canvas.height = Math.floor(viewport.height * outScale);
+      canvas.style.width  = cssPx(viewport.width);
+      canvas.style.height = cssPx(viewport.height);
+
+      const renderContext = {
+        canvasContext: ctx,
+        viewport,
+        transform: outScale !== 1 ? [outScale, 0, 0, outScale, 0, 0] : null
+      };
+
+      await page.render(renderContext).promise;
+      container.appendChild(canvas);
+      appearObserver.observe(canvas);
+    }
+
+    async function renderAll(){
+      container.innerHTML = '';
+      for (let n = 1; n <= pdfDoc.numPages; n++){
+        await renderPage(n);
+      }
+    }
+
+    // 스크롤 위치 비율 보존(줌 시)
+    function rememberScrollRatio(){
+      const max = Math.max(1, document.body.scrollHeight - window.innerHeight);
+      return window.scrollY / max;
+    }
+    function restoreScrollRatio(ratio){
+      const max = Math.max(1, document.body.scrollHeight - window.innerHeight);
+      window.scrollTo({ top: ratio * max, behavior: 'auto' });
+    }
+
+    // ===== 초기 로드 =====
+    (async () => {
+      try {
+        pdfDoc = await pdfjsLib.getDocument(PDF_URL).promise;
+        const page1 = await pdfDoc.getPage(1);
+        basePageWidth = page1.getViewport({ scale: 1 }).width;
+
+        // 80vw 내부폭 기준으로 fit 스케일 계산
+        scale = clampScale(computeScaleFit(), true);
+        await renderAll();
+      } catch (e) {
+        console.error(e);
+        container.textContent = 'PDF load failed 😢';
+      }
+    })();
+
+    // ===== 리사이즈(오직 fit 모드에서만 자동 재계산) =====
+    const onResize = debounce(async () => {
+      if (!pdfDoc || !basePageWidth || !fitMode) return;
+      const nextFit = clampScale(computeScaleFit(), true);
+      if (Math.abs(nextFit - scale) < 0.02) return;
+      scale = nextFit;
+      await renderAll();
+    }, 200);
+    window.addEventListener('resize', onResize);
+    new ResizeObserver(onResize).observe(container);
+
+    // ===== 컨트롤 =====
+    const zoomInBtn  = document.getElementById('zoomInBtn');
+    const zoomOutBtn = document.getElementById('zoomOutBtn');
+    const fitBtn     = document.getElementById('fitBtn');
+
+    async function doZoom(delta){
+      fitMode = false; // 수동 모드
+      const ratio = rememberScrollRatio();
+      const next = clampScale(+(scale + delta).toFixed(2), false);
+      if (Math.abs(next - scale) < 0.01) return;
+      scale = next;
+      await renderAll();
+      restoreScrollRatio(ratio);
+    }
+
+    zoomInBtn?.addEventListener('click',  () => doZoom(+ZOOM_STEP));
+    zoomOutBtn?.addEventListener('click', () => doZoom(-ZOOM_STEP));
+
+    // Fit to 80vw
+    fitBtn?.addEventListener('click', async () => {
+      fitMode = true;
+      scale = clampScale(computeScaleFit(), true);
+      await renderAll();
+      window.scrollTo({ top: 0 });
+    });
+
+    // Ctrl+0 → 80vw 기준 화면맞춤
+    window.addEventListener('keydown', (e) => {
+      if (e.key === '0' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        fitMode = true;
+        scale = clampScale(computeScaleFit(), true);
+        renderAll().then(() => window.scrollTo({ top: 0 }));
       }
     });
-  },{ threshold: 0.1 });
+  </script>
 
-  observer.observe(canvas);
-}
-
-
-  async function renderAll() {
-    container.innerHTML = '';
-    for (let n = 1; n <= pdfDoc.numPages; n++) {
-      await renderPage(n);
-    }
-  }
-
-  function debounce(fn, ms = 150) {
-    let t; return (...args) => {
-      clearTimeout(t); t = setTimeout(() => fn(...args), ms);
-    };
-  }
-
-  (async () => {
-    try {
-      pdfDoc = await pdfjsLib.getDocument(PDF_URL).promise;
-      const page1 = await pdfDoc.getPage(1);
-      basePageWidth = page1.getViewport({ scale: 1 }).width;
-
-      scale = computeScale();
-      await renderAll();
-    } catch (e) {
-      console.error(e);
-      container.textContent = 'PDF load failed 😢';
-    }
-  })();
-
-  // resize: 화면맞춤 모드일 때만 동작
-  const onResize = debounce(async () => {
-    if (!pdfDoc || !basePageWidth || !fitMode) return;
-    const next = computeScale();
-    if (Math.abs(next - scale) < 0.02) return;
-    scale = next;
-    await renderAll();
-  }, 200);
-
-  window.addEventListener('resize', onResize);
-  new ResizeObserver(onResize).observe(container);
-
-  const zoomInBtn  = document.getElementById('zoomInBtn');
-  const zoomOutBtn = document.getElementById('zoomOutBtn');
-  const fitBtn     = document.getElementById('fitBtn');
-
-  function rememberScrollRatio() {
-    const max = Math.max(1, container.scrollHeight - container.clientHeight);
-    return window.scrollY / max;
-  }
-  function restoreScrollRatio(ratio) {
-    const max = Math.max(1, document.body.scrollHeight - window.innerHeight);
-    window.scrollTo({ top: ratio * max, behavior: 'auto' });
-  }
-
-  async function doZoom(delta) {
-    fitMode = false; // 수동 줌 모드로 전환
-    const ratio = rememberScrollRatio();
-    const next = Math.max(MIN_SCALE, Math.min(MAX_SCALE, +(scale + delta).toFixed(2)));
-    if (Math.abs(next - scale) < 0.01) return;
-    scale = next;
-    await renderAll();
-    restoreScrollRatio(ratio);
-  }
-
-  zoomInBtn?.addEventListener('click',  () => doZoom(+0.1));
-  zoomOutBtn?.addEventListener('click', () => doZoom(-0.1));
-
-  // 화면맞춤 복귀 버튼
-  fitBtn?.addEventListener('click', async () => {
-    fitMode = true;
-    scale = computeScale();
-    await renderAll();
-    window.scrollTo({ top: 0 });
-  });
-
-  // Ctrl+0 단축키로 화면맞춤
-  window.addEventListener('keydown', (e) => {
-    if (e.key === '0' && (e.ctrlKey || e.metaKey)) {
-      e.preventDefault();
-      fitMode = true;
-      scale = computeScale();
-      renderAll().then(() => window.scrollTo({ top: 0 }));
-    }
-  });
-</script>
-<script src="main.js" defer></script>
+  <!-- 전역 스크롤 이징이 필요하다면 main.js 포함 (옵션) -->
+  <script src="main.js" defer></script>
 </body>
 </html>
