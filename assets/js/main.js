@@ -800,7 +800,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
-<script>
+//SorollEaseout
 (() => {
   if (window.__InertiaScrollInit) return;
   window.__InertiaScrollInit = true;
@@ -910,7 +910,6 @@ document.addEventListener("DOMContentLoaded", () => {
     maxSpeed: 70
   });
 })();
-</script>
 
 
 
