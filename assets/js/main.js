@@ -911,8 +911,43 @@ document.addEventListener("DOMContentLoaded", () => {
     friction: 0.945,    // 꼬리 더 길게
     wheelBoost: 1.15,   // 감도 약간 상향
     maxSpeed: 70,
-    force: true         // 터치/트랙패드 환경에서도 강제 적용
+    force: true,        // 터치/트랙패드 환경에서도 강제 적용
+    snap: { enabled: true, selector: '.section', thresholdPx: null }
   });
+
+    function performSnapIfNeeded(){
+      if (!snapCfg.enabled) return;
+      const list = Array.from(document.querySelectorAll(snapCfg.selector));
+      if (!list.length) return;
+      const y = scroller.scrollTop;
+      const vh = scroller.clientHeight;
+      const th = snapCfg.thresholdPx != null ? snapCfg.thresholdPx : Math.round(vh * 0.12);
+      let best = null;
+      for (const el of list){
+        const top = Math.max(0, el.offsetTop - snapCfg.headerOffset);
+        const d = Math.abs(top - y);
+        if (!best || d < best.d) best = {top, d};
+      }
+      if (best && best.d <= th){
+        animateSnap(y, best.top);
+      }
+    }
+    function animateSnap(from, to){
+      snapping = true;
+      const dur = 420;
+      const ease = t => 1 - Math.pow(1 - t, 4); // easeOutQuart
+      const start = performance.now();
+      function raf(now){
+        if (!snapping) return; // aborted by user
+        const p = Math.min(1, (now - start) / dur);
+        const y = from + (to - from) * ease(p);
+        scroller.scrollTop = y;
+        if (p < 1 && !running) requestAnimationFrame(raf);
+        else snapping = false;
+      }
+      requestAnimationFrame(raf);
+    }
+  }
 })();
 
 
