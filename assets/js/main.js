@@ -947,7 +947,7 @@ document.addEventListener("DOMContentLoaded", () => {
   	pageRatio: 0.85,      // ← PageUp/Down 비율 
     maxSpeed: 70,
     force: true,        // 터치/트랙패드 환경에서도 강제 적용
-    snap: { enabled: true, selector: '[data-snap]', thresholdPx: null , direction: 'down'}
+    snap: { enabled: true, selector: '[data-snap]', thresholdPx: null , direction: 'down'},
 	snapOnceDuration: 1100,
   	snapOnceEase: 'bezier(0.16, 1, 0.3, 1)'
   });
