@@ -993,26 +993,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
-/* ===== Simple Threshold Snap (banner -> wrapper) — Addon =====
-   작동 방식:
-   - 도넛 배너(.donut-banner)에서 아래로 스크롤하다가
-     메인(#wrapper)이 '살짝' 보이는 순간(THRESHOLD_PX) →
-     짧게 대기(DELAY_MS) 후 #wrapper 최상단으로 부드럽게 정렬.
-   - 관성 이징엔 간섭하지 않음. 애니메이션 중 사용자 입력이 들어오면 즉시 취소.
-*/
+/* ===== Simple Threshold Snap (banner -> wrapper) — Addon =====*/
 (function(){
   const banner  = document.querySelector('.donut-banner');
   const wrapper = document.getElementById('wrapper');
   if (!banner || !wrapper) return;
 
-  // ---- 튜닝 포인트 ----
   const HEADER_OFFSET = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--header-h')) || 0;
-  const THRESHOLD_PX  = 160;     // 메인이 이만큼이라도 보이면 스냅 준비
-  const DELAY_MS      = 90;     // 살짝 기다렸다가(관성 흘러가게) 스냅
-  const DURATION_MS   = 2400;   // 스냅 시간
-  const EASE_CURVE    = 'bezier(0.3, 1, 0.6, 1)'; // 느린 출발-긴 꼬리
 
-  // ---- cubic-bezier helper ----
+  // ===== 튜닝 포인트 =====
+  const DURATION_MS   = 1500;                        // 전체 구간 시간(느긋하게)
+  const EASE_CURVE    = 'bezier(0.22, 1, 0.23, 1)';  // 초반 느리고 후반 길게(soft ease-out)
+  const CANCEL_FORCE_DELTA = 6;                      // 강한 반대 방향 입력이면 즉시 취소
+
+  // ----- cubic-bezier helper & parser -----
   function Bezier(mX1, mY1, mX2, mY2){
     const NEWTON_ITER=4, NEWTON_MIN_SLOPE=0.001, SUBDIV_MAX_ITER=10, SUBDIV_PRECISION=1e-7;
     const kSplineTableSize=11, kSampleStep=1.0/(kSplineTableSize-1);
@@ -1037,7 +1031,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return guessForT;
       } else if (initialSlope===0) return guessForT;
       let a=intervalStart, b=intervalStart+kSampleStep, curX, t, i=0;
-      do { t=(a+b)/2; curX=calcBezier(t,mX1,mX2)-x; if (curX>0) b=t; else a=t; }
+      do { t=(a+b)/2; curX=calcBezier(t,mX1,mX2)-x; if (curX>0) b=t; else a=t; } 
       while (Math.abs(curX)>SUBDIV_PRECISION && ++i<SUBDIV_MAX_ITER);
       return t;
     }
@@ -1050,66 +1044,62 @@ document.addEventListener("DOMContentLoaded", () => {
       const n=e.slice(7,-1).split(',').map(s=>parseFloat(s));
       if (n.length===4 && n.every(v=>!Number.isNaN(v))) return Bezier(n[0],n[1],n[2],n[3]);
     }
+    if (e==='sine')  return t=>1-Math.cos((t*Math.PI)/2);
     if (e==='cubic') return t=>1-Math.pow(1-t,3);
     if (e==='quart') return t=>1-Math.pow(1-t,4);
     if (e==='quint') return t=>1-Math.pow(1-t,5);
-    return t=>1-Math.cos((t*Math.PI)/2); // sine
+    return t=>1-Math.cos((t*Math.PI)/2);
   }
   const ease = parseEase(EASE_CURVE);
 
-  let isSnapping = false;
-  let lastY = window.scrollY;
-  let timer = null;
+  // ----- full-span animator -----
+  let running = false, rafId = 0, start = 0, fromY = 0, toY = 0;
 
-  function animateTo(targetY){
-    const startY = window.scrollY;
-    const start  = performance.now();
-    isSnapping = true;
-    function raf(now){
-      if (!isSnapping) return;
-      const p = Math.min(1, (now - start) / DURATION_MS);
-      const y = startY + (targetY - startY) * ease(p);
-      window.scrollTo(0, y);
-      if (p < 1) requestAnimationFrame(raf);
-      else isSnapping = false;
-    }
-    requestAnimationFrame(raf);
+  function stop(){ running=false; if (rafId) cancelAnimationFrame(rafId); rafId = 0; }
+  function animate(){
+    if (!running) return;
+    const now = performance.now();
+    const p = Math.min(1, (now - start) / DURATION_MS);
+    const y = fromY + (toY - fromY) * ease(p);
+    window.scrollTo(0, y);
+    if (p < 1) rafId = requestAnimationFrame(animate);
+    else running = false;
   }
 
-  function onScroll(){ // passive
+  function inBanner(y){
+    const top = banner.offsetTop;
+    const bottom = top + banner.offsetHeight - HEADER_OFFSET;
+    return y < bottom;
+  }
+
+  function onWheel(e){
+    const dy = (e && (e.deltaY || 0)) || 0;
+    if (dy <= 0) return;               // 위로는 무시
     const y = window.scrollY;
-    const dir = Math.sign(y - lastY) || 0;
-    lastY = y;
-    if (isSnapping || dir <= 0) return; // 위로 올릴 땐 스냅 안 함
+    if (!inBanner(y)) return;          // 배너구역 벗어나면 스냅 안 함
 
-    const bannerBottom = banner.offsetTop + banner.offsetHeight - HEADER_OFFSET;
-    const wrapperTop   = wrapper.offsetTop - HEADER_OFFSET;
+    // 시작!
+    e.stopImmediatePropagation();
+    e.preventDefault();
+    if (running) return;               // 이미 스냅 중이면 무시
 
-    // "메인이 살짝 보였다" 판단: 배너 하단을 지나치면
-    const crossed = y >= bannerBottom - THRESHOLD_PX && y < wrapperTop;
-    if (!crossed){
-      if (timer) { clearTimeout(timer); timer = null; }
-      return;
-    }
-
-    // 잠깐 기다렸다가(관성 흘려보내고) 아직 조건 유지면 스냅
-    if (!timer){
-      timer = setTimeout(() => {
-        timer = null;
-        const y2 = window.scrollY;
-        if (y2 >= bannerBottom - THRESHOLD_PX && y2 < wrapperTop && !isSnapping){
-          animateTo(wrapperTop);
-        }
-      }, DELAY_MS);
-    }
+    fromY = y;
+    toY   = Math.max(0, wrapper.offsetTop - HEADER_OFFSET);
+    start = performance.now();
+    running = true;
+    animate();
   }
 
-  // 스냅 중 입력이 오면 즉시 취소 (사용자 우선)
-  function cancel(){ if (isSnapping) isSnapping = false; }
-  window.addEventListener('wheel', cancel, { capture:true, passive:false });
-  window.addEventListener('touchstart', cancel, { capture:true, passive:true });
-  window.addEventListener('keydown', cancel, { capture:true, passive:false });
-  window.addEventListener('mousedown', cancel, { capture:true, passive:true });
+  // 반대 방향 강한 입력 → 즉시 취소(사용자 우선)
+  function onCancelWheel(e){
+    if (!running) return;
+    const dy = (e && (e.deltaY || 0)) || 0;
+    if (dy < -CANCEL_FORCE_DELTA) stop();
+  }
 
-  window.addEventListener('scroll', onScroll, { passive:true });
+  window.addEventListener('wheel', onWheel,       { capture:true, passive:false });
+  window.addEventListener('wheel', onCancelWheel, { capture:true, passive:false });
+  window.addEventListener('touchstart', stop,     { capture:true, passive:true  });
+  window.addEventListener('keydown', stop,        { capture:true, passive:false });
+  window.addEventListener('mousedown', stop,      { capture:true, passive:true  });
 })();
