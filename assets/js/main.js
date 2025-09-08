@@ -600,13 +600,12 @@ function createFloatingHeart(emoji) {
 
     // wheel snap off banner to wrapper
     $window.on("wheel", function (e) {
-      if (window.__InertiaScrollInit) return; // inertia active -> skip snap
+      if (window.__InertiaScrollInit) return; // inertia takes over
       if (!$banner.length) return;
       if (!snappedBanner && e.originalEvent.deltaY > 0) {
         const bannerBottom = $banner.offset().top + $banner.outerHeight();
         if (window.scrollY < bannerBottom - 100) {
-          e.stopImmediatePropagation();
-      e.preventDefault();
+          e.preventDefault();
           snappedBanner = true;
           smoothScrollTo($wrapper.offset().top);
           setTimeout(() => {
@@ -808,24 +807,6 @@ document.addEventListener("DOMContentLoaded", () => {
   window.__InertiaScrollInit = true;
 
   function initInertiaScroll(opts = {}) {
-    // snap-from-banner → wrapper on first wheel down
-    const __banner = document.querySelector('.donut-banner');
-    const __wrapper = document.getElementById('wrapper');
-    let __bannerSnapBusy = false;
-    function __quickSnap(toY, dur=520){
-      let startY = window.scrollY; const diff = toY - startY;
-      const start = performance.now();
-      const ease = t => 1 - Math.pow(1 - t, 3); // easeOutCubic
-      function raf(now){
-        const p = Math.min(1, (now - start) / dur);
-        const y = startY + diff * ease(p);
-        window.scrollTo(0, y);
-        if (p < 1) requestAnimationFrame(raf); else __bannerSnapBusy = false;
-      }
-      requestAnimationFrame(raf);
-    }
-
-    try { document.documentElement.style.scrollBehavior = 'auto'; } catch (e) {}
     const {
       friction = 0.92,      // 0.85~0.97에서 조절: 낮을수록 더 길게 흐름
       wheelBoost = 1.0,     // 휠 1틱당 가속도 배율
@@ -836,7 +817,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // 접근성/터치 디바이스에서 비활성
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-    if (isTouch && !opts.force) return;
+    if (isTouch) return;
 
     let rafId = 0;
     let vy = 0;                  // 세로 속도(픽셀/프레임)
@@ -879,22 +860,6 @@ document.addEventListener("DOMContentLoaded", () => {
     window.addEventListener('wheel', (e) => {
       const delta = e.deltaY || 0;
       if (!delta) return;
-      // --- banner → wrapper one-tick snap (down) ---
-      if (!__bannerSnapBusy && __banner && __wrapper && delta > 0) {
-        const bannerBottom = __banner.offsetTop + __banner.offsetHeight;
-        // 트리거 영역: 배너 하단 - 100px 위까지
-        if (window.scrollY < bannerBottom - 100) {
-          e.stopImmediatePropagation();
-          e.preventDefault();
-          __bannerSnapBusy = true;
-          // 관성 루프 중이면 정지
-          try { vy = 0; } catch(_){ }
-          try { animating = false; if (rafId) cancelAnimationFrame(rafId); } catch(_){ }
-          __quickSnap(__wrapper.offsetTop);
-          return; // 이 휠은 여기서 소비
-        }
-      }
-      
       if (canScroll(e.target, delta)) return;  // 내부 스크롤 통과
 
       e.preventDefault();
@@ -905,7 +870,7 @@ document.addEventListener("DOMContentLoaded", () => {
         animating = true;
         rafId = requestAnimationFrame(loop);
       }
-    }, { capture: true, passive: false });
+    }, { passive: false });
 
     // 키보드도 관성에 태움 (선택)
     window.addEventListener('keydown', (e) => {
@@ -941,196 +906,14 @@ document.addEventListener("DOMContentLoaded", () => {
   window.initInertiaScroll = initInertiaScroll;
   // 바로 적용
   initInertiaScroll({
-    friction: 0.945,    // 꼬리 더 길게
-    wheelBoost: 0.5,   // 감도 
-	keyStep: 64,          // ← 화살표 키 이동 px
-  	pageRatio: 0.85,      // ← PageUp/Down 비율 
-    maxSpeed: 70,
-    force: true,        // 터치/트랙패드 환경에서도 강제 적용
-    snap: { enabled: true, selector: '[data-snap]', thresholdPx: null , direction: 'down'},
-	snapOnceDuration: 1100,
-  	snapOnceEase: 'bezier(0.16, 1, 0.3, 1)'
+    friction: 0.975,    // 더 오래 감쇠 (0.97~0.98)
+    wheelBoost: 0.75,   // 한 틱 감도 낮춤 (0.7~0.9)
+    maxSpeed: 28,       // 프레임당 최대 이동량 줄임
+    // snapOnceDuration/Ease는 __quickSnap 기본값(1800ms, sine) 사용
   });
-
-    function performSnapIfNeeded(){
-      if (!snapCfg.enabled) return;
-      const list = Array.from(document.querySelectorAll(snapCfg.selector));
-      if (!list.length) return;
-      const y = scroller.scrollTop;
-      const vh = scroller.clientHeight;
-      const th = snapCfg.thresholdPx != null ? snapCfg.thresholdPx : Math.round(vh * 0.12);
-      let best = null;
-      for (const el of list){
-        const top = Math.max(0, el.offsetTop - snapCfg.headerOffset);
-        const d = Math.abs(top - y);
-        if (!best || d < best.d) best = {top, d};
-      }
-      if (best && best.d <= th){
-        animateSnap(y, best.top);
-      }
-    }
-    function animateSnap(from, to){
-      snapping = true;
-      const dur = 420;
-      const ease = t => 1 - Math.pow(1 - t, 4); // easeOutQuart
-      const start = performance.now();
-      function raf(now){
-        if (!snapping) return; // aborted by user
-        const p = Math.min(1, (now - start) / dur);
-        const y = from + (to - from) * ease(p);
-        scroller.scrollTop = y;
-        if (p < 1 && !running) requestAnimationFrame(raf);
-        else snapping = false;
-      }
-      requestAnimationFrame(raf);
-    }
 })();
 
 
 
 
 })(jQuery);  //necessary line
-
-
-
-/* ===== Simple Threshold Snap (banner -> wrapper) — Addon =====*/
-(function(){
-  if (window.__FullSpanSnapInitLocked) return;
-  window.__FullSpanSnapInitLocked = true;
-
-  const banner  = document.querySelector('.donut-banner');
-  const wrapper = document.getElementById('wrapper');
-  if (!banner || !wrapper) return;
-
-  const root  = document.documentElement;
-  const body  = document.body;
-  const HEADER_OFFSET = parseInt(getComputedStyle(root).getPropertyValue('--header-h')) || 0;
-
-  // ===== 튜닝 포인트 =====
-  const DURATION_MS   = 1500;                        // 전체 구간 시간
-  const EASE_CURVE    = 'sine';                      // 아주 완만한 ease-out
-  const CANCEL_FORCE_DELTA = 6;                      // 강한 반대 입력이면 즉시 취소
-
-  // ----- cubic-bezier helper & parser -----
-  function Bezier(mX1, mY1, mX2, mY2){
-    const NEWTON_ITER=4, NEWTON_MIN_SLOPE=0.001, SUBDIV_MAX_ITER=10, SUBDIV_PRECISION=1e-7;
-    const kSplineTableSize=11, kSampleStep=1.0/(kSplineTableSize-1);
-    const sampleValues = typeof Float32Array==='function' ? new Float32Array(kSplineTableSize) : new Array(kSplineTableSize);
-    function A(a1,a2){return 1-3*a2+3*a1} function B(a1,a2){return 3*a2-6*a1} function C(a1){return 3*a1}
-    function calcBezier(t,a1,a2){return ((A(a1,a2)*t + B(a1,a2))*t + C(a1))*t}
-    function slope(t,a1,a2){return 3*A(a1,a2)*t*t + 2*B(a1,a2)*t + C(a1)}
-    for (let i=0;i<kSplineTableSize;++i) sampleValues[i]=calcBezier(i*kSampleStep,mX1,mX2);
-    function getTForX(x){
-      let intervalStart=0, currentSample=1, lastSample=kSplineTableSize-1;
-      for (; currentSample!==lastSample && sampleValues[currentSample] <= x; ++currentSample) intervalStart += kSampleStep;
-      --currentSample;
-      const dist=(x - sampleValues[currentSample])/(sampleValues[currentSample+1]-sampleValues[currentSample]);
-      let guessForT=intervalStart + dist * kSampleStep;
-      const initialSlope = slope(guessForT, mX1, mX2);
-      if (initialSlope >= NEWTON_MIN_SLOPE){
-        for (let i=0;i<NEWTON_ITER;++i){
-          const s = slope(guessForT,mX1,mX2); if (s===0) return guessForT;
-          const curX = calcBezier(guessForT,mX1,mX2)-x;
-          guessForT -= curX / s;
-        }
-        return guessForT;
-      } else if (initialSlope===0) return guessForT;
-      let a=intervalStart, b=intervalStart+kSampleStep, curX, t, i=0;
-      do { t=(a+b)/2; curX=calcBezier(t,mX1,mX2)-x; if (curX>0) b=t; else a=t; } 
-      while (Math.abs(curX)>SUBDIV_PRECISION && ++i<SUBDIV_MAX_ITER);
-      return t;
-    }
-    return function(t){ if (t<=0) return 0; if (t>=1) return 1; const paramT = getTForX(t); return calcBezier(paramT, mY1, mY2); };
-  }
-  function parseEase(e){
-    if (typeof e==='function') return e;
-    if (Array.isArray(e) && e.length===4) return Bezier(e[0], e[1], e[2], e[3]);
-    if (typeof e==='string' && e.startsWith('bezier(')){
-      const n=e.slice(7,-1).split(',').map(s=>parseFloat(s));
-      if (n.length===4 && n.every(v=>!Number.isNaN(v))) return Bezier(n[0],n[1],n[2],n[3]);
-    }
-    if (e==='sine')  return t=>1-Math.cos((t*Math.PI)/2);
-    if (e==='cubic') return t=>1-Math.pow(1-t,3);
-    if (e==='quart') return t=>1-Math.pow(1-t,4);
-    if (e==='quint') return t=>1-Math.pow(1-t,5);
-    return t=>1-Math.cos((t*Math.PI)/2);
-  }
-  const ease = parseEase(EASE_CURVE);
-
-  // ----- CSS scroll-snap / smooth-behavior 잠금 -----
-  let saved = null;
-  function lockCSS(){ // 애니메이션 시작 전에 호출
-    if (saved) return;
-    saved = {
-      htmlSnap: root.style.scrollSnapType,
-      bodySnap: body.style.scrollSnapType,
-      htmlBeh:  root.style.scrollBehavior,
-      bodyBeh:  body.style.scrollBehavior
-    };
-    root.style.scrollSnapType = 'none';
-    body.style.scrollSnapType = 'none';
-    root.style.scrollBehavior = 'auto';
-    body.style.scrollBehavior = 'auto';
-  }
-  function unlockCSS(){ // 애니메이션 종료 후 복원
-    if (!saved) return;
-    root.style.scrollSnapType = saved.htmlSnap || '';
-    body.style.scrollSnapType = saved.bodySnap || '';
-    root.style.scrollBehavior = saved.htmlBeh || '';
-    body.style.scrollBehavior = saved.bodyBeh || '';
-    saved = null;
-  }
-
-  // ----- full-span animator -----
-  let running = false, rafId = 0, start = 0, fromY = 0, toY = 0;
-
-  function stop(){ running=false; if (rafId) cancelAnimationFrame(rafId); rafId = 0; unlockCSS(); }
-  function animate(){
-    if (!running) return;
-    const now = performance.now();
-    const p = Math.min(1, (now - start) / DURATION_MS);
-    const y = fromY + (toY - fromY) * ease(p);
-    window.scrollTo(0, y);
-    if (p < 1) rafId = requestAnimationFrame(animate);
-    else { running = false; unlockCSS(); }
-  }
-
-  function inBanner(y){
-    const top = banner.offsetTop;
-    const bottom = top + banner.offsetHeight - HEADER_OFFSET;
-    return y < bottom;
-  }
-
-  function onWheel(e){
-    const dy = (e && (e.deltaY || 0)) || 0;
-    if (dy <= 0) return;               // 위로는 무시
-    const y = window.scrollY;
-    if (!inBanner(y)) return;          // 배너구역 벗어나면 스냅 안 함
-
-    // 시작!
-    e.stopImmediatePropagation();
-    e.preventDefault();
-    if (running) return;               // 이미 스냅 중이면 무시
-
-    fromY = y;
-    toY   = Math.max(0, wrapper.offsetTop - HEADER_OFFSET);
-    start = performance.now();
-    running = true;
-    lockCSS();
-    animate();
-  }
-
-  // 반대 방향 강한 입력 → 즉시 취소(사용자 우선)
-  function onCancelWheel(e){
-    if (!running) return;
-    const dy = (e && (e.deltaY || 0)) || 0;
-    if (dy < -CANCEL_FORCE_DELTA) stop();
-  }
-
-  window.addEventListener('wheel', onWheel,       { capture:true, passive:false });
-  window.addEventListener('wheel', onCancelWheel, { capture:true, passive:false });
-  window.addEventListener('touchstart', stop,     { capture:true, passive:true  });
-  window.addEventListener('keydown', stop,        { capture:true, passive:false });
-  window.addEventListener('mousedown', stop,      { capture:true, passive:true  });
-})();
-
