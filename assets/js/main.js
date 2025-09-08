@@ -1002,8 +1002,10 @@ document.addEventListener("DOMContentLoaded", () => {
     maxSpeed: 70,
     force: true,        // 터치/트랙패드 환경에서도 강제 적용
     snap: { enabled: true, selector: '[data-snap]', thresholdPx: null , direction: 'down'},
-	snapOnceDuration: 1100,
+	snapOnceDuration: 1600,
   	snapOnceEase: 'bezier(0.16, 1, 0.3, 1)'
+	snapRestDuration: 1100,             
+  	snapRestEase: 'sine'
   });
 
     function performSnapIfNeeded(){
