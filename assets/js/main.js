@@ -865,6 +865,10 @@ document.addEventListener("DOMContentLoaded", () => {
       return t=>1-Math.cos((t*Math.PI)/2); // fallback: sine
     }
     const __snapOnceEaseFn = __buildSnapOnceEase(__snapOnceEase);
+    const __snapRestDur  = (opts && opts.snapRestDuration) ?? 1100; // default slower
+    const __snapRestEase = (opts && opts.snapRestEase)    ?? 'sine';
+    const __snapRestEaseFn = __buildEase(__snapRestEase);
+    const __buildEase = __buildSnapOnceEase;
 
     function __quickSnap(toY, dur=__snapOnceDur){
       let startY = window.scrollY; const diff = toY - startY;
@@ -1003,9 +1007,9 @@ document.addEventListener("DOMContentLoaded", () => {
     force: true,        // 터치/트랙패드 환경에서도 강제 적용
     snap: { enabled: true, selector: '[data-snap]', thresholdPx: null , direction: 'down'},
 	snapOnceDuration: 1600,
-  	snapOnceEase: 'bezier(0.16, 1, 0.3, 1)'
-	snapRestDuration: 1100,             
-  	snapRestEase: 'sine'
+  	snapOnceEase: 'bezier(0.16, 1, 0.3, 1)', 
+	snapRestDuration: 1100,               
+  	snapRestEase: 'sine' 
   });
 
     function performSnapIfNeeded(){
@@ -1027,8 +1031,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     function animateSnap(from, to){
       snapping = true;
-      const dur = 420;
-      const ease = t => 1 - Math.pow(1 - t, 4); // easeOutQuart
+      const dur = __snapRestDur;
+      const ease = __snapRestEaseFn; // configurable
       const start = performance.now();
       function raf(now){
         if (!snapping) return; // aborted by user
