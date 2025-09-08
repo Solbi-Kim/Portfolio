@@ -601,7 +601,6 @@ function createFloatingHeart(emoji) {
     // wheel snap off banner to wrapper
     $window.on("wheel", function (e) {
       if (window.__InertiaScrollInit) return; // inertia takes over
-      if (window.__InertiaScrollInit) return; // inertia active -> skip snap
       if (!$banner.length) return;
       if (!snappedBanner && e.originalEvent.deltaY > 0) {
         const bannerBottom = $banner.offset().top + $banner.outerHeight();
@@ -1075,8 +1074,8 @@ document.addEventListener("DOMContentLoaded", () => {
     function Bezier(mX1, mY1, mX2, mY2){
       var NEWTON_ITER=4, NEWTON_MIN_SLOPE=0.001, SUBDIV_MAX_ITER=10, SUBDIV_PRECISION=1e-7;
       var kSplineTableSize=11, kSampleStep=1.0/(kSplineTableSize-1);
-      var sampleValues=new Float32Array?k=new Float32Array(kSplineTableSize):new Array(kSplineTableSize);
-      var k=sampleValues; // alias
+      var sampleValues = (typeof Float32Array === 'function') ? new Float32Array(kSplineTableSize) : new Array(kSplineTableSize);
+var k = sampleValues; // alias
       function A(a1,a2){return 1-3*a2+3*a1} function B(a1,a2){return 3*a2-6*a1} function C(a1){return 3*a1}
       function calcBezier(t,a1,a2){return ((A(a1,a2)*t + B(a1,a2))*t + C(a1))*t}
       function slope(t,a1,a2){return 3*A(a1,a2)*t*t + 2*B(a1,a2)*t + C(a1)}
