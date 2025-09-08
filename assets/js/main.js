@@ -1002,7 +1002,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const HEADER_OFFSET = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--header-h')) || 0;
 
   // ===== 튜닝 포인트 =====
-  const DURATION_MS   = 1500;                        // 전체 구간 시간(느긋하게)
+  const DURATION_MS   = 6000;                        // 전체 구간 시간(느긋하게)
   const EASE_CURVE    = 'bezier(0.22, 1, 0.23, 1)';  // 초반 느리고 후반 길게(soft ease-out)
   const CANCEL_FORCE_DELTA = 6;                      // 강한 반대 방향 입력이면 즉시 취소
 
