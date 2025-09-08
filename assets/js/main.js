@@ -1054,122 +1054,139 @@ document.addEventListener("DOMContentLoaded", () => {
 
 /* ===== Full-span One-shot Snap (Banner → Main) — LOCKED (non-destructive) ===== */
 (function(){
-  if (window.__FullSpanSnapInitLockedSafe) return;
-  window.__FullSpanSnapInitLockedSafe = true;
+  try {
+    if (window.__FullSpanSnapOverlay) return;
+    window.__FullSpanSnapOverlay = true;
 
-  const banner  = document.querySelector('.donut-banner');
-  const wrapper = document.getElementById('wrapper');
-  const root    = document.documentElement;
-  const body    = document.body;
-  const scroller = document.scrollingElement || root;
-  if (!banner || !wrapper) return;
+    var banner  = document.querySelector('.donut-banner');
+    var wrapper = document.getElementById('wrapper');
+    if (!banner || !wrapper) return;
 
-  const HEADER_OFFSET = parseInt(getComputedStyle(root).getPropertyValue('--header-h')) || 0;
+    var root     = document.documentElement;
+    var scroller = document.scrollingElement || root;
+    var HEADER_OFFSET = parseInt(getComputedStyle(root).getPropertyValue('--header-h')) || 0;
 
-  // ===== Tunables (feel) =====
-  const DURATION_MS = 1800;                 // 전체 구간 시간
-  const EASE_CURVE  = 'sine';               // 페이지 넘김 같은 완만한 커브
-  const CANCEL_FORCE_DELTA = 6;             // 반대방향 강한 휠이면 즉시 취소
+    // ---- Tunables ----
+    var DURATION_MS = 1800;                // 전체 구간 시간
+    var EASE_CURVE  = 'sine';              // 'sine'가 가장 페이지 넘김 느낌
+    var CANCEL_FORCE_DELTA = 8;            // 반대방향 강한 휠이면 즉시 취소
 
-  // cubic-bezier helper
-  function Bezier(mX1, mY1, mX2, mY2){
-    const NEWTON_ITER=4, NEWTON_MIN_SLOPE=0.001, SUBDIV_MAX_ITER=10, SUBDIV_PRECISION=1e-7;
-    const kSplineTableSize=11, kSampleStep=1.0/(kSplineTableSize-1);
-    const sampleValues = typeof Float32Array==='function' ? new Float32Array(kSplineTableSize) : new Array(kSplineTableSize);
-    function A(a1,a2){return 1-3*a2+3*a1} function B(a1,a2){return 3*a2-6*a1} function C(a1){return 3*a1}
-    function calcBezier(t,a1,a2){return ((A(a1,a2)*t + B(a1,a2))*t + C(a1))*t}
-    function slope(t,a1,a2){return 3*A(a1,a2)*t*t + 2*B(a1,a2)*t + C(a1)}
-    for (let i=0;i<kSplineTableSize;++i) sampleValues[i]=calcBezier(i*kSampleStep,mX1,mX2);
-    function getTForX(x){
-      let intervalStart=0, currentSample=1, lastSample=kSplineTableSize-1;
-      for (; currentSample!==lastSample && sampleValues[currentSample] <= x; ++currentSample) intervalStart += kSampleStep;
-      --currentSample;
-      const dist=(x - sampleValues[currentSample])/(sampleValues[currentSample+1]-sampleValues[currentSample]);
-      let guessForT=intervalStart + dist * kSampleStep;
-      const initialSlope = slope(guessForT, mX1, mX2);
-      if (initialSlope >= NEWTON_MIN_SLOPE){
-        for (let i=0;i<NEWTON_ITER;++i){
-          const s = slope(guessForT,mX1,mX2); if (s===0) return guessForT;
-          const curX = calcBezier(guessForT,mX1,mX2)-x;
-          guessForT -= curX / s;
-        }
-        return guessForT;
-      } else if (initialSlope===0) return guessForT;
-      let a=intervalStart, b=intervalStart+kSampleStep, curX, t, i=0;
-      do { t=(a+b)/2; curX=calcBezier(t,mX1,mX2)-x; if (curX>0) b=t; else a=t; } 
-      while (Math.abs(curX)>SUBDIV_PRECISION && ++i<SUBDIV_MAX_ITER);
-      return t;
+    // ---- Easing helpers ----
+    function Bezier(mX1, mY1, mX2, mY2){
+      var NEWTON_ITER=4, NEWTON_MIN_SLOPE=0.001, SUBDIV_MAX_ITER=10, SUBDIV_PRECISION=1e-7;
+      var kSplineTableSize=11, kSampleStep=1.0/(kSplineTableSize-1);
+      var sampleValues=new Float32Array?k=new Float32Array(kSplineTableSize):new Array(kSplineTableSize);
+      var k=sampleValues; // alias
+      function A(a1,a2){return 1-3*a2+3*a1} function B(a1,a2){return 3*a2-6*a1} function C(a1){return 3*a1}
+      function calcBezier(t,a1,a2){return ((A(a1,a2)*t + B(a1,a2))*t + C(a1))*t}
+      function slope(t,a1,a2){return 3*A(a1,a2)*t*t + 2*B(a1,a2)*t + C(a1)}
+      for (var i=0;i<kSplineTableSize;++i) k[i]=calcBezier(i*kSampleStep,mX1,mX2);
+      function getTForX(x){
+        var intervalStart=0, currentSample=1, lastSample=kSplineTableSize-1;
+        for (; currentSample!==lastSample && k[currentSample] <= x; ++currentSample) intervalStart += kSampleStep;
+        --currentSample;
+        var dist=(x - k[currentSample])/(k[currentSample+1]-k[currentSample]);
+        var guessForT=intervalStart + dist * kSampleStep;
+        var initialSlope = slope(guessForT, mX1, mX2);
+        if (initialSlope >= NEWTON_MIN_SLOPE){
+          for (var j=0;j<NEWTON_ITER;++j){
+            var s = slope(guessForT,mX1,mX2); if (s===0) return guessForT;
+            var curX = calcBezier(guessForT,mX1,mX2)-x;
+            guessForT -= curX / s;
+          }
+          return guessForT;
+        } else if (initialSlope===0){ return guessForT; }
+        var a=intervalStart, b=intervalStart+kSampleStep, curX, t, n=0;
+        do { t=(a+b)/2; curX=calcBezier(t,mX1,mX2)-x; if (curX>0) b=t; else a=t; }
+        while (Math.abs(curX)>SUBDIV_PRECISION && ++n<SUBDIV_MAX_ITER);
+        return t;
+      }
+      return function(t){ if (t<=0) return 0; if (t>=1) return 1; var paramT = getTForX(t); return calcBezier(paramT, mY1, mY2); };
     }
-    return function(t){ if (t<=0) return 0; if (t>=1) return 1; const paramT = getTForX(t); return calcBezier(paramT, mY1, mY2); };
-  }
-  function parseEase(e){
-    if (typeof e==='function') return e;
-    if (Array.isArray(e) && e.length===4) return Bezier(e[0], e[1], e[2], e[3]);
-    if (typeof e==='string' && e.startsWith('bezier(')){
-      const n=e.slice(7,-1).split(',').map(s=>parseFloat(s));
-      if (n.length===4 && n.every(v=>!Number.isNaN(v))) return Bezier(n[0],n[1],n[2],n[3]);
+    function parseEase(e){
+      if (typeof e==='function') return e;
+      if (Array.isArray(e) && e.length===4) return Bezier(e[0], e[1], e[2], e[3]);
+      if (typeof e==='string' && e.indexOf('bezier(')===0){
+        var n=e.slice(7,-1).split(',').map(function(s){return parseFloat(s)});
+        if (n.length===4 && n.every(function(v){return !Number.isNaN(v)})) return Bezier(n[0],n[1],n[2],n[3]);
+      }
+      if (e==='sine')  return function(t){return 1-Math.cos((t*Math.PI)/2)};
+      if (e==='cubic') return function(t){return 1-Math.pow(1-t,3)};
+      if (e==='quart') return function(t){return 1-Math.pow(1-t,4)};
+      if (e==='quint') return function(t){return 1-Math.pow(1-t,5)};
+      return function(t){return 1-Math.cos((t*Math.PI)/2)}; // default sine
     }
-    if (e==='sine')  return t=>1-Math.cos((t*Math.PI)/2);
-    if (e==='cubic') return t=>1-Math.pow(1-t,3);
-    if (e==='quart') return t=>1-Math.pow(1-t,4);
-    if (e==='quint') return t=>1-Math.pow(1-t,5);
-    return t=>1-Math.cos((t*Math.PI)/2);
-  }
-  const ease = parseEase(EASE_CURVE);
+    var ease = parseEase(EASE_CURVE);
 
-  // CSS lock via <style> (important) to defeat snap/smooth during anim
-  let styleEl = null;
-  function lockCSS(){
-    if (styleEl) return;
-    styleEl = document.createElement('style');
-    styleEl.id = '__snap_lock_style__';
-    styleEl.textContent = `html, body { scroll-snap-type: none !important; scroll-behavior: auto !important; }`;
-    document.head.appendChild(styleEl);
-  }
-  function unlockCSS(){
-    if (styleEl && styleEl.parentNode) styleEl.parentNode.removeChild(styleEl);
-    styleEl = null;
-  }
+    // ---- CSS lock ----
+    var styleEl = null;
+    function lockCSS(){
+      if (styleEl) return;
+      styleEl = document.createElement('style');
+      styleEl.id = '__snap_lock_style__';
+      styleEl.textContent = "html, body { scroll-snap-type: none !important; scroll-behavior: auto !important; }";
+      document.head.appendChild(styleEl);
+    }
+    function unlockCSS(){
+      if (styleEl && styleEl.parentNode) styleEl.parentNode.removeChild(styleEl);
+      styleEl = null;
+    }
 
-  let running = false, rafId = 0, start = 0, fromY = 0, toY = 0;
-  function stop(){ running=false; if (rafId) cancelAnimationFrame(rafId); rafId = 0; unlockCSS(); }
-  function animate(){
-    if (!running) return;
-    const now = performance.now();
-    const p = Math.min(1, (now - start) / DURATION_MS);
-    const y = fromY + (toY - fromY) * ease(p);
-    scroller.scrollTop = y;
-    if (p < 1) rafId = requestAnimationFrame(animate);
-    else { running = false; unlockCSS(); }
+    // ---- Helpers ----
+    function inBanner(y){
+      var top = banner.offsetTop;
+      var bottom = top + banner.offsetHeight - (HEADER_OFFSET || 0);
+      return y < bottom;
+    }
+
+    // ---- Animator ----
+    var running=false, rafId=0, start=0, fromY=0, toY=0;
+    function stop(){ running=false; if (rafId) cancelAnimationFrame(rafId); rafId=0; unlockCSS(); }
+    function animate(){
+      if (!running) return;
+      var now = performance.now();
+      var p = Math.min(1, (now - start) / DURATION_MS);
+      var y = fromY + (toY - fromY) * ease(p);
+      scroller.scrollTop = y;
+      if (p < 1) { rafId = requestAnimationFrame(animate); }
+      else { running=false; unlockCSS(); }
+    }
+
+    // ---- Capture handlers ----
+    function onWheelStart(e){
+      try {
+        var dy = (e && (e.deltaY || 0)) || 0;
+        if (dy <= 0) return; // only down
+        var y = scroller.scrollTop;
+        if (!inBanner(y)) return; // only inside banner
+        if (running) return;      // already animating
+
+        // Start full-span snap
+        e.stopImmediatePropagation();
+        e.preventDefault();
+
+        fromY = y;
+        toY   = Math.max(0, wrapper.offsetTop - (HEADER_OFFSET || 0));
+        start = performance.now();
+        running = true;
+        lockCSS();
+        animate();
+      } catch (err) { console.error('[FullSpanSnap Overlay] onWheelStart error', err); }
+    }
+    function onWheelCancel(e){
+      try {
+        if (!running) return;
+        var dy = (e && (e.deltaY || 0)) || 0;
+        if (dy < -CANCEL_FORCE_DELTA) stop();
+      } catch (err) { console.error('[FullSpanSnap Overlay] onWheelCancel error', err); }
+    }
+
+    window.addEventListener('wheel', onWheelStart,  { capture:true, passive:false });
+    window.addEventListener('wheel', onWheelCancel, { capture:true, passive:false });
+    window.addEventListener('touchstart', stop,     { capture:true, passive:true });
+    window.addEventListener('keydown', stop,        { capture:true, passive:false });
+    window.addEventListener('mousedown', stop,      { capture:true, passive:true });
+  } catch (err) {
+    console.error('[FullSpanSnap Overlay] init error', err);
   }
-  function inBanner(y){
-    const top = banner.offsetTop;
-    const bottom = top + banner.offsetHeight - (HEADER_OFFSET || 0);
-    return y < bottom;
-  }
-  function onWheel(e){
-    const dy = (e && (e.deltaY || 0)) || 0;
-    if (dy <= 0) return;
-    const y = scroller.scrollTop;
-    if (!inBanner(y)) return;
-    e.stopImmediatePropagation();
-    e.preventDefault();
-    if (running) return;
-    fromY = y;
-    toY   = Math.max(0, wrapper.offsetTop - (HEADER_OFFSET || 0));
-    start = performance.now();
-    running = true;
-    lockCSS();
-    animate();
-  }
-  function onCancelWheel(e){
-    if (!running) return;
-    const dy = (e && (e.deltaY || 0)) || 0;
-    if (dy < -CANCEL_FORCE_DELTA) stop();
-  }
-  window.addEventListener('wheel', onWheel,       { capture:true, passive:false });
-  window.addEventListener('wheel', onCancelWheel, { capture:true, passive:false });
-  window.addEventListener('touchstart', stop,     { capture:true, passive:true });
-  window.addEventListener('keydown', stop,        { capture:true, passive:false });
-  window.addEventListener('mousedown', stop,      { capture:true, passive:true });
 })();
