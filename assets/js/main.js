@@ -600,13 +600,11 @@ function createFloatingHeart(emoji) {
 
     // wheel snap off banner to wrapper
     $window.on("wheel", function (e) {
-      if (window.__InertiaScrollInit) return; // inertia active -> skip snap
       if (!$banner.length) return;
       if (!snappedBanner && e.originalEvent.deltaY > 0) {
         const bannerBottom = $banner.offset().top + $banner.outerHeight();
         if (window.scrollY < bannerBottom - 100) {
-          e.stopImmediatePropagation();
-      e.preventDefault();
+          e.preventDefault();
           snappedBanner = true;
           smoothScrollTo($wrapper.offset().top);
           setTimeout(() => {
@@ -808,101 +806,8 @@ document.addEventListener("DOMContentLoaded", () => {
   window.__InertiaScrollInit = true;
 
   function initInertiaScroll(opts = {}) {
-    // snap-from-banner → wrapper on first wheel down
-    const __banner = document.querySelector('.donut-banner');
-    const __wrapper = document.getElementById('wrapper');
-    let __bannerSnapBusy = false;
-
-    const __snapOnceDur  = (opts && opts.snapOnceDuration) ?? 900; // ms
-    const __snapOnceEase = (opts && opts.snapOnceEase)    ?? 'sine'; // 'sine' | 'cubic' | 'quart' | 'quint' | 'bezier(...)' | [x1,y1,x2,y2] | fn
-
-    // Cubic-bezier helper (CSS-like)
-    function __BezierEasing(mX1, mY1, mX2, mY2){
-      const NEWTON_ITER=4, NEWTON_MIN_SLOPE=0.001, SUBDIV_MAX_ITER=10, SUBDIV_PRECISION=1e-7;
-      const kSplineTableSize=11, kSampleStep=1.0/(kSplineTableSize-1);
-      const sampleValues = typeof Float32Array==='function' ? new Float32Array(kSplineTableSize) : new Array(kSplineTableSize);
-      function A(a1,a2){return 1-3*a2+3*a1} function B(a1,a2){return 3*a2-6*a1} function C(a1){return 3*a1}
-      function calcBezier(t,a1,a2){return ((A(a1,a2)*t + B(a1,a2))*t + C(a1))*t}
-      function slope(t,a1,a2){return 3*A(a1,a2)*t*t + 2*B(a1,a2)*t + C(a1)}
-      for (let i=0;i<kSplineTableSize;++i) sampleValues[i]=calcBezier(i*kSampleStep,mX1,mX2);
-      function getTForX(x){
-        let intervalStart=0, currentSample=1, lastSample=kSplineTableSize-1;
-        for (; currentSample!==lastSample && sampleValues[currentSample] <= x; ++currentSample) intervalStart += kSampleStep;
-        --currentSample;
-        const dist=(x - sampleValues[currentSample])/(sampleValues[currentSample+1]-sampleValues[currentSample]);
-        let guessForT=intervalStart + dist * kSampleStep;
-        const initialSlope = slope(guessForT, mX1, mX2);
-        if (initialSlope >= NEWTON_MIN_SLOPE){
-          for (let i=0;i<NEWTON_ITER;++i){
-            const s = slope(guessForT,mX1,mX2); if (s===0) return guessForT;
-            const curX = calcBezier(guessForT,mX1,mX2)-x;
-            guessForT -= curX / s;
-          }
-          return guessForT;
-        } else if (initialSlope===0){ return guessForT; }
-        let a=intervalStart, b=intervalStart+kSampleStep, curX, t, i=0;
-        do { t=(a+b)/2; curX=calcBezier(t,mX1,mX2)-x; if (curX>0) b=t; else a=t; } 
-        while (Math.abs(curX)>SUBDIV_PRECISION && ++i<SUBDIV_MAX_ITER);
-        return t;
-      }
-      return function(t){ if (t<=0) return 0; if (t>=1) return 1; const paramT = getTForX(t); return calcBezier(paramT, mY1, mY2); };
-    }
-
-    // Build final easing function
-    function __buildSnapOnceEase(opt){
-      if (Array.isArray(opt) && opt.length===4) return __BezierEasing(opt[0],opt[1],opt[2],opt[3]);
-      if (typeof opt==='string'){
-        if (opt.startsWith('bezier(')){
-          const nums = opt.slice(7,-1).split(',').map(s=>parseFloat(s.trim()));
-          if (nums.length===4 && nums.every(n=>!Number.isNaN(n))) return __BezierEasing(nums[0],nums[1],nums[2],nums[3]);
-        }
-        if (opt==='cubic') return t=>1-Math.pow(1-t,3);
-        if (opt==='quart') return t=>1-Math.pow(1-t,4);
-        if (opt==='quint') return t=>1-Math.pow(1-t,5);
-        if (opt==='sine')  return t=>1-Math.cos((t*Math.PI)/2);
-      }
-      if (typeof opt==='function') return opt;
-      return t=>1-Math.cos((t*Math.PI)/2); // fallback: sine
-    }
-    const __snapOnceEaseFn = __buildSnapOnceEase(__snapOnceEase);
-    const __snapRestDur  = (opts && opts.snapRestDuration) ?? 1100; // default slower
-    const __snapRestEase = (opts && opts.snapRestEase)    ?? 'sine';
-    const __buildEase = __buildSnapOnceEase;
-    const __snapRestEaseFn = __buildEase(__snapRestEase);
-
-    function __quickSnap(toY, dur=__snapOnceDur){
-      let startY = window.scrollY; const diff = toY - startY;
-      const start = performance.now();
-      const ease = __snapOnceEaseFn;
-      function raf(now){
-        const p = Math.min(1, (now - start) / dur);
-        const y = startY + diff * ease(p);
-        window.scrollTo(0, y);
-        if (p < 1) requestAnimationFrame(raf); else __bannerSnapBusy = false;
-      }
-      requestAnimationFrame(raf);
-    }
-
-    try { document.documentElement.style.scrollBehavior = 'auto'; } catch (e) {}
     const {
       friction = 0.92,      // 0.85~0.97에서 조절: 낮을수록 더 길게 흐름
-      wheelBoost = 1.0,     // 휠 1틱당 가속도 배율
-      maxSpeed = 60,        // 프레임당 최대 이동(px)
-      allowNativeInside = '[data-native-scroll], .scroll-native',
-      snap = {}
-    } = opts;
-    // snap config (rest snap at stop)
-    const snapCfg = Object.assign({
-      enabled: false,
-      selector: '[data-snap]',
-      thresholdPx: null,   // null => viewport*0.12
-      direction: 'down',   // 'down' | 'up' | null
-      headerOffset: parseInt(getComputedStyle(document.documentElement).getPropertyValue('--header-h')) || 0
-    }, snap || {});
-    const scroller = document.scrollingElement || document.documentElement;
-    let snapping = false;
-    let lastDir = 0; // -1 up, +1 down
-      // 0.85~0.97에서 조절: 낮을수록 더 길게 흐름
       wheelBoost = 1.0,     // 휠 1틱당 가속도 배율
       maxSpeed = 60,        // 프레임당 최대 이동(px)
       allowNativeInside = '[data-native-scroll], .scroll-native',
@@ -911,7 +816,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // 접근성/터치 디바이스에서 비활성
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-    if (isTouch && !opts.force) return;
+    if (isTouch) return;
 
     let rafId = 0;
     let vy = 0;                  // 세로 속도(픽셀/프레임)
@@ -944,7 +849,6 @@ document.addEventListener("DOMContentLoaded", () => {
       if (Math.abs(vy) < 0.08) { // 거의 멈췄으면 종료
         animating = false;
         rafId = 0;
-        try { performSnapIfNeeded(); } catch (e) {}
         return;
       }
       targetY = clamp(targetY + clamp(vy, -maxSpeed, maxSpeed), 0, maxScroll());
@@ -955,24 +859,6 @@ document.addEventListener("DOMContentLoaded", () => {
     window.addEventListener('wheel', (e) => {
       const delta = e.deltaY || 0;
       if (!delta) return;
-      if (snapping) snapping = false;
-      lastDir = Math.sign(delta) || lastDir;
-      // --- banner → wrapper one-tick snap (down) ---
-      if (!__bannerSnapBusy && __banner && __wrapper && delta > 0) {
-        const bannerBottom = __banner.offsetTop + __banner.offsetHeight;
-        // 트리거 영역: 배너 하단 - 100px 위까지
-        if (window.scrollY < bannerBottom - 100) {
-          e.stopImmediatePropagation();
-          e.preventDefault();
-          __bannerSnapBusy = true;
-          // 관성 루프 중이면 정지
-          try { vy = 0; } catch(_){ }
-          try { animating = false; if (rafId) cancelAnimationFrame(rafId); } catch(_){ }
-          __quickSnap(__wrapper.offsetTop);
-          return; // 이 휠은 여기서 소비
-        }
-      }
-      
       if (canScroll(e.target, delta)) return;  // 내부 스크롤 통과
 
       e.preventDefault();
@@ -983,7 +869,7 @@ document.addEventListener("DOMContentLoaded", () => {
         animating = true;
         rafId = requestAnimationFrame(loop);
       }
-    }, { capture: true, passive: false });
+    }, { passive: false });
 
     // 키보드도 관성에 태움 (선택)
     window.addEventListener('keydown', (e) => {
@@ -1014,27 +900,15 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!animating) window.scrollTo(0, targetY);
     });
   }
-      requestAnimationFrame(raf);
-    }
 
   // 전역 노출
   window.initInertiaScroll = initInertiaScroll;
   // 바로 적용
   initInertiaScroll({
-    friction: 0.945,    // 꼬리 더 길게
-    wheelBoost: 0.5,   // 감도 
-	keyStep: 64,          // ← 화살표 키 이동 px
-  	pageRatio: 0.85,      // ← PageUp/Down 비율 
-    maxSpeed: 70,
-    force: true,        // 터치/트랙패드 환경에서도 강제 적용
-    snap: { enabled: true, selector: '[data-snap]', thresholdPx: null , direction: 'down'},
-	snapOnceDuration: 1600,
-  	snapOnceEase: 'bezier(0.16, 1, 0.3, 1)', 
-	snapRestDuration: 1100,               
-  	snapRestEase: 'sine' 
+    friction: 0.93,     // 더 길게 흐르게 하고 싶으면 0.95 근처
+    wheelBoost: 1.0,    // 0.8~1.2 사이 취향 조절
+    maxSpeed: 70
   });
-      requestAnimationFrame(raf);
-    }
 })();
 
 
