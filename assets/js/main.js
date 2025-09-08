@@ -808,6 +808,23 @@ document.addEventListener("DOMContentLoaded", () => {
   window.__InertiaScrollInit = true;
 
   function initInertiaScroll(opts = {}) {
+    // snap-from-banner → wrapper on first wheel down
+    const __banner = document.querySelector('.donut-banner');
+    const __wrapper = document.getElementById('wrapper');
+    let __bannerSnapBusy = false;
+    function __quickSnap(toY, dur=520){
+      let startY = window.scrollY; const diff = toY - startY;
+      const start = performance.now();
+      const ease = t => 1 - Math.pow(1 - t, 3); // easeOutCubic
+      function raf(now){
+        const p = Math.min(1, (now - start) / dur);
+        const y = startY + diff * ease(p);
+        window.scrollTo(0, y);
+        if (p < 1) requestAnimationFrame(raf); else __bannerSnapBusy = false;
+      }
+      requestAnimationFrame(raf);
+    }
+
     try { document.documentElement.style.scrollBehavior = 'auto'; } catch (e) {}
     const {
       friction = 0.92,      // 0.85~0.97에서 조절: 낮을수록 더 길게 흐름
@@ -862,6 +879,22 @@ document.addEventListener("DOMContentLoaded", () => {
     window.addEventListener('wheel', (e) => {
       const delta = e.deltaY || 0;
       if (!delta) return;
+      // --- banner → wrapper one-tick snap (down) ---
+      if (!__bannerSnapBusy && __banner && __wrapper && delta > 0) {
+        const bannerBottom = __banner.offsetTop + __banner.offsetHeight;
+        // 트리거 영역: 배너 하단 - 100px 위까지
+        if (window.scrollY < bannerBottom - 100) {
+          e.stopImmediatePropagation();
+          e.preventDefault();
+          __bannerSnapBusy = true;
+          // 관성 루프 중이면 정지
+          try { vy = 0; } catch(_){ }
+          try { animating = false; if (rafId) cancelAnimationFrame(rafId); } catch(_){ }
+          __quickSnap(__wrapper.offsetTop);
+          return; // 이 휠은 여기서 소비
+        }
+      }
+      
       if (canScroll(e.target, delta)) return;  // 내부 스크롤 통과
 
       e.preventDefault();
