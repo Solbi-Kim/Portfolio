@@ -812,10 +812,64 @@ document.addEventListener("DOMContentLoaded", () => {
     const __banner = document.querySelector('.donut-banner');
     const __wrapper = document.getElementById('wrapper');
     let __bannerSnapBusy = false;
-    function __quickSnap(toY, dur=520){
+
+    const __snapOnceDur  = (opts && opts.snapOnceDuration) ?? 900; // ms
+    const __snapOnceEase = (opts && opts.snapOnceEase)    ?? 'sine'; // 'sine' | 'cubic' | 'quart' | 'quint' | 'bezier(...)' | [x1,y1,x2,y2] | fn
+
+    // Cubic-bezier helper (CSS-like)
+    function __BezierEasing(mX1, mY1, mX2, mY2){
+      const NEWTON_ITER=4, NEWTON_MIN_SLOPE=0.001, SUBDIV_MAX_ITER=10, SUBDIV_PRECISION=1e-7;
+      const kSplineTableSize=11, kSampleStep=1.0/(kSplineTableSize-1);
+      const sampleValues = typeof Float32Array==='function' ? new Float32Array(kSplineTableSize) : new Array(kSplineTableSize);
+      function A(a1,a2){return 1-3*a2+3*a1} function B(a1,a2){return 3*a2-6*a1} function C(a1){return 3*a1}
+      function calcBezier(t,a1,a2){return ((A(a1,a2)*t + B(a1,a2))*t + C(a1))*t}
+      function slope(t,a1,a2){return 3*A(a1,a2)*t*t + 2*B(a1,a2)*t + C(a1)}
+      for (let i=0;i<kSplineTableSize;++i) sampleValues[i]=calcBezier(i*kSampleStep,mX1,mX2);
+      function getTForX(x){
+        let intervalStart=0, currentSample=1, lastSample=kSplineTableSize-1;
+        for (; currentSample!==lastSample && sampleValues[currentSample] <= x; ++currentSample) intervalStart += kSampleStep;
+        --currentSample;
+        const dist=(x - sampleValues[currentSample])/(sampleValues[currentSample+1]-sampleValues[currentSample]);
+        let guessForT=intervalStart + dist * kSampleStep;
+        const initialSlope = slope(guessForT, mX1, mX2);
+        if (initialSlope >= NEWTON_MIN_SLOPE){
+          for (let i=0;i<NEWTON_ITER;++i){
+            const s = slope(guessForT,mX1,mX2); if (s===0) return guessForT;
+            const curX = calcBezier(guessForT,mX1,mX2)-x;
+            guessForT -= curX / s;
+          }
+          return guessForT;
+        } else if (initialSlope===0){ return guessForT; }
+        let a=intervalStart, b=intervalStart+kSampleStep, curX, t, i=0;
+        do { t=(a+b)/2; curX=calcBezier(t,mX1,mX2)-x; if (curX>0) b=t; else a=t; } 
+        while (Math.abs(curX)>SUBDIV_PRECISION && ++i<SUBDIV_MAX_ITER);
+        return t;
+      }
+      return function(t){ if (t<=0) return 0; if (t>=1) return 1; const paramT = getTForX(t); return calcBezier(paramT, mY1, mY2); };
+    }
+
+    // Build final easing function
+    function __buildSnapOnceEase(opt){
+      if (Array.isArray(opt) && opt.length===4) return __BezierEasing(opt[0],opt[1],opt[2],opt[3]);
+      if (typeof opt==='string'){
+        if (opt.startsWith('bezier(')){
+          const nums = opt.slice(7,-1).split(',').map(s=>parseFloat(s.trim()));
+          if (nums.length===4 && nums.every(n=>!Number.isNaN(n))) return __BezierEasing(nums[0],nums[1],nums[2],nums[3]);
+        }
+        if (opt==='cubic') return t=>1-Math.pow(1-t,3);
+        if (opt==='quart') return t=>1-Math.pow(1-t,4);
+        if (opt==='quint') return t=>1-Math.pow(1-t,5);
+        if (opt==='sine')  return t=>1-Math.cos((t*Math.PI)/2);
+      }
+      if (typeof opt==='function') return opt;
+      return t=>1-Math.cos((t*Math.PI)/2); // fallback: sine
+    }
+    const __snapOnceEaseFn = __buildSnapOnceEase(__snapOnceEase);
+
+    function __quickSnap(toY, dur=__snapOnceDur){
       let startY = window.scrollY; const diff = toY - startY;
       const start = performance.now();
-      const ease = t => 1 - Math.pow(1 - t, 3); // easeOutCubic
+      const ease = __snapOnceEaseFn;
       function raf(now){
         const p = Math.min(1, (now - start) / dur);
         const y = startY + diff * ease(p);
@@ -947,7 +1001,7 @@ document.addEventListener("DOMContentLoaded", () => {
   	pageRatio: 0.85,      // ← PageUp/Down 비율 
     maxSpeed: 70,
     force: true,        // 터치/트랙패드 환경에서도 강제 적용
-    snap: { enabled: true, selector: '[data-snap]', thresholdPx: null , direction: 'down'}
+    snap: { enabled: true, selector: '[data-snap]', thresholdPx: null , direction: 'down'},
 	snapOnceDuration: 1100,
   	snapOnceEase: 'bezier(0.16, 1, 0.3, 1)'
   });
