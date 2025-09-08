@@ -867,8 +867,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const __snapOnceEaseFn = __buildSnapOnceEase(__snapOnceEase);
     const __snapRestDur  = (opts && opts.snapRestDuration) ?? 1100; // default slower
     const __snapRestEase = (opts && opts.snapRestEase)    ?? 'sine';
-    const __snapRestEaseFn = __buildEase(__snapRestEase);
     const __buildEase = __buildSnapOnceEase;
+    const __snapRestEaseFn = __buildEase(__snapRestEase);
 
     function __quickSnap(toY, dur=__snapOnceDur){
       let startY = window.scrollY; const diff = toY - startY;
@@ -886,6 +886,23 @@ document.addEventListener("DOMContentLoaded", () => {
     try { document.documentElement.style.scrollBehavior = 'auto'; } catch (e) {}
     const {
       friction = 0.92,      // 0.85~0.97에서 조절: 낮을수록 더 길게 흐름
+      wheelBoost = 1.0,     // 휠 1틱당 가속도 배율
+      maxSpeed = 60,        // 프레임당 최대 이동(px)
+      allowNativeInside = '[data-native-scroll], .scroll-native',
+      snap = {}
+    } = opts;
+    // snap config (rest snap at stop)
+    const snapCfg = Object.assign({
+      enabled: false,
+      selector: '[data-snap]',
+      thresholdPx: null,   // null => viewport*0.12
+      direction: 'down',   // 'down' | 'up' | null
+      headerOffset: parseInt(getComputedStyle(document.documentElement).getPropertyValue('--header-h')) || 0
+    }, snap || {});
+    const scroller = document.scrollingElement || document.documentElement;
+    let snapping = false;
+    let lastDir = 0; // -1 up, +1 down
+      // 0.85~0.97에서 조절: 낮을수록 더 길게 흐름
       wheelBoost = 1.0,     // 휠 1틱당 가속도 배율
       maxSpeed = 60,        // 프레임당 최대 이동(px)
       allowNativeInside = '[data-native-scroll], .scroll-native',
@@ -927,6 +944,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (Math.abs(vy) < 0.08) { // 거의 멈췄으면 종료
         animating = false;
         rafId = 0;
+        try { performSnapIfNeeded(); } catch (e) {}
         return;
       }
       targetY = clamp(targetY + clamp(vy, -maxSpeed, maxSpeed), 0, maxScroll());
@@ -937,6 +955,8 @@ document.addEventListener("DOMContentLoaded", () => {
     window.addEventListener('wheel', (e) => {
       const delta = e.deltaY || 0;
       if (!delta) return;
+      if (snapping) snapping = false;
+      lastDir = Math.sign(delta) || lastDir;
       // --- banner → wrapper one-tick snap (down) ---
       if (!__bannerSnapBusy && __banner && __wrapper && delta > 0) {
         const bannerBottom = __banner.offsetTop + __banner.offsetHeight;
@@ -994,6 +1014,8 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!animating) window.scrollTo(0, targetY);
     });
   }
+      requestAnimationFrame(raf);
+    }
 
   // 전역 노출
   window.initInertiaScroll = initInertiaScroll;
@@ -1011,37 +1033,6 @@ document.addEventListener("DOMContentLoaded", () => {
 	snapRestDuration: 1100,               
   	snapRestEase: 'sine' 
   });
-
-    function performSnapIfNeeded(){
-      if (!snapCfg.enabled) return;
-      const list = Array.from(document.querySelectorAll(snapCfg.selector));
-      if (!list.length) return;
-      const y = scroller.scrollTop;
-      const vh = scroller.clientHeight;
-      const th = snapCfg.thresholdPx != null ? snapCfg.thresholdPx : Math.round(vh * 0.12);
-      let best = null;
-      for (const el of list){
-        const top = Math.max(0, el.offsetTop - snapCfg.headerOffset);
-        const d = Math.abs(top - y);
-        if (!best || d < best.d) best = {top, d};
-      }
-      if (best && best.d <= th){
-        animateSnap(y, best.top);
-      }
-    }
-    function animateSnap(from, to){
-      snapping = true;
-      const dur = __snapRestDur;
-      const ease = __snapRestEaseFn; // configurable
-      const start = performance.now();
-      function raf(now){
-        if (!snapping) return; // aborted by user
-        const p = Math.min(1, (now - start) / dur);
-        const y = from + (to - from) * ease(p);
-        scroller.scrollTop = y;
-        if (p < 1 && !running) requestAnimationFrame(raf);
-        else snapping = false;
-      }
       requestAnimationFrame(raf);
     }
 })();
