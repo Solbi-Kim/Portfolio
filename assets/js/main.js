@@ -995,16 +995,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
 /* ===== Simple Threshold Snap (banner -> wrapper) — Addon =====*/
 (function(){
+  if (window.__FullSpanSnapInitLocked) return;
+  window.__FullSpanSnapInitLocked = true;
+
   const banner  = document.querySelector('.donut-banner');
   const wrapper = document.getElementById('wrapper');
   if (!banner || !wrapper) return;
 
-  const HEADER_OFFSET = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--header-h')) || 0;
+  const root  = document.documentElement;
+  const body  = document.body;
+  const HEADER_OFFSET = parseInt(getComputedStyle(root).getPropertyValue('--header-h')) || 0;
 
   // ===== 튜닝 포인트 =====
-  const DURATION_MS   = 6000;                        // 전체 구간 시간(느긋하게)
-  const EASE_CURVE    = 'bezier(0.22, 1, 0.23, 1)';  // 초반 느리고 후반 길게(soft ease-out)
-  const CANCEL_FORCE_DELTA = 6;                      // 강한 반대 방향 입력이면 즉시 취소
+  const DURATION_MS   = 1500;                        // 전체 구간 시간
+  const EASE_CURVE    = 'sine';                      // 아주 완만한 ease-out
+  const CANCEL_FORCE_DELTA = 6;                      // 강한 반대 입력이면 즉시 취소
 
   // ----- cubic-bezier helper & parser -----
   function Bezier(mX1, mY1, mX2, mY2){
@@ -1052,10 +1057,34 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   const ease = parseEase(EASE_CURVE);
 
+  // ----- CSS scroll-snap / smooth-behavior 잠금 -----
+  let saved = null;
+  function lockCSS(){ // 애니메이션 시작 전에 호출
+    if (saved) return;
+    saved = {
+      htmlSnap: root.style.scrollSnapType,
+      bodySnap: body.style.scrollSnapType,
+      htmlBeh:  root.style.scrollBehavior,
+      bodyBeh:  body.style.scrollBehavior
+    };
+    root.style.scrollSnapType = 'none';
+    body.style.scrollSnapType = 'none';
+    root.style.scrollBehavior = 'auto';
+    body.style.scrollBehavior = 'auto';
+  }
+  function unlockCSS(){ // 애니메이션 종료 후 복원
+    if (!saved) return;
+    root.style.scrollSnapType = saved.htmlSnap || '';
+    body.style.scrollSnapType = saved.bodySnap || '';
+    root.style.scrollBehavior = saved.htmlBeh || '';
+    body.style.scrollBehavior = saved.bodyBeh || '';
+    saved = null;
+  }
+
   // ----- full-span animator -----
   let running = false, rafId = 0, start = 0, fromY = 0, toY = 0;
 
-  function stop(){ running=false; if (rafId) cancelAnimationFrame(rafId); rafId = 0; }
+  function stop(){ running=false; if (rafId) cancelAnimationFrame(rafId); rafId = 0; unlockCSS(); }
   function animate(){
     if (!running) return;
     const now = performance.now();
@@ -1063,7 +1092,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const y = fromY + (toY - fromY) * ease(p);
     window.scrollTo(0, y);
     if (p < 1) rafId = requestAnimationFrame(animate);
-    else running = false;
+    else { running = false; unlockCSS(); }
   }
 
   function inBanner(y){
@@ -1087,6 +1116,7 @@ document.addEventListener("DOMContentLoaded", () => {
     toY   = Math.max(0, wrapper.offsetTop - HEADER_OFFSET);
     start = performance.now();
     running = true;
+    lockCSS();
     animate();
   }
 
@@ -1103,3 +1133,4 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener('keydown', stop,        { capture:true, passive:false });
   window.addEventListener('mousedown', stop,      { capture:true, passive:true  });
 })();
+
