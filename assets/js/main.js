@@ -1007,10 +1007,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ---- 튜닝 포인트 ----
   const HEADER_OFFSET = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--header-h')) || 0;
-  const THRESHOLD_PX  = 24;     // 메인이 이만큼이라도 보이면 스냅 준비
+  const THRESHOLD_PX  = 160;     // 메인이 이만큼이라도 보이면 스냅 준비
   const DELAY_MS      = 90;     // 살짝 기다렸다가(관성 흘러가게) 스냅
-  const DURATION_MS   = 1200;   // 스냅 시간
-  const EASE_CURVE    = 'bezier(0.16, 1, 0.3, 1)'; // 느린 출발-긴 꼬리
+  const DURATION_MS   = 2400;   // 스냅 시간
+  const EASE_CURVE    = 'bezier(0.3, 1, 0.6, 1)'; // 느린 출발-긴 꼬리
 
   // ---- cubic-bezier helper ----
   function Bezier(mX1, mY1, mX2, mY2){
