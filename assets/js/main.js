@@ -869,8 +869,8 @@ function __headerOffset(){
     try { document.documentElement.style.scrollBehavior = 'auto'; } catch (e) {}
     const {
       friction = 0.90,      // 0.85~0.97에서 조절: 낮을수록 더 길게 흐름
-      wheelBoost = 0.2,     // 휠 1틱당 가속도 배율
-      maxSpeed = 16,        // 프레임당 최대 이동(px)
+      wheelBoost = 0.4,     // 휠 1틱당 가속도 배율
+      maxSpeed = 24,        // 프레임당 최대 이동(px)
       allowNativeInside = '[data-native-scroll], .scroll-native',
     } = opts;
 
@@ -983,9 +983,9 @@ function __headerOffset(){
   window.initInertiaScroll = initInertiaScroll;
   // 바로 적용
   initInertiaScroll({
-    friction: 0.7,    // 작을수록 덜미끄러짐
+    friction: 0.8,    // 작을수록 덜미끄러짐
     wheelBoost: 0.4,   // 관성
-    maxSpeed: 14,   // 프레임당 최대 이동량 제한
+    maxSpeed: 18,   // 프레임당 최대 이동량 제한
 	keyStep: 56,      // 키보드이동량
     force: true         // 터치/트랙패드 환경에서도 강제 활성
   });
