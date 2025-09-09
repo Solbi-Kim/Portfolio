@@ -868,9 +868,9 @@ function __headerOffset(){
 
     try { document.documentElement.style.scrollBehavior = 'auto'; } catch (e) {}
     const {
-      friction = 0.95,      // 0.85~0.97에서 조절: 낮을수록 더 길게 흐름
-      wheelBoost = 0.8,     // 휠 1틱당 가속도 배율
-      maxSpeed = 40,        // 프레임당 최대 이동(px)
+      friction = 0.98,      // 0.85~0.97에서 조절: 낮을수록 더 길게 흐름
+      wheelBoost = 0.3,     // 휠 1틱당 가속도 배율
+      maxSpeed = 20,        // 프레임당 최대 이동(px)
       allowNativeInside = '[data-native-scroll], .scroll-native',
     } = opts;
 
