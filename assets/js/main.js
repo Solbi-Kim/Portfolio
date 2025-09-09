@@ -602,6 +602,7 @@ function createFloatingHeart(emoji) {
     $window.on("wheel", function (e) {
       
       if (window.__InertiaScrollInit) return; // inertia active → skip legacy snap
+if (window.__InertiaScrollInit) return; // inertia active -> skip snap
       if (!$banner.length) return;
       if (!snappedBanner && e.originalEvent.deltaY > 0) {
         const bannerBottom = $banner.offset().top + $banner.outerHeight();
@@ -814,58 +815,55 @@ document.addEventListener("DOMContentLoaded", () => {
     const __wrapper = document.getElementById('wrapper');
     let __bannerSnapBusy = false;
 
-	function __qsBezier(mX1, mY1, mX2, mY2){  //Bezier 배열 선언
- 		const NEWTON_ITER=4, NEWTON_MIN_SLOPE=0.001, SUBDIV_MAX_ITER=10, SUBDIV_PRECISION=1e-7;
-  		const kSplineTableSize=11, kSampleStep=1/(kSplineTableSize-1);
-  		const sampleValues = (typeof Float32Array==='function') ? new Float32Array(kSplineTableSize) : new Array(kSplineTableSize);
-  		function A(a1,a2){return 1-3*a2+3*a1} function B(a1,a2){return 3*a2-6*a1} function C(a1){return 3*a1}
-  		function calcBezier(t,a1,a2){return ((A(a1,a2)*t + B(a1,a2))*t + C(a1))*t}
-  		function slope(t,a1,a2){return 3*A(a1,a2)*t*t + 2*B(a1,a2)*t + C(a1)}
-  		for (let i=0;i<kSplineTableSize;++i) sampleValues[i]=calcBezier(i*kSampleStep,mX1,mX2);
-  		function getTForX(x){
-    		let a=0, current=1, last=kSplineTableSize-1;
-    		for (; current!==last && sampleValues[current] <= x; ++current) a += kSampleStep;
-    		--current;
-    		const dist=(x - sampleValues[current])/(sampleValues[current+1]-sampleValues[current]);
-    		let t=a + dist*kSampleStep, s=slope(t,mX1,mX2);
-    		if (s >= NEWTON_MIN_SLOPE){ for (let i=0;i<NEWTON_ITER;++i){ const curX=calcBezier(t,mX1,mX2)-x; t -= curX/(slope(t,mX1,mX2)||1); } return t; }
-    		if (s===0) return t;
-    		let b=a+kSampleStep, curX;
-    		for (let i=0;i<SUBDIV_MAX_ITER && Math.abs(curX=calcBezier(t,mX1,mX2)-x)>SUBDIV_PRECISION; i++) (curX>0 ? b=t : a=t), t=(a+b)/2;
-    		return t;
-  		}
-  		return t => t<=0?0 : t>=1?1 : calcBezier(getTForX(t), mY1, mY2);
-		}
-		function __qsParseEase(e){
-  		if (typeof e==='function') return e;
-  		if (Array.isArray(e) && e.length===4) return __qsBezier(e[0],e[1],e[2],e[3]);
-  		if (typeof e==='string' && e.startsWith('bezier(')){
-    		const n=e.slice(7,-1).split(',').map(s=>parseFloat(s));
-    		if (n.length===4 && n.every(v=>!Number.isNaN(v))) return __qsBezier(n[0],n[1],n[2],n[3]);
-  		}
-  		if (e==='sine')  return t=>1-Math.cos((t*Math.PI)/2);
-  		if (e==='cubic') return t=>1-Math.pow(1-t,3);
-  		if (e==='quart') return t=>1-Math.pow(1-t,4);
-  		if (e==='quint') return t=>1-Math.pow(1-t,5);
-  		return t=>1-Math.cos((t*Math.PI)/2);
-	}
+// === Snap re-arm + global wheel blocker ===
+function __headerOffset(){
+  var root = document.documentElement;
+  var v = parseInt(getComputedStyle(root).getPropertyValue('--header-h'));
+  return isFinite(v) ? v : 0;
+}
+(function(){
+  if (!__banner) return;
+  var ARM_THRESHOLD = 0.2;
+  try {
+    var io = new IntersectionObserver(function(entries){
+      for (var i=0;i<entries.length;i++){
+        var e = entries[i];
+        if (e.target === __banner){
+          if (e.isIntersecting && e.intersectionRatio > ARM_THRESHOLD){
+            __bannerSnapBusy = false;
+          }
+        }
+      }
+    }, { threshold: [0, ARM_THRESHOLD, 0.5, 1] });
+    io.observe(__banner);
+  } catch(_){
+    window.addEventListener('scroll', function(){
+      var bannerBottom = __banner.offsetTop + __banner.offsetHeight - __headerOffset();
+      if (window.scrollY < bannerBottom) __bannerSnapBusy = false;
+    }, { passive:true });
+  }
+})();
 
+(function(){
+  function blocker(e){
+    if (window.__SnapAnimating){
+      try { e.stopImmediatePropagation(); e.preventDefault(); } catch(_){}
+    }
+  }
+  window.addEventListener('wheel', blocker, { capture:true, passive:false });
+})();
 
-
-    function __quickSnap(toY, dur=1500){
-	    try { window.__SnapAnimating = true; } catch (_) {}
-		const start = performance.now();
-  		const fromY = (document.scrollingElement || document.documentElement).scrollTop;
-  		const ease = __qsParseEase(window.__SNAP_EASE || 'bezier(0.16,1,0.3,1)'); // sine, bezier ETC
-		
-      	function raf(now){
+    function __quickSnap(toY, dur=520){
+      let startY = window.scrollY; const diff = toY - startY;
+      const start = performance.now();
+      const ease = t => 1 - Math.pow(1 - t, 3); // easeOutCubic
+      function raf(now){
         const p = Math.min(1, (now - start) / dur);
-    	const y = fromY + (toY - fromY) * ease(p);
-    	(document.scrollingElement || document.documentElement).scrollTop = y;
-    	if (p < 1) requestAnimationFrame(raf);
-    	else { try { window.__SnapAnimating = false; } catch (_) {} }
-  		}
-  	requestAnimationFrame(raf);
+        const y = startY + diff * ease(p);
+        window.scrollTo(0, y);
+        if (p < 1) requestAnimationFrame(raf); else __bannerSnapBusy = false;
+      }
+      requestAnimationFrame(raf);
     }
 
     try { document.documentElement.style.scrollBehavior = 'auto'; } catch (e) {}
@@ -920,9 +918,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     window.addEventListener('wheel', (e) => {
-		if (window.__SnapAnimating) return;
-	    const delta = e.deltaY || 0;
-    	if (!delta) return;
+      if (window.__SnapAnimating) return;
+		const delta = e.deltaY || 0;
+      if (!delta) return;
       // --- banner → wrapper one-tick snap (down) ---
       if (!__bannerSnapBusy && __banner && __wrapper && delta > 0) {
         const bannerBottom = __banner.offsetTop + __banner.offsetHeight;
@@ -934,7 +932,7 @@ document.addEventListener("DOMContentLoaded", () => {
           // 관성 루프 중이면 정지
           try { vy = 0; } catch(_){ }
           try { animating = false; if (rafId) cancelAnimationFrame(rafId); } catch(_){ }
-          __quickSnap(__wrapper.offsetTop);
+          __quickSnap(Math.max(0, __wrapper.offsetTop - __headerOffset()), (window.__SNAP_DUR||1500));
           return; // 이 휠은 여기서 소비
         }
       }
@@ -985,9 +983,9 @@ document.addEventListener("DOMContentLoaded", () => {
   window.initInertiaScroll = initInertiaScroll;
   // 바로 적용
   initInertiaScroll({
-    friction: 0.9,    // 마찰
-    wheelBoost: 0.5,   // 감도
-    maxSpeed: 25,       // 프레임당 최대 이동량 제한
+    friction: 0.975,    // 길게 감쇠
+    wheelBoost: 0.75,   // 한 틱 감도 낮춤
+    maxSpeed: 28,       // 프레임당 최대 이동량 제한
     force: true         // 터치/트랙패드 환경에서도 강제 활성
   });
 
