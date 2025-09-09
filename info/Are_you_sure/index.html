@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+  <style>html { scroll-behavior: auto !important; }</style>
   <meta charset="UTF-8" />
   <title>Info | shovideo</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -231,5 +232,19 @@
 
   <!-- 전역 스크롤 이징이 필요하다면 main.js 포함 (옵션) -->
   <script src="main.js" defer></script>
+  <script defer>
+  window.addEventListener('DOMContentLoaded', () => {
+    if (!window.__InertiaScrollInit && typeof window.initInertiaScroll === 'function') {
+      window.initInertiaScroll({
+        friction: 0.90,   // 더 덜 미끄럽게
+        wheelBoost: 0.48, // 한 칸 이동량 줄임
+        maxSpeed: 20,     // 프레임당 이동량 제한
+        force: true,      // 트랙패드/터치여도 항상 적용
+        allowNativeInside: '[data-native-scroll], .scroll-native'
+      });
+    }
+  });
+</script>
+
 </body>
 </html>
