@@ -983,9 +983,10 @@ function __headerOffset(){
   window.initInertiaScroll = initInertiaScroll;
   // 바로 적용
   initInertiaScroll({
-    friction: 0.975,    // 길게 감쇠
-    wheelBoost: 0.75,   // 한 틱 감도 낮춤
-    maxSpeed: 28,       // 프레임당 최대 이동량 제한
+    friction: 0.7,    // 작을수록 덜미끄러짐
+    wheelBoost: 0.4,   // 관성
+    maxSpeed: 14,   // 프레임당 최대 이동량 제한
+	keyStep: 56,      // 키보드이동량
     force: true         // 터치/트랙패드 환경에서도 강제 활성
   });
 
