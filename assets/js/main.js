@@ -804,7 +804,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
-//SorollEaseout
+//ScrollEaseout
 (() => {
   if (window.__InertiaScrollInit) return;
   window.__InertiaScrollInit = true;
@@ -853,7 +853,7 @@ function __headerOffset(){
   window.addEventListener('wheel', blocker, { capture:true, passive:false });
 })();
 
-    function __quickSnap(toY, dur=520){
+    function __quickSnap(toY, dur=700){
       let startY = window.scrollY; const diff = toY - startY;
       const start = performance.now();
       const ease = t => 1 - Math.pow(1 - t, 3); // easeOutCubic
@@ -868,9 +868,9 @@ function __headerOffset(){
 
     try { document.documentElement.style.scrollBehavior = 'auto'; } catch (e) {}
     const {
-      friction = 0.92,      // 0.85~0.97에서 조절: 낮을수록 더 길게 흐름
-      wheelBoost = 1.0,     // 휠 1틱당 가속도 배율
-      maxSpeed = 60,        // 프레임당 최대 이동(px)
+      friction = 0.95,      // 0.85~0.97에서 조절: 낮을수록 더 길게 흐름
+      wheelBoost = 0.8,     // 휠 1틱당 가속도 배율
+      maxSpeed = 40,        // 프레임당 최대 이동(px)
       allowNativeInside = '[data-native-scroll], .scroll-native',
     } = opts;
 
