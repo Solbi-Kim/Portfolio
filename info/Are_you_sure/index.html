@@ -69,7 +69,7 @@
     <button id="fitBtn" aria-label="Fit to 80vw">⤢ Fit</button>
   </header>
 
-  <main id="pdf-container" data-native-scroll>Loading PDF...</main>
+  <main id="pdf-container" >Loading PDF...</main>
 
   <!-- Consolidated PDF.js logic -->
   <script type="module">
@@ -251,7 +251,7 @@
     };
 
     const {
-      friction = 0.90,           // ↓ 낮을수록 빨리 멈춤(덜 미끄러짐) 0.85~0.97
+      friction = 0.98,           // ↓ 낮을수록 빨리 멈춤(덜 미끄러짐) 0.85~0.97
       wheelBoost = 0.25,         // 휠 1틱당 가속도 배율(한 칸 이동량) 0.2~0.35
       maxSpeed = 16,             // 프레임당 최대 이동(px)
       keyStep = 56,              // 키보드 한 번 이동(px)
@@ -355,40 +355,6 @@
   });
 })();
 </script>
-  <script>
-(function(){
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  const el = document.getElementById('pdf-container');
-  if (!el) return;
-  el.setAttribute('data-native-scroll',''); // 윈도우 이징 패스 표시
-
-  const ease = (t)=> t<0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2; // easeInOutCubic
-  let anim=false, start=0, from=0, to=0, dur=650;
-  const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
-  const max=()=>Math.max(0, el.scrollHeight - el.clientHeight);
-
-  function go(y){
-    to = clamp(Math.round(y), 0, max());
-    if (!anim){ anim=true; start=performance.now(); from=el.scrollTop; requestAnimationFrame(tick); }
-  }
-  function tick(now){
-    const p = clamp((now - start)/dur, 0, 1);
-    el.scrollTop = from + (to - from) * ease(p);
-    if (p < 1 && Math.abs(to - el.scrollTop) > 0.5) requestAnimationFrame(tick);
-    else { anim=false; el.scrollTop = to; }
-  }
-
-  el.addEventListener('wheel', (e)=>{
-    if (el.scrollHeight <= el.clientHeight + 1) return; // 스크롤 불가면 패스
-    const dy = e.deltaY || 0; if (!dy) return;
-    e.preventDefault();
-    dur = window.__PDF_WHEEL_DUR  || 650;
-    const step = (window.__PDF_WHEEL_STEP || 110) * (dy > 0 ? 1 : -1);
-    go(el.scrollTop + step);
-  }, { passive:false });
-})();
-</script>
-
 
 
 
