@@ -69,7 +69,7 @@
     <button id="fitBtn" aria-label="Fit to 80vw">⤢ Fit</button>
   </header>
 
-  <main id="pdf-container">Loading PDF...</main>
+  <main id="pdf-container" data-native-scroll>Loading PDF...</main>
 
   <!-- Consolidated PDF.js logic -->
   <script type="module">
@@ -235,8 +235,7 @@
   <script>
   // PDF.js 모듈보다 늦게라도 호출되게 'load'로
   window.addEventListener('load', () => {
-    // 혹시 플래그가 잘못 true로 남아있어도 강제로 재초기화 원하면 아래 if를 조금 바꿀 수 있음
-    if (typeof window.initInertiaScroll === 'function' && !window.__InertiaScrollInit) {
+    if (!window.__InertiaScrollInit && typeof window.initInertiaScroll === 'function') {
       window.initInertiaScroll({
         friction: 0.90,
         wheelBoost: 0.48,
@@ -247,6 +246,51 @@
     }
   });
 </script>
+<script>
+(function(){
+  // 모션 줄이기면 비활성
+  if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  const el = document.getElementById('pdf-container');
+  if (!el) return;
+
+  // 윈도우 이징이 이 영역은 건너뛰게 표시
+  el.setAttribute('data-native-scroll','');
+
+  const ease = (t)=> t<0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2; // easeInOutCubic
+  let anim=false, start=0, from=0, to=0, dur=650;
+
+  const clamp = (v,a,b)=>Math.min(b,Math.max(a,v));
+  const max   = ()=>Math.max(0, el.scrollHeight - el.clientHeight);
+
+  function go(y){
+    to = clamp(Math.round(y), 0, max());
+    if (!anim){
+      anim = true; start = performance.now(); from = el.scrollTop;
+      requestAnimationFrame(tick);
+    }
+  }
+  function tick(now){
+    const p = clamp((now - start)/dur, 0, 1);
+    const y = from + (to - from) * ease(p);
+    el.scrollTop = y;
+    if (p < 1 && Math.abs(to - y) > 0.5) requestAnimationFrame(tick);
+    else { anim = false; el.scrollTop = to; }
+  }
+
+  el.addEventListener('wheel', (e)=>{
+    // 컨테이너가 실제로 스크롤 가능할 때만 개입
+    if (el.scrollHeight <= el.clientHeight + 1) return;
+    const dy = e.deltaY || 0;
+    if (!dy) return;
+    e.preventDefault();
+    dur  = window.__PDF_WHEEL_DUR  || 650;  // 감속 길이
+    const step = (window.__PDF_WHEEL_STEP || 110) * (dy > 0 ? 1 : -1); // 한 칸 이동량
+    go(el.scrollTop + step);
+  }, { passive:false });
+})();
+</script>
+
 
 </body>
 </html>
