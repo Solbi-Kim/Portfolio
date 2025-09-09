@@ -232,14 +232,16 @@
 
   <!-- 전역 스크롤 이징이 필요하다면 main.js 포함 (옵션) -->
   <script src="/assets/js/main.js" defer></script>
-  <script defer>
-  window.addEventListener('DOMContentLoaded', () => {
-    if (!window.__InertiaScrollInit && typeof window.initInertiaScroll === 'function') {
+  <script>
+  // PDF.js 모듈보다 늦게라도 호출되게 'load'로
+  window.addEventListener('load', () => {
+    // 혹시 플래그가 잘못 true로 남아있어도 강제로 재초기화 원하면 아래 if를 조금 바꿀 수 있음
+    if (typeof window.initInertiaScroll === 'function' && !window.__InertiaScrollInit) {
       window.initInertiaScroll({
-        friction: 0.90,   // 더 덜 미끄럽게
-        wheelBoost: 0.48, // 한 칸 이동량 줄임
-        maxSpeed: 20,     // 프레임당 이동량 제한
-        force: true,      // 트랙패드/터치여도 항상 적용
+        friction: 0.90,
+        wheelBoost: 0.48,
+        maxSpeed: 20,
+        force: true,
         allowNativeInside: '[data-native-scroll], .scroll-native'
       });
     }
