@@ -600,11 +600,15 @@ function createFloatingHeart(emoji) {
 
     // wheel snap off banner to wrapper
     $window.on("wheel", function (e) {
+      
+      if (window.__InertiaScrollInit) return; // inertia active → skip legacy snap
+if (window.__InertiaScrollInit) return; // inertia active -> skip snap
       if (!$banner.length) return;
       if (!snappedBanner && e.originalEvent.deltaY > 0) {
         const bannerBottom = $banner.offset().top + $banner.outerHeight();
         if (window.scrollY < bannerBottom - 100) {
-          e.preventDefault();
+          e.stopImmediatePropagation();
+      e.preventDefault();
           snappedBanner = true;
           smoothScrollTo($wrapper.offset().top);
           setTimeout(() => {
@@ -806,6 +810,24 @@ document.addEventListener("DOMContentLoaded", () => {
   window.__InertiaScrollInit = true;
 
   function initInertiaScroll(opts = {}) {
+    // snap-from-banner → wrapper on first wheel down
+    const __banner = document.querySelector('.donut-banner');
+    const __wrapper = document.getElementById('wrapper');
+    let __bannerSnapBusy = false;
+    function __quickSnap(toY, dur=520){
+      let startY = window.scrollY; const diff = toY - startY;
+      const start = performance.now();
+      const ease = t => 1 - Math.pow(1 - t, 3); // easeOutCubic
+      function raf(now){
+        const p = Math.min(1, (now - start) / dur);
+        const y = startY + diff * ease(p);
+        window.scrollTo(0, y);
+        if (p < 1) requestAnimationFrame(raf); else __bannerSnapBusy = false;
+      }
+      requestAnimationFrame(raf);
+    }
+
+    try { document.documentElement.style.scrollBehavior = 'auto'; } catch (e) {}
     const {
       friction = 0.92,      // 0.85~0.97에서 조절: 낮을수록 더 길게 흐름
       wheelBoost = 1.0,     // 휠 1틱당 가속도 배율
@@ -816,7 +838,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // 접근성/터치 디바이스에서 비활성
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-    if (isTouch) return;
+    if (isTouch && !opts.force) return;
 
     let rafId = 0;
     let vy = 0;                  // 세로 속도(픽셀/프레임)
@@ -859,6 +881,22 @@ document.addEventListener("DOMContentLoaded", () => {
     window.addEventListener('wheel', (e) => {
       const delta = e.deltaY || 0;
       if (!delta) return;
+      // --- banner → wrapper one-tick snap (down) ---
+      if (!__bannerSnapBusy && __banner && __wrapper && delta > 0) {
+        const bannerBottom = __banner.offsetTop + __banner.offsetHeight;
+        // 트리거 영역: 배너 하단 - 100px 위까지
+        if (window.scrollY < bannerBottom - 100) {
+          e.stopImmediatePropagation();
+          e.preventDefault();
+          __bannerSnapBusy = true;
+          // 관성 루프 중이면 정지
+          try { vy = 0; } catch(_){ }
+          try { animating = false; if (rafId) cancelAnimationFrame(rafId); } catch(_){ }
+          __quickSnap(__wrapper.offsetTop);
+          return; // 이 휠은 여기서 소비
+        }
+      }
+      
       if (canScroll(e.target, delta)) return;  // 내부 스크롤 통과
 
       e.preventDefault();
@@ -869,7 +907,7 @@ document.addEventListener("DOMContentLoaded", () => {
         animating = true;
         rafId = requestAnimationFrame(loop);
       }
-    }, { passive: false });
+    }, { capture: true, passive: false });
 
     // 키보드도 관성에 태움 (선택)
     window.addEventListener('keydown', (e) => {
@@ -905,157 +943,47 @@ document.addEventListener("DOMContentLoaded", () => {
   window.initInertiaScroll = initInertiaScroll;
   // 바로 적용
   initInertiaScroll({
-    friction: 0.93,     // 더 길게 흐르게 하고 싶으면 0.95 근처
-    wheelBoost: 1.0,    // 0.8~1.2 사이 취향 조절
-    maxSpeed: 70
+    friction: 0.975,    // 길게 감쇠
+    wheelBoost: 0.75,   // 한 틱 감도 낮춤
+    maxSpeed: 28,       // 프레임당 최대 이동량 제한
+    force: true         // 터치/트랙패드 환경에서도 강제 활성
   });
+
+    function performSnapIfNeeded(){
+      if (!snapCfg.enabled) return;
+      const list = Array.from(document.querySelectorAll(snapCfg.selector));
+      if (!list.length) return;
+      const y = scroller.scrollTop;
+      const vh = scroller.clientHeight;
+      const th = snapCfg.thresholdPx != null ? snapCfg.thresholdPx : Math.round(vh * 0.12);
+      let best = null;
+      for (const el of list){
+        const top = Math.max(0, el.offsetTop - snapCfg.headerOffset);
+        const d = Math.abs(top - y);
+        if (!best || d < best.d) best = {top, d};
+      }
+      if (best && best.d <= th){
+        animateSnap(y, best.top);
+      }
+    }
+    function animateSnap(from, to){
+      snapping = true;
+      const dur = 420;
+      const ease = t => 1 - Math.pow(1 - t, 4); // easeOutQuart
+      const start = performance.now();
+      function raf(now){
+        if (!snapping) return; // aborted by user
+        const p = Math.min(1, (now - start) / dur);
+        const y = from + (to - from) * ease(p);
+        scroller.scrollTop = y;
+        if (p < 1 && !running) requestAnimationFrame(raf);
+        else snapping = false;
+      }
+      requestAnimationFrame(raf);
+    }
 })();
 
 
 
 
 })(jQuery);  //necessary line
-
-// === APPENDED: Full-span One-shot Snap (overlay/locked) ===
-/* ===== Full-span One-shot Snap — OVERLAY SAFE (no modifications to existing code) =====
-   - Attaches capture-phase wheel handlers; does NOT touch jQuery or existing handlers.
-   - Only prevents default when starting the banner→main snap.
-   - Locks CSS scroll-snap/smooth during anim (via <style> !important), then restores.
-*/
-(function(){
-  try {
-    if (window.__FullSpanSnapOverlay) return;
-    window.__FullSpanSnapOverlay = true;
-
-    var banner  = document.querySelector('.donut-banner');
-    var wrapper = document.getElementById('wrapper');
-    if (!banner || !wrapper) return;
-
-    var root     = document.documentElement;
-    var scroller = document.scrollingElement || root;
-    var HEADER_OFFSET = parseInt(getComputedStyle(root).getPropertyValue('--header-h')) || 0;
-
-    // ---- Tunables ----
-    var DURATION_MS = 1800;                // 전체 구간 시간
-    var EASE_CURVE  = 'sine';              // 'sine'가 가장 페이지 넘김 느낌
-    var CANCEL_FORCE_DELTA = 8;            // 반대방향 강한 휠이면 즉시 취소
-
-    // ---- Easing helpers ----
-    function Bezier(mX1, mY1, mX2, mY2){
-      var NEWTON_ITER=4, NEWTON_MIN_SLOPE=0.001, SUBDIV_MAX_ITER=10, SUBDIV_PRECISION=1e-7;
-      var kSplineTableSize=11, kSampleStep=1.0/(kSplineTableSize-1);
-      var sampleValues=new Float32Array?k=new Float32Array(kSplineTableSize):new Array(kSplineTableSize);
-      var k=sampleValues; // alias
-      function A(a1,a2){return 1-3*a2+3*a1} function B(a1,a2){return 3*a2-6*a1} function C(a1){return 3*a1}
-      function calcBezier(t,a1,a2){return ((A(a1,a2)*t + B(a1,a2))*t + C(a1))*t}
-      function slope(t,a1,a2){return 3*A(a1,a2)*t*t + 2*B(a1,a2)*t + C(a1)}
-      for (var i=0;i<kSplineTableSize;++i) k[i]=calcBezier(i*kSampleStep,mX1,mX2);
-      function getTForX(x){
-        var intervalStart=0, currentSample=1, lastSample=kSplineTableSize-1;
-        for (; currentSample!==lastSample && k[currentSample] <= x; ++currentSample) intervalStart += kSampleStep;
-        --currentSample;
-        var dist=(x - k[currentSample])/(k[currentSample+1]-k[currentSample]);
-        var guessForT=intervalStart + dist * kSampleStep;
-        var initialSlope = slope(guessForT, mX1, mX2);
-        if (initialSlope >= NEWTON_MIN_SLOPE){
-          for (var j=0;j<NEWTON_ITER;++j){
-            var s = slope(guessForT,mX1,mX2); if (s===0) return guessForT;
-            var curX = calcBezier(guessForT,mX1,mX2)-x;
-            guessForT -= curX / s;
-          }
-          return guessForT;
-        } else if (initialSlope===0){ return guessForT; }
-        var a=intervalStart, b=intervalStart+kSampleStep, curX, t, n=0;
-        do { t=(a+b)/2; curX=calcBezier(t,mX1,mX2)-x; if (curX>0) b=t; else a=t; }
-        while (Math.abs(curX)>SUBDIV_PRECISION && ++n<SUBDIV_MAX_ITER);
-        return t;
-      }
-      return function(t){ if (t<=0) return 0; if (t>=1) return 1; var paramT = getTForX(t); return calcBezier(paramT, mY1, mY2); };
-    }
-    function parseEase(e){
-      if (typeof e==='function') return e;
-      if (Array.isArray(e) && e.length===4) return Bezier(e[0], e[1], e[2], e[3]);
-      if (typeof e==='string' && e.indexOf('bezier(')===0){
-        var n=e.slice(7,-1).split(',').map(function(s){return parseFloat(s)});
-        if (n.length===4 && n.every(function(v){return !Number.isNaN(v)})) return Bezier(n[0],n[1],n[2],n[3]);
-      }
-      if (e==='sine')  return function(t){return 1-Math.cos((t*Math.PI)/2)};
-      if (e==='cubic') return function(t){return 1-Math.pow(1-t,3)};
-      if (e==='quart') return function(t){return 1-Math.pow(1-t,4)};
-      if (e==='quint') return function(t){return 1-Math.pow(1-t,5)};
-      return function(t){return 1-Math.cos((t*Math.PI)/2)}; // default sine
-    }
-    var ease = parseEase(EASE_CURVE);
-
-    // ---- CSS lock ----
-    var styleEl = null;
-    function lockCSS(){
-      if (styleEl) return;
-      styleEl = document.createElement('style');
-      styleEl.id = '__snap_lock_style__';
-      styleEl.textContent = "html, body { scroll-snap-type: none !important; scroll-behavior: auto !important; }";
-      document.head.appendChild(styleEl);
-    }
-    function unlockCSS(){
-      if (styleEl && styleEl.parentNode) styleEl.parentNode.removeChild(styleEl);
-      styleEl = null;
-    }
-
-    // ---- Helpers ----
-    function inBanner(y){
-      var top = banner.offsetTop;
-      var bottom = top + banner.offsetHeight - (HEADER_OFFSET || 0);
-      return y < bottom;
-    }
-
-    // ---- Animator ----
-    var running=false, rafId=0, start=0, fromY=0, toY=0;
-    function stop(){ running=false; if (rafId) cancelAnimationFrame(rafId); rafId=0; unlockCSS(); }
-    function animate(){
-      if (!running) return;
-      var now = performance.now();
-      var p = Math.min(1, (now - start) / DURATION_MS);
-      var y = fromY + (toY - fromY) * ease(p);
-      scroller.scrollTop = y;
-      if (p < 1) { rafId = requestAnimationFrame(animate); }
-      else { running=false; unlockCSS(); }
-    }
-
-    // ---- Capture handlers ----
-    function onWheelStart(e){
-      try {
-        var dy = (e && (e.deltaY || 0)) || 0;
-        if (dy <= 0) return; // only down
-        var y = scroller.scrollTop;
-        if (!inBanner(y)) return; // only inside banner
-        if (running) return;      // already animating
-
-        // Start full-span snap
-        e.stopImmediatePropagation();
-        e.preventDefault();
-
-        fromY = y;
-        toY   = Math.max(0, wrapper.offsetTop - (HEADER_OFFSET || 0));
-        start = performance.now();
-        running = true;
-        lockCSS();
-        animate();
-      } catch (err) { console.error('[FullSpanSnap Overlay] onWheelStart error', err); }
-    }
-    function onWheelCancel(e){
-      try {
-        if (!running) return;
-        var dy = (e && (e.deltaY || 0)) || 0;
-        if (dy < -CANCEL_FORCE_DELTA) stop();
-      } catch (err) { console.error('[FullSpanSnap Overlay] onWheelCancel error', err); }
-    }
-
-    window.addEventListener('wheel', onWheelStart,  { capture:true, passive:false });
-    window.addEventListener('wheel', onWheelCancel, { capture:true, passive:false });
-    window.addEventListener('touchstart', stop,     { capture:true, passive:true });
-    window.addEventListener('keydown', stop,        { capture:true, passive:false });
-    window.addEventListener('mousedown', stop,      { capture:true, passive:true });
-  } catch (err) {
-    console.error('[FullSpanSnap Overlay] init error', err);
-  }
-})();
