@@ -602,7 +602,6 @@ function createFloatingHeart(emoji) {
     $window.on("wheel", function (e) {
       
       if (window.__InertiaScrollInit) return; // inertia active → skip legacy snap
-if (window.__InertiaScrollInit) return; // inertia active -> skip snap
       if (!$banner.length) return;
       if (!snappedBanner && e.originalEvent.deltaY > 0) {
         const bannerBottom = $banner.offset().top + $banner.outerHeight();
@@ -814,10 +813,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const __banner = document.querySelector('.donut-banner');
     const __wrapper = document.getElementById('wrapper');
     let __bannerSnapBusy = false;
-    function __quickSnap(toY, dur=520){
+    function __quickSnap(toY, dur=1800){
       let startY = window.scrollY; const diff = toY - startY;
       const start = performance.now();
-      const ease = t => 1 - Math.pow(1 - t, 3); // easeOutCubic
+      const ease = t => 1 - Math.cos((t * Math.PI) / 2); // easeOutSine (gentler)
       function raf(now){
         const p = Math.min(1, (now - start) / dur);
         const y = startY + diff * ease(p);
