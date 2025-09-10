@@ -5,13 +5,11 @@
   <meta charset="UTF-8" />
   <title>Info | shovideo</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  
   <meta name="color-scheme" content="dark light">
-  <!-- Favicon: light/dark by OS theme -->
-  <link rel="icon" type="image/x-icon" href="/favicon-light.ico" media="(prefers-color-scheme: light)">
-  <link rel="icon" type="image/x-icon" href="/favicon-dark.ico"  media="(prefers-color-scheme: dark)">
-  <!-- Fallback (older browsers) -->
-  <link rel="icon" type="image/x-icon" href="/favicon-dark.ico">
-  <style>
+  <link rel="icon" href="/favicon-light.ico" sizes="any" media="(prefers-color-scheme: light)">
+  <link rel="icon" href="/favicon-dark.ico"  sizes="any" media="(prefers-color-scheme: dark)">
+  <link rel="icon" href="/favicon.ico" sizes="any"><style>
     :root {
       --header-h: 56px;
       --bg: #0f1115;
@@ -235,34 +233,31 @@
       }
     });
   </script>
-  
+  <script src="/assets/js/scroll-ease.standalone.js" defer></script>
 
 
 
 
 
 
-<!-- Smooth scroll (window) external + inline fallback -->
+<!-- Smooth scroll (window) external + inline fallback with diag -->
 <script src="/assets/js/scroll-ease.standalone.js" defer></script>
 <script>
 (function(){
-  // If external booted, skip
-  function booted(){ return window.__InertiaScrollInit === true; }
-
+  window.__scrollEaseDiag = {
+    bumps: 0,
+    source: '',
+    info(){ return { bumps:this.bumps, source:this.source, init: window.__InertiaScrollInit===true }; }
+  };
+  function already(){ return window.__InertiaScrollInit === true; }
   function inlineBoot(){
-    if (booted()) return;
-    // Respect reduced motion & touch native inertia
-    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-    if (isTouch) return;
-
+    if (already()) return;
     try { document.documentElement.style.scrollBehavior = 'auto'; } catch(_){}
     const docEl = document.scrollingElement || document.documentElement;
-    let vy = 0, rafId = 0;
     const friction = 0.88, wheelBoost = 0.22, maxSpeed = 14, wheelCap = 110;
     const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
     const max=()=>Math.max(0, docEl.scrollHeight - innerHeight);
-
+    let vy = 0, rafId = 0;
     function tick(){
       if (Math.abs(vy) > 0.12){
         vy *= friction;
@@ -271,19 +266,17 @@
         rafId = requestAnimationFrame(tick);
       } else { vy = 0; rafId = 0; }
     }
-    // Capture early so other handlers can't swallow the wheel
     window.addEventListener('wheel', (e)=>{
       const raw = e.deltaY || 0; if (!raw) return;
       e.preventDefault();
       const d = clamp(raw, -wheelCap, wheelCap);
       vy += d * wheelBoost;
       if (!rafId) rafId = requestAnimationFrame(tick);
+      window.__scrollEaseDiag.bumps++; window.__scrollEaseDiag.source='inline';
     }, { capture:true, passive:false });
-
     window.__InertiaScrollInit = true;
     console.info('[scroll-ease:fallback] booted');
   }
-
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', inlineBoot, { once:true });
   } else {
