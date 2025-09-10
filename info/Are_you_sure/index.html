@@ -185,7 +185,27 @@
     pdfjsLib.GlobalWorkerOptions.workerSrc = './pdfjs/pdf.worker.mjs';
 
     // ===== 설정 =====
-    const PDF_URL = '/assets/PDF/Are_you_sure.pdf';
+    // 현재 서브 페이지의 "상위 폴더명"을 가져와 PDF 경로 자동 생성
+    function __folderFromPath() {
+      // /info/Are_you_sure/  or  /info/Are_you_sure/index.html  모두 대응
+      let path = location.pathname.replace(/\/+$/, ''); // 끝 슬래시 제거
+      const parts = path.split('/').filter(Boolean);
+      if (!parts.length) return '';
+
+      let last = parts[parts.length - 1];
+      // 마지막 조각이 index.html 같은 파일명이면 한 칸 위가 폴더명
+      if (/\.html?$/i.test(last)) {
+          parts.pop(); // 파일명 제거
+          last = parts[parts.length - 1] || '';
+      }
+      return last;
+    }
+
+    const __FOLDER = __folderFromPath();
+    // 파일명이 한글/공백일 수도 있으니 인코딩해서 경로 구성
+    const PDF_URL = `/assets/PDF/${encodeURIComponent(__FOLDER)}.pdf`;
+    // console.log('PDF_URL →', PDF_URL);
+
     const container = document.getElementById('pdf-container');
 
     // 스케일 한계 (fit 모드에선 더 낮게 허용)
