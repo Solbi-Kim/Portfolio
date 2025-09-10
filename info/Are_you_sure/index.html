@@ -66,51 +66,108 @@
 </head>
 <body>
   <!-- HARD WHEEL INTERCEPT: body 바로 아래 넣기 -->
+<!-- HARD WHEEL INTERCEPT (smart host): put this RIGHT under <body> -->
 <script>
 (function(){
   if (window.__ScrollEaseHard) return;
   window.__ScrollEaseHard = true;
 
-  const docEl = document.scrollingElement || document.documentElement;
+  const ROOT = document.scrollingElement || document.documentElement;
   const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
-  let vy=0, raf=0;
 
-  // 느낌 조절 (덜 미끄럽게 하려면 friction↓, wheelBoost↓)
-  const friction=0.88,  // 0.86~0.92
-        wheelBoost=0.22,// 0.18~0.30
-        maxSpeed=14,    // 12~18
-        wheelCap=110;   // 과한 deltaY 캡
+  // 느낌 조절: 덜 미끄럽게 하려면 friction↓, wheelBoost↓, maxSpeed↓
+  const friction  = 0.88;  // 0.86~0.92 (낮을수록 빨리 멈춤)
+  const wheelBoost= 0.22;  // 0.18~0.30 (틱당 이동량)
+  const maxSpeed  = 14;    // 12~18   (프레임당 이동 상한)
+  const wheelCap  = 110;   // 과한 deltaY 캡
+  const stopEps   = 0.12;  // 이 값 올리면 더 빨리 끊김
 
-  function maxScroll(){ return Math.max(0, docEl.scrollHeight - innerHeight); }
+  // 이 노드가 실제로 스크롤 가능한가?
+  function isScrollable(el, dy){
+    if (!el || el === document || el === document.documentElement) return false;
+    const cs = getComputedStyle(el);
+    if (!(cs.overflowY === 'auto' || cs.overflowY === 'scroll')) return false;
+    if (el.scrollHeight <= el.clientHeight + 1) return false;
+    if (dy > 0)  return el.scrollTop + el.clientHeight < el.scrollHeight; // 아래로 여유
+    if (dy < 0)  return el.scrollTop > 0;                                  // 위로 여유
+    return true;
+  }
+  // 휠이 들어온 위치에서 위로 올라가며 스크롤 주체 탐색
+  function findHost(target, dy){
+    for (let n = target; n; n = n.parentElement){
+      if (isScrollable(n, dy)) return n;
+    }
+    return ROOT; // 없으면 윈도우
+  }
+
+  let host = ROOT, vy = 0, raf = 0;
+  const max = (el) => el === ROOT
+    ? Math.max(0, ROOT.scrollHeight - innerHeight)
+    : Math.max(0, el.scrollHeight - el.clientHeight);
+
   function tick(){
-    if (Math.abs(vy) > 0.12){
+    if (Math.abs(vy) > stopEps){
       vy *= friction;
       const step = clamp(vy, -maxSpeed, maxSpeed);
-      docEl.scrollTop = clamp(Math.round(docEl.scrollTop + step), 0, maxScroll());
+      const next = clamp(Math.round(host.scrollTop + step), 0, max(host));
+      if (next !== host.scrollTop) host.scrollTop = next;
       raf = requestAnimationFrame(tick);
-    } else { vy=0; raf=0; }
+    } else {
+      vy = 0; raf = 0;
+    }
   }
+
   function onWheel(e){
     const raw = e.deltaY || 0; if (!raw) return;
-    e.preventDefault();
+    // 실제 스크롤 가능한 가장 가까운 컨테이너를 선택
+    host = findHost(e.target, raw) || ROOT;
+    e.preventDefault(); // 기본 스크롤 차단 (우리가 직접 움직임)
     const d = clamp(raw, -wheelCap, wheelCap);
     vy += d * wheelBoost;
     if (!raf) raf = requestAnimationFrame(tick);
   }
 
-  // 캡처 단계로 최상단에서 선점
-  [window, document, document.documentElement].forEach(t=>{
-    t.addEventListener('wheel', onWheel, { capture:true, passive:false });
-  });
+  function onKey(e){
+    // 입력창 포커스면 통과
+    const tag = (document.activeElement && document.activeElement.tagName || '').toLowerCase();
+    if (tag === 'input' || tag === 'textarea' || e.defaultPrevented) return;
 
-  // body가 아직 없을 수도 있으니 준비되면 추가로 붙임
-  function attachToBody(){
-    document.body && document.body.addEventListener('wheel', onWheel, { capture:true, passive:false });
+    let add = 0, h = innerHeight;
+    if (e.key === 'ArrowDown') add = +56;
+    else if (e.key === 'ArrowUp') add = -56;
+    else if (e.key === 'PageDown' || (e.key === ' ' && !e.shiftKey)) add =  h * 0.9;
+    else if (e.key === 'PageUp'   || (e.key === ' ' &&  e.shiftKey)) add = -h * 0.9;
+    else if (e.key === 'Home')    { host = ROOT; ROOT.scrollTop = 0; return; }
+    else if (e.key === 'End')     { host = ROOT; ROOT.scrollTop = max(ROOT); return; }
+
+    if (add !== 0){
+      e.preventDefault();
+      // 키보드는 윈도우 기준으로만 부드럽게
+      host = ROOT;
+      vy += add;
+      if (!raf) raf = requestAnimationFrame(tick);
+    }
   }
-  if (document.body) attachToBody();
-  else document.addEventListener('DOMContentLoaded', attachToBody, { once:true });
+
+  // 캡처 단계에서 4곳 모두 선점해서 누가 먼저 달려 있어도 우리가 먼저 받는다
+  [window, document, document.documentElement].forEach(t=>{
+    t && t.addEventListener('wheel', onWheel, { capture:true, passive:false });
+  });
+  function attachBody(){
+    if (document.body)
+      document.body.addEventListener('wheel', onWheel, { capture:true, passive:false });
+  }
+  if (document.body) attachBody();
+  else document.addEventListener('DOMContentLoaded', attachBody, { once:true });
+
+  // 키보드
+  window.addEventListener('keydown', onKey, { passive:false });
+
+  // 간단 진단
+  window.__SE = { info(){ return { host: (host===ROOT?'ROOT':'EL'), vy, anim: !!raf }; } };
 })();
 </script>
+
 
   <header>
     <button onclick="history.back()">← Back</button>
