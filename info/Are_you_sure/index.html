@@ -65,6 +65,53 @@
   </style>
 </head>
 <body>
+  <!-- HARD WHEEL INTERCEPT: body 바로 아래 넣기 -->
+<script>
+(function(){
+  if (window.__ScrollEaseHard) return;
+  window.__ScrollEaseHard = true;
+
+  const docEl = document.scrollingElement || document.documentElement;
+  const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+  let vy=0, raf=0;
+
+  // 느낌 조절 (덜 미끄럽게 하려면 friction↓, wheelBoost↓)
+  const friction=0.88,  // 0.86~0.92
+        wheelBoost=0.22,// 0.18~0.30
+        maxSpeed=14,    // 12~18
+        wheelCap=110;   // 과한 deltaY 캡
+
+  function maxScroll(){ return Math.max(0, docEl.scrollHeight - innerHeight); }
+  function tick(){
+    if (Math.abs(vy) > 0.12){
+      vy *= friction;
+      const step = clamp(vy, -maxSpeed, maxSpeed);
+      docEl.scrollTop = clamp(Math.round(docEl.scrollTop + step), 0, maxScroll());
+      raf = requestAnimationFrame(tick);
+    } else { vy=0; raf=0; }
+  }
+  function onWheel(e){
+    const raw = e.deltaY || 0; if (!raw) return;
+    e.preventDefault();
+    const d = clamp(raw, -wheelCap, wheelCap);
+    vy += d * wheelBoost;
+    if (!raf) raf = requestAnimationFrame(tick);
+  }
+
+  // 캡처 단계로 최상단에서 선점
+  [window, document, document.documentElement].forEach(t=>{
+    t.addEventListener('wheel', onWheel, { capture:true, passive:false });
+  });
+
+  // body가 아직 없을 수도 있으니 준비되면 추가로 붙임
+  function attachToBody(){
+    document.body && document.body.addEventListener('wheel', onWheel, { capture:true, passive:false });
+  }
+  if (document.body) attachToBody();
+  else document.addEventListener('DOMContentLoaded', attachToBody, { once:true });
+})();
+</script>
+
   <header>
     <button onclick="history.back()">← Back</button>
     <span style="margin-left:8px; font-weight:600;">Video Information</span>
@@ -242,49 +289,6 @@
 
 <!-- Smooth scroll (window) external + inline fallback with diag -->
 <script src="/assets/js/scroll-ease.standalone.js" defer></script>
-<script>
-(function(){
-  window.__scrollEaseDiag = {
-    bumps: 0,
-    source: '',
-    info(){ return { bumps:this.bumps, source:this.source, init: window.__InertiaScrollInit===true }; }
-  };
-  function already(){ return window.__InertiaScrollInit === true; }
-  function inlineBoot(){
-    if (already()) return;
-    try { document.documentElement.style.scrollBehavior = 'auto'; } catch(_){}
-    const docEl = document.scrollingElement || document.documentElement;
-    const friction = 0.88, wheelBoost = 0.22, maxSpeed = 14, wheelCap = 110;
-    const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
-    const max=()=>Math.max(0, docEl.scrollHeight - innerHeight);
-    let vy = 0, rafId = 0;
-    function tick(){
-      if (Math.abs(vy) > 0.12){
-        vy *= friction;
-        const step = clamp(vy, -maxSpeed, maxSpeed);
-        docEl.scrollTop = clamp(Math.round(docEl.scrollTop + step), 0, max());
-        rafId = requestAnimationFrame(tick);
-      } else { vy = 0; rafId = 0; }
-    }
-    window.addEventListener('wheel', (e)=>{
-      const raw = e.deltaY || 0; if (!raw) return;
-      e.preventDefault();
-      const d = clamp(raw, -wheelCap, wheelCap);
-      vy += d * wheelBoost;
-      if (!rafId) rafId = requestAnimationFrame(tick);
-      window.__scrollEaseDiag.bumps++; window.__scrollEaseDiag.source='inline';
-    }, { capture:true, passive:false });
-    window.__InertiaScrollInit = true;
-    console.info('[scroll-ease:fallback] booted');
-  }
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', inlineBoot, { once:true });
-  } else {
-    inlineBoot();
-  }
-  window.addEventListener('pageshow', inlineBoot, { once:true });
-})();
-</script>
 
 </body>
 </html>
