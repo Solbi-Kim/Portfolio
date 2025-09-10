@@ -1329,7 +1329,7 @@ input, select, textarea {
 						margin-top: 1em;
 						position:absolute;
 						right: 1em;
-						bottom:20em
+						bottom:20em;
 						pointer-events: auto !important ; 
 			}
 
