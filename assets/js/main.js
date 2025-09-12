@@ -323,57 +323,85 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-// === HINT: force-once after 2s, then poll until target appears (max 5s) ===
+// === HINT: start timer WHEN the popup appears (robust 2s force-once + smooth show) ===
 (function () {
-  var $popup = $('.poptrox-popup');
-  var START_DELAY = 2000; // 2초 후 시작
-  var MAX_WAIT    = 5000; // 추가 대기 최대 5초
-  var TICK        = 120;  // 폴링 간격
-  var startedAt   = Date.now();
+  var START_DELAY = 2000;  // 팝업 뜬 뒤 2초 후
+  var POLL_MAX    = 5000;  // 버튼 대기 최대 5초
+  var TICK        = 120;   // 폴링 간격
 
-  setTimeout(tryAttach, START_DELAY);
+  function attachBubble($popup) {
+    // 2초 후 시작
+    setTimeout(function () {
+      var waited = 0;
+      var iv = setInterval(function () {
+        var $btn = $popup.find(
+          '.caption2 a[data-hint], .caption2 a[href*="/info/"], .caption2 a.icon.solid.fa-info-circle'
+        ).first();
 
-  function findBtn() {
-    return $popup.find(
-      '.caption2 a[data-hint], .caption2 a[href*="/info/"], .caption2 a.icon.solid.fa-info-circle'
-    ).first();
+        if ($btn.length) {
+          // 이미 붙어있으면 스킵
+          if ($btn.data('__hintShown')) { clearInterval(iv); return; }
+          $btn.data('__hintShown', true);
+
+          // 버블 생성(처음엔 숨김 상태)
+          $btn.find('.hint-bubble').remove();
+          var txt = $btn.data('hint') || 'View Details';
+          var $bubble = $('<span class="hint-bubble"/>').text(txt).appendTo($btn);
+
+          // 다음 프레임에 .show 추가 → opacity/transform 트랜지션 항상 보임
+          requestAnimationFrame(function () {
+            void $bubble[0].offsetHeight; // reflow
+            requestAnimationFrame(function () { $bubble.addClass('show'); });
+          });
+
+          // 버블/버튼 클릭 시 제거
+          var hide = function (e) {
+            try { e.stopPropagation(); } catch (_) {}
+            $bubble.remove();
+            $btn.off('click._hint', hide);
+            $bubble.off('click._hint', hide);
+          };
+          $btn.on('click._hint', hide);
+          $bubble.on('click._hint', hide);
+
+          clearInterval(iv);
+        } else {
+          waited += TICK;
+          if (waited >= POLL_MAX) clearInterval(iv);
+        }
+      }, TICK);
+    }, START_DELAY);
   }
 
-  function attach($btn) {
-    if (!$btn || !$btn.length) return false;
-    if ($btn.data('__hintShown')) return true;
+  // 팝업 등장 감지: .poptrox-popup가 DOM에 추가되면 그때부터 타이머 스타트
+  function watchPopupAppear() {
+    // 이미 떠 있는 경우도 처리
+    var $now = $('.poptrox-popup:visible');
+    if ($now.length) attachBubble($now);
 
-    $btn.data('__hintShown', true);
-    $btn.find('.hint-bubble').remove();
-
-    var txt = $btn.data('hint') || 'View Details';
-    var $bubble = $('<span class="hint-bubble show"/>').text(txt).appendTo($btn);
-
-    var hide = function (e) {
-      try { e.stopPropagation(); } catch (_) {}
-      $bubble.remove();
-      $btn.off('click._hint', hide);
-      $bubble.off('click._hint', hide);
-    };
-    $btn.on('click._hint', hide);
-    $bubble.on('click._hint', hide);
-
-    return true;
+    var mo = new MutationObserver(function (records) {
+      records.forEach(function (rec) {
+        Array.prototype.forEach.call(rec.addedNodes || [], function (node) {
+          if (node.nodeType !== 1) return;
+          if (node.matches && node.matches('.poptrox-popup')) {
+            attachBubble($(node));
+          } else if (node.querySelector) {
+            var el = node.querySelector('.poptrox-popup');
+            if (el) attachBubble($(el));
+          }
+        });
+      });
+    });
+    mo.observe(document.body, { childList: true, subtree: true });
   }
 
-  function tryAttach() {
-    if (attach(findBtn())) return;
-
-    // 버튼이 아직 없으면 일정 시간 동안 폴링
-    var waited = 0;
-    var iv = setInterval(function () {
-      if (attach(findBtn())) { clearInterval(iv); return; }
-      waited += TICK;
-      if (waited >= MAX_WAIT) clearInterval(iv);
-    }, TICK);
+  // 초기화
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', watchPopupAppear, { once: true });
+  } else {
+    watchPopupAppear();
   }
 })();
-
 
 
 
