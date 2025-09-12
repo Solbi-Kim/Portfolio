@@ -323,29 +323,57 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-// === HINT: force-once after 2s (ONLY) ===
-setTimeout(function () {
+// === HINT: force-once after 2s, then poll until target appears (max 5s) ===
+(function () {
   var $popup = $('.poptrox-popup');
+  var START_DELAY = 2000; // 2초 후 시작
+  var MAX_WAIT    = 5000; // 추가 대기 최대 5초
+  var TICK        = 120;  // 폴링 간격
+  var startedAt   = Date.now();
 
-  // 대상 버튼(최소 탐색만: data-hint 우선 → /info/ → info 아이콘)
-  var $btn = $popup.find('.caption2 a[data-hint], .caption2 a[href*="/info/"], .caption2 a.icon.solid.fa-info-circle').first();
-  if (!$btn.length) return; // 버튼 없으면 그냥 패스
+  setTimeout(tryAttach, START_DELAY);
 
-  // 말풍선 생성 (CSS에서 .show로 페이드인 처리)
-  $btn.find('.hint-bubble').remove();
-  var txt = $btn.data('hint') || 'View Details';
-  var $bubble = $('<span class="hint-bubble show"/>').text(txt).appendTo($btn);
+  function findBtn() {
+    return $popup.find(
+      '.caption2 a[data-hint], .caption2 a[href*="/info/"], .caption2 a.icon.solid.fa-info-circle'
+    ).first();
+  }
 
-  // 말풍선/버튼 클릭 시 제거
-  var hide = function (e) {
-    try { e.stopPropagation(); } catch (_) {}
-    $bubble.remove();
-    $btn.off('click._hint', hide);
-    $bubble.off('click._hint', hide);
-  };
-  $btn.on('click._hint', hide);
-  $bubble.on('click._hint', hide);
-}, 2000);
+  function attach($btn) {
+    if (!$btn || !$btn.length) return false;
+    if ($btn.data('__hintShown')) return true;
+
+    $btn.data('__hintShown', true);
+    $btn.find('.hint-bubble').remove();
+
+    var txt = $btn.data('hint') || 'View Details';
+    var $bubble = $('<span class="hint-bubble show"/>').text(txt).appendTo($btn);
+
+    var hide = function (e) {
+      try { e.stopPropagation(); } catch (_) {}
+      $bubble.remove();
+      $btn.off('click._hint', hide);
+      $bubble.off('click._hint', hide);
+    };
+    $btn.on('click._hint', hide);
+    $bubble.on('click._hint', hide);
+
+    return true;
+  }
+
+  function tryAttach() {
+    if (attach(findBtn())) return;
+
+    // 버튼이 아직 없으면 일정 시간 동안 폴링
+    var waited = 0;
+    var iv = setInterval(function () {
+      if (attach(findBtn())) { clearInterval(iv); return; }
+      waited += TICK;
+      if (waited >= MAX_WAIT) clearInterval(iv);
+    }, TICK);
+  }
+})();
+
 
 
 
