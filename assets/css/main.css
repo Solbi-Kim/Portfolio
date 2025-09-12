@@ -1355,8 +1355,9 @@ input, select, textarea {
 		}
 
 .poptrox-popup .caption2 a .hint-bubble{
-  position: absolute;
-  left: 50%;
+  position: absolute !important; 
+  left: 50% !important;
+  right:auto !important;
   bottom: calc(100% + 10px);  /* 버튼 바로 위 */
   transform: translateX(-50%) translateY(6px);
 
@@ -1380,8 +1381,9 @@ input, select, textarea {
 }
 
 .poptrox-popup .caption2 a .hint-bubble.show {
-  opacity: 1;
-  transform: translateX(-50%) translateY(0);
+  opacity: 1 !important;
+  bottom: calc(100% + 10px) !important;        /* ← 최종 세로 위치 */
+  transform: translateX(-50%) translateY(0) !important;
 }
 
 /* 꼬리(삼각형) 완전 제거 */
