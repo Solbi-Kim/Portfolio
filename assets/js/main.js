@@ -323,57 +323,43 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-// === HINT BUBBLE: show with popup + debug logs =================================
-// 목적:
-//  - 팝업이 "열린 그 순간"부터 바로 시도하고, 버튼이 늦게 들어오면
-//    짧게(기본 3s) 120ms 간격으로 기다리다가 나타나는 즉시 붙임.
-//  - 붙일 때는 다음 프레임에 .show 추가 → opacity/transform 트랜지션 항상 보장.
-//  - 디버깅을 위해: (1) 팝업 열림 로그, (2) data-hint 감지 로그 출력.
-// 사용법:
-//  - 이 블록을 onPopupOpen 내부, `$cap.appendTo($content);` 바로 아래에 붙인다.
-//  - 기존 hint-bubble 관련 코드(2초 강제/클릭/재생/옵저버/클론 등)는 삭제.
-// ================================================================================
+// === HINT BUBBLE: show with popup + debug + delayed attach ====================
+// 팝업 뜨자마자 버튼을 찾기 시작 → 버튼이 "감지되면" DETECTED_DELAY_MS 만큼 기다렸다가 표시.
+// 버튼이 늦게 DOM에 들어오면 POLL_MAX_MS 동안 TICK_MS 간격으로 재시도.
+// 트랜지션 보장을 위해 rAF 다음 프레임에 .show 추가.
+// ==============================================================================
 (function () {
-  var DEBUG       = true;   // 필요 시 false로 끄면 로그 안 찍힘
-  var POLL_MAX_MS = 3000;   // 버튼 늦게 생성될 때 최대 대기 시간
-  var TICK_MS     = 120;    // 폴링 간격
+  var DEBUG              = true;        // 디버그 로그 ON/OFF
+  var POLL_MAX_MS        = 60 * 1000;   // 최대 대기 시간(예: 1분). 2분은 120*1000.
+  var TICK_MS            = 120;         // 폴링 간격
+  var DETECTED_DELAY_MS  = 3000;        // ★ 버튼 감지 후 말풍선 표시까지 지연(3s)
 
-  // 팝업 루트를 jQuery 객체로 가져오기(여러 개면 가장 마지막 것)
+  // 팝업 루트(jQuery 객체)
   var $popup = (function () {
     var $all = $('.poptrox-popup');
     return $all.length ? $all.eq(-1) : $all;
   })();
 
-  // 1) 팝업 열림 알림
-  if (DEBUG) {
-    console.info('[hint][open] popup opened. nodes:', $popup.length, $popup.get(0));
-  }
-  if (!$popup.length) return; // 안전 가드
+  if (DEBUG) console.info('[hint][open] popup opened. nodes:', $popup.length, $popup.get(0));
+  if (!$popup.length) return;
 
-  // 대상 버튼 찾기: data-hint 우선 → 없으면 info 계열 fallback
+  // 대상 버튼 탐색: data-hint → /info/ → fa-info-circle
   function findButtons$($p) {
     var $dh = $p.find('.caption2 a[data-hint]');
     if ($dh.length) {
-      if (DEBUG) {
-        console.info(
-          '[hint][found:data-hint] count:',
-          $dh.length,
-          $dh.map(function (i, el) { return el.outerHTML; }).get()
-        );
-      }
+      if (DEBUG) console.info('[hint][found:data-hint] count:', $dh.length,
+        $dh.map(function (i, el) { return el.outerHTML; }).get());
       return $dh.first();
     }
     var $fb = $p.find('.caption2 a[href*="/info/"], .caption2 a.icon.solid.fa-info-circle');
-    if ($fb.length && DEBUG) {
-      console.warn('[hint][fallback] no data-hint; using info-like anchor:', $fb[0]);
-    }
-    return $fb.first(); // 없으면 빈 jQuery 객체 반환
+    if ($fb.length && DEBUG) console.warn('[hint][fallback] no data-hint; using info-like anchor:', $fb[0]);
+    return $fb.first();
   }
 
-  // 말풍선 붙이기(+다음 프레임에 .show 추가하여 트랜지션 보장)
+  // 실제 부착(.show는 다음 프레임에 추가 → 트랜지션 보장)
   function attachNow($btn, originTag) {
     if (!$btn || !$btn.length) return false;
-    if ($btn.data('__hintShown')) return true; // 중복 방지
+    if ($btn.data('__hintShown')) return true;
 
     $btn.data('__hintShown', true);
     $btn.find('.hint-bubble').remove();
@@ -381,9 +367,9 @@ document.addEventListener('DOMContentLoaded', () => {
     var txt     = $btn.data('hint') || 'View Details';
     var $bubble = $('<span class="hint-bubble"/>').text(txt).appendTo($btn);
 
-    // 같은 프레임에서 .show 추가하면 애니메이션이 스킵될 수 있으니 rAF 2단계로 보장
+    // 다음 프레임에 .show → opacity/transform 애니메이션 항상 실행
     requestAnimationFrame(function () {
-      void $bubble[0].offsetHeight; // reflow
+      void $bubble[0].offsetHeight;        // reflow로 초기 상태 확정
       requestAnimationFrame(function () {
         $bubble.addClass('show');
       });
@@ -403,27 +389,49 @@ document.addEventListener('DOMContentLoaded', () => {
     return true;
   }
 
-  // 즉시 시도 → 실패 시 짧게 폴링
-  (function run() {
-    var $btn0 = findButtons$($popup);
-    if (attachNow($btn0, 'immediate')) return;
+  // 감지 후 지연 부착 스케줄링 (버튼별 1회)
+  function scheduleAttach($btn, originTag) {
+    if (!$btn || !$btn.length) return false;
+    if ($btn.data('__hintScheduled') || $btn.data('__hintShown')) return true;
 
-    if (DEBUG) console.log('[hint][wait] waiting for .caption2 button up to', POLL_MAX_MS, 'ms');
-    var waited = 0;
-    var iv = setInterval(function () {
-      var $btn = findButtons$($popup);
-      if (attachNow($btn, 'poll:' + waited + 'ms')) {
-        clearInterval(iv);
+    $btn.data('__hintScheduled', true);
+    if (DEBUG) console.log('[hint][delay] detected; scheduling in', DETECTED_DELAY_MS, 'ms. from:', originTag);
+
+    setTimeout(function () {
+      // 팝업이 닫혔거나 버튼이 사라졌으면 취소
+      if (!$popup.is(':visible') || !$btn.closest('.poptrox-popup').length) {
+        if (DEBUG) console.warn('[hint][delay-cancel] popup hidden or button missing');
         return;
       }
+      attachNow($btn, originTag + '+delay');
+    }, DETECTED_DELAY_MS);
+
+    return true;
+  }
+
+  // 즉시 시도 → 못 찾으면 폴링
+  (function run() {
+    var $btn0 = findButtons$($popup);
+    if ($btn0.length) { scheduleAttach($btn0, 'immediate'); return; }
+
+    if (DEBUG) console.log('[hint][wait] waiting up to', POLL_MAX_MS, 'ms');
+    var waited = 0;
+    var iv = setInterval(function () {
+      // 팝업이 닫히면 폴링 종료
+      if (!$popup.is(':visible')) { clearInterval(iv); if (DEBUG) console.log('[hint][stop] popup hidden'); return; }
+
+      var $btn = findButtons$($popup);
+      if ($btn.length) { scheduleAttach($btn, 'poll:' + waited + 'ms'); clearInterval(iv); return; }
+
       waited += TICK_MS;
       if (waited >= POLL_MAX_MS) {
         clearInterval(iv);
-        if (DEBUG) console.warn('[hint][timeout] target button not found within', POLL_MAX_MS, 'ms');
+        if (DEBUG) console.warn('[hint][timeout] target not found within', POLL_MAX_MS, 'ms');
       }
     }, TICK_MS);
   })();
 })();
+
 
 
 
