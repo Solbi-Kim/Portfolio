@@ -324,9 +324,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 	
 
-// === HINT: video-play trigger (FINAL) ===
+// === HINT: video-play trigger (FINAL single-block) ===
 (function () {
-  // 0) 마지막으로 클릭한 썸네일 추적 (딱 한 번만 설치)
+  // 마지막으로 클릭한 썸네일 추적 (한 번만 설치)
   if (!window.__hintTrackerInstalled) {
     window.__hintTrackerInstalled = true;
     document.addEventListener('click', function (e) {
@@ -343,16 +343,14 @@ document.addEventListener('DOMContentLoaded', () => {
   function ensureCap2() {
     var $cap2 = $popup.find('.caption2');
     if (!$cap2.length) {
-      $cap2 = $('<span class="caption2"/>');
       var $host = $popup.find('.caption, .content').first();
-      if (!$host.length) $host = $popup;
-      $host.append($cap2);
+      $cap2 = $('<span class="caption2"/>').appendTo($host.length ? $host : $popup);
     }
     return $cap2;
   }
 
-  function getOrCloneButton() {
-    // 1) 팝업 안에서 먼저 찾기
+  function findOrCloneButton() {
+    // 1) 팝업 내부에서 찾기
     var $btn = $popup.find('.caption2 a[data-hint], .caption2 a[href*="/info/"], .caption2 a.icon.solid.fa-info-circle').first();
     if ($btn.length) return $btn;
 
@@ -371,7 +369,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function showBubble() {
-    var $btn = getOrCloneButton();
+    var $btn = findOrCloneButton();
     if (!$btn || !$btn.length) return;
     if ($btn.data('__hintShown')) return;
     $btn.data('__hintShown', true);
@@ -379,8 +377,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 말풍선 생성 (CSS에서 .show로 페이드인 처리)
     $btn.find('.hint-bubble').remove();
     var txt = $btn.data('hint') || 'View Details';
-    var $bubble = $('<span class="hint-bubble show"/>').text(txt);
-    $btn.append($bubble);
+    var $bubble = $('<span class="hint-bubble show"/>').text(txt).appendTo($btn);
 
     // 말풍선/버튼 클릭 시 제거
     var hide = function (e) {
@@ -393,53 +390,58 @@ document.addEventListener('DOMContentLoaded', () => {
     $bubble.on('click._hint', hide);
   }
 
-  function bindPlayTrigger() {
-    var iframe = $popup.find('iframe')[0];
-    var fallbackBound = false;
+  // --- 재생 트리거 ---
+  function bindInsideIframe(iframe) {
+    try {
+      var doc = iframe.contentWindow && iframe.contentWindow.document;
+      if (!doc) return false;
 
-    function bindFallback() {
-      if (fallbackBound) return;
-      fallbackBound = true;
-      // 팝업 내부 첫 클릭 = 대체 트리거 (크로스오리진 플레이어 대비)
-      $popup.one('click._hintFallback', function () { showBubble(); });
-    }
+      // case 1: 이미 media 존재
+      var media = doc.querySelector('video, audio');
+      if (media) {
+        if (!media.paused) showBubble();
+        else media.addEventListener('play', function () { showBubble(); }, { once: true });
+        return true;
+      }
 
-    if (iframe) {
-      try {
-        var onLoad = function () {
-          try {
-            var doc = iframe.contentWindow && iframe.contentWindow.document;
-            if (!doc) return bindFallback();
-            var media = doc.querySelector('video, audio');
-            if (!media) return bindFallback();
-            if (!media.paused) showBubble();
-            else media.addEventListener('play', function () { showBubble(); }, { once: true });
-          } catch (e) { bindFallback(); }
-        };
-        iframe.addEventListener('load', onLoad, { once: true });
-        // 이미 로드된 상태면 즉시 처리
-        try {
-          var docNow = iframe.contentWindow && iframe.contentWindow.document;
-          if (docNow && docNow.readyState !== 'loading') onLoad();
-        } catch (e) { /* ignore */ }
-      } catch (e) {
-        bindFallback();
-      }
-    } else {
-      // iframe이 아니면 팝업 내부의 video/audio 직접 후킹
-      var mediaEl = $popup.find('video, audio')[0];
-      if (mediaEl) {
-        if (!mediaEl.paused) showBubble();
-        else mediaEl.addEventListener('play', function () { showBubble(); }, { once: true });
-      } else {
-        bindFallback();
-      }
+      // case 2: 나중에 삽입되는 media 감시
+      var mo = new (window.MutationObserver || window.WebKitMutationObserver)(function () {
+        var m = doc.querySelector('video, audio');
+        if (m) {
+          try { mo.disconnect(); } catch (_) {}
+          if (!m.paused) showBubble();
+          else m.addEventListener('play', function () { showBubble(); }, { once: true });
+        }
+      });
+      mo.observe(doc.documentElement || doc.body, { childList: true, subtree: true });
+      setTimeout(function () { try { mo.disconnect(); } catch (_) {} }, 5000);
+      return true;
+    } catch (e) {
+      return false;
     }
   }
 
-  // 실행
-  bindPlayTrigger();
+  // primary: iframe 안의 video/audio play 감지
+  var iframe = $popup.find('iframe')[0];
+  var bound = false;
+  if (iframe) {
+    iframe.addEventListener('load', function () {
+      if (bindInsideIframe(iframe)) bound = true;
+    }, { once: true });
+    // 이미 로드됐을 수도 있으니 즉시 한 번 시도
+    setTimeout(function () { if (!bound) bound = bindInsideIframe(iframe); }, 0);
+  }
+
+  // fallback A: 팝업 영역(iframe 제외) 첫 클릭 = show (iframe 내부 클릭은 바깥으로 안 올라옴)
+  $popup.one('click._hintOutside', function (e) {
+    if (e.target && (e.target.tagName || '').toLowerCase() === 'iframe') return;
+    showBubble();
+  });
+
+  // fallback B: 팝업 열린 뒤 2000ms 내에 아무 이벤트도 못 잡으면 강제 표출
+  setTimeout(function () { showBubble(); }, 2000);
 })();
+
 
 
 
