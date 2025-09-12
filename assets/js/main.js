@@ -321,53 +321,43 @@ document.addEventListener('DOMContentLoaded', () => {
 	console.log("💥 poptrox 실행됨!", $("#main")[0]._poptrox);  //수정됨
 
 
-// === "View Details" hint bubble (only for .caption2 a[data-hint]) + 디버그 로그 ===
-(function () {
-  const $popup = $('.poptrox-popup');
-  const $cap   = $popup.find('.caption');
-  if (!$cap.length) { console.warn('[hint] no .caption'); return; }
+// === "View Details" hint bubble (caption2 전용) ===
+try {
+  var $popup = $('.poptrox-popup');
+  var $cap   = $popup.find('.caption');
+  if ($cap.length) {
+    // info 서브페이지 버튼: /info/ 링크를 우선 타겟
+    var $info = $cap.find('.caption2 a[href*="/info/"]').first();
+    // (혹시 href 패턴이 다르면 .caption2 a:last 로 대체 가능)
+    if ($info.length) {
+      var href = $info.attr('href') || '';
+      var seenKey = 'hint:details:' + href;
 
-  // target: data-hint 달린 버튼만
-  const $targets = $popup2.find('.caption2 a[data-hint]');
-  console.log('[hint] targets:', $targets.length, $targets.map((i,el)=>el.outerHTML).get());
+      if (!sessionStorage.getItem(seenKey)) {
+        // 말풍선 생성
+        var $bubble = $('<span class="hint-bubble">View Details</span>');
+        $info.append($bubble);
 
-  if (!$targets.length) {
-    console.warn('[hint] .caption2 a[data-hint] not found. HTML에 data-hint 달렸는지 확인');
-    return;
+        // 페이드인
+        requestAnimationFrame(() => {
+          setTimeout(() => $bubble.addClass('show'), 180);
+        });
+
+        // 클릭 시 제거 (버튼/말풍선 둘 다)
+        function hideBubble(e){
+          try { e.stopPropagation(); } catch(_){}
+          $bubble.removeClass('show');
+          setTimeout(() => $bubble.remove(), 220);
+          sessionStorage.setItem(seenKey, '1');
+        }
+        $info.on('click._hint', hideBubble);
+        $bubble.on('click._hint', hideBubble);
+      }
+    }
   }
-
-  $targets.each(function () {
-    const $a   = $(this);
-    const href = $a.attr('href') || '';
-    const key  = 'hint:v2:' + href;           // 세션 한 번만
-
-    if (sessionStorage.getItem(key)) {
-      console.log('[hint] already seen:', href);
-      return;
-    }
-
-    // 말풍선 생성
-    const txt = $a.data('hint') || 'View Details';
-    const $bubble = $('<span class="hint-bubble"/>').text(txt);
-    $a.append($bubble);
-
-    // 바로 보여서 스타일 문제를 눈으로 확인(테스트 후 필요하면 180ms 지연으로 바꿔)
-    requestAnimationFrame(() => $bubble.addClass('show'));
-
-    // 클릭 시 제거
-    function hide(e){
-      try { e.stopPropagation(); } catch(_) {}
-      $bubble.removeClass('show');
-      setTimeout(() => $bubble.remove(), 220);
-      sessionStorage.setItem(key, '1');
-      $a.off('click._hint', hide);
-      $bubble.off('click._hint', hide);
-    }
-    $a.on('click._hint', hide);
-    $bubble.on('click._hint', hide);
-  });
-})();
-
+} catch (err) {
+  console.warn('hint bubble failed:', err);
+}
 
 	
 
