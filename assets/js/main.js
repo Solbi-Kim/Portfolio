@@ -202,6 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // 간단한 스태거(줄 단위로 살짝 지연)
   thumbs.forEach((el, i) => {
     el.style.setProperty('--reveal-delay', `${(i % 6) * 70}ms`);
+	el.style.transitionDelay = 'var(--reveal-delay, 0ms)';
     io.observe(el);
   });
 });
