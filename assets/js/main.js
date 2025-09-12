@@ -203,7 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
     Object.values(groups).forEach(row => {
       row.sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left);
       row.forEach((el, i) => {
-        el.style.transitionDelay = `${i * 90}ms`; // 한 줄 안에서만 스태거
+        el.style.transitionDelay = `${i * 120}ms`; // 한 줄 안에서만 스태거
         el.classList.add('is-visible');
         io.unobserve(el);
       });
