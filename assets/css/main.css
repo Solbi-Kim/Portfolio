@@ -2206,3 +2206,40 @@ body.donut-active #main:after { pointer-events: auto; opacity: 1; visibility: vi
 }
 
 
+
+/* === Hint bubble support (anchor & stacked fixes) === */
+.poptrox-popup .caption2 a { position: relative; }
+.poptrox-popup.stacked { pointer-events: auto; }
+.poptrox-popup.stacked .caption { pointer-events: auto; }
+
+
+/* === Hint bubble left-anchored to avoid covering video === */
+.poptrox-popup .caption2 a .hint-bubble {
+  right: calc(100% + 10px); /* place to the left of the button */
+  left: auto;
+  bottom: 0;
+  transform: translateY(6px);
+}
+.poptrox-popup .caption2 a .hint-bubble::after {
+  left: auto;
+  right: -6px;
+  bottom: 8px;
+  border: 6px solid transparent;
+  border-left-color: rgba(0,0,0,.78);
+}
+.poptrox-popup .caption2 a .hint-bubble.show {
+  transform: translateY(0);
+}
+@media (max-width: 520px){
+  /* on tiny screens, prefer top placement to avoid going off-canvas */
+  .poptrox-popup .caption2 a .hint-bubble {
+    right: auto; left: 50%;
+    bottom: calc(100% + 8px);
+    transform: translateX(-50%) translateY(6px);
+  }
+  .poptrox-popup .caption2 a .hint-bubble::after {
+    right: auto; left: 50%; transform: translateX(-50%);
+    bottom: -6px; border-left-color: transparent; border-top-color: rgba(0,0,0,.78);
+  }
+}
+
