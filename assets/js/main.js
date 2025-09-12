@@ -255,23 +255,42 @@
 					$cap.appendTo($content);
 
 
-// === HINT bubble (only for .caption2 a[data-hint]) ===
-try {
-  var $popup2 = $('.poptrox-popup');
-  var $cap2   = $popup2.find('.caption');
-  if ($cap2.length) {
-    var $targets = $cap2.find('.caption2 a[data-hint]');
-    console.log('[hint] targets:', $targets.length);
-    $targets.each(function(){
+// === HINT bubble (robust attach with retries) ===
+(function(){
+  function findTargets($root){
+    // Priority 1: data-hint
+    var t = $root.find('.caption2 a[data-hint]');
+    if (t.length) return t;
+    // Priority 2: info href
+    t = $root.find('.caption2 a[href*="/info/"]');
+    if (t.length) return t;
+    // Priority 3: icon class directly on anchor
+    t = $root.find('.caption a.icon.solid.fa-info-circle');
+    return t;
+  }
+
+  function attach(){
+    var $popup = $('.poptrox-popup');
+    var $cap   = $popup.find('.caption');
+    if (!$cap.length) return false;
+
+    var $targets = findTargets($cap);
+    if (!$targets.length) return false;
+
+    $targets.each(function () {
       var $a = $(this);
-      var href = $a.attr('href') || '';
-      var key  = 'hint:v2:' + href;
+      // prefer per-link key (href), else per-popup
+      var href = $a.attr('href') || ($popup.find('.image').attr('href') || '');
+      var key  = 'hint:v3:' + href;
       if (sessionStorage.getItem(key)) return;
       if ($a.find('.hint-bubble').length) return;
+
       var txt = $a.data('hint') || 'View Details';
       var $bubble = $('<span class="hint-bubble"/>').text(txt);
       $a.append($bubble);
+
       requestAnimationFrame(function(){ setTimeout(function(){ $bubble.addClass('show'); }, 180); });
+
       var hide = function(e){
         try { e.stopPropagation(); } catch(_){}
         $bubble.removeClass('show');
@@ -283,263 +302,16 @@ try {
       $a.on('click._hint', hide);
       $bubble.on('click._hint', hide);
     });
-  } else {
-    console.warn('[hint] no .caption found');
-  }
-} catch (e) {
-  console.warn('[hint] failed:', e);
-}
-
-
-				}
-			} catch (err) {
-				console.warn('[stacked] init failed', err);
-			}
-
-			// === 버튼/링크 클릭 시 닫기 방지 (정리 버전) ===
-			$(document)
-				.off('click.px', '.poptrox-popup .caption a, .poptrox-popup .caption button')
-				.on('click.px', '.poptrox-popup .caption a, .poptrox-popup .caption button', function (e) {
-					e.stopPropagation(); // 팝업 닫기 방지
-					// 기본 동작 실행 (a면 링크 이동, button이면 버튼 동작)
-				});
-		},
-		overlayOpacity: 0,
-		popupCloserText: "",
-		popupHeight: 150,
-		popupLoaderText: "",
-		popupSpeed: 300,
-		popupWidth: 150,
-		selector: ".thumb > a.image",
-		usePopupCaption: true,
-		usePopupCloser: true,
-		usePopupDefaultStyling: false,
-		usePopupForceClose: true,
-		usePopupLoader: true,
-		usePopupNav: true,
-		windowMargin: 10
-	});
-
-	// -- Hack: Set margins to 0 when 'xsmall' activates.
-	breakpoints.on("<=xsmall", function () {
-		$main[0]._poptrox.windowMargin = 0;
-	});
-	breakpoints.on(">xsmall", function () {
-		$main[0]._poptrox.windowMargin = 50;
-	});
-
-	console.log("💥 poptrox 실행됨!", $("#main")[0]._poptrox);  //수정됨
-
-
-
-//  -------별자리 그리기 로직--------
-// -------------------------
-// 랜덤 별 생성 + 별자리 연결 로직
-// -------------------------
-function createStars(containerSelector, count = 512) {  //별 개수
-    const container = document.querySelector(containerSelector);
-    if (!container) return;
-
-    const starChars = ['\u2726', '\u2727', '\u2722']; // ✦, ✧, ✢
-    let connectMode = false;
-    let lastStar = null;
-    let tempLine = null; // 마우스 따라가는 임시 선
-
-    // SVG 레이어 생성
-    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    svg.classList.add("star-lines");
-    svg.setAttribute("width", "100%");
-    svg.setAttribute("height", "100%");
-    svg.style.position = "absolute";
-    svg.style.top = "0";
-    svg.style.left = "0";
-    svg.style.zIndex = "0"; // 별보다 뒤에
-    container.appendChild(svg);
-
-    // 랜덤 별 생성
-    for (let i = 0; i < count; i++) {
-        const star = document.createElement('span');
-        star.className = 'star';
-        star.textContent = starChars[Math.floor(Math.random() * starChars.length)];
-        star.style.top = `${Math.random() * 100}%`;
-        star.style.left = `${Math.random() * 100}%`;
-        star.style.fontSize = `${Math.random() * 11 + 3}px`; // 3~14px
-        star.style.animationDelay = `${Math.random() * 3}s`;
-        star.style.pointerEvents = 'auto'; // 클릭 가능하게
-
-        // 클릭 이벤트
-        star.addEventListener('click', (e) => {
-            e.stopPropagation();
-
-            const rect = star.getBoundingClientRect();
-            const containerRect = container.getBoundingClientRect();
-            const x = rect.left + rect.width / 2 - containerRect.left;
-            const y = rect.top + rect.height / 2 - containerRect.top;
-
-            if (!connectMode) {
-                // 첫 클릭 → 연결 모드 켜기
-                connectMode = true;
-                lastStar = e.target;
-
-                // 임시 선 생성
-                tempLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
-                tempLine.classList.add("temp-line");
-                tempLine.setAttribute("x1", x);
-                tempLine.setAttribute("y1", y);
-                tempLine.setAttribute("x2", x);
-                tempLine.setAttribute("y2", y);
-                svg.appendChild(tempLine);
-            } else {
-                // 두 번째 이후 클릭 → 선 그리기
-                drawLine(lastStar, e.target);
-
-                // 새 임시 선을 현재 별에서 시작
-                lastStar = e.target;
-                const rectNew = lastStar.getBoundingClientRect();
-                const xNew = rectNew.left + rectNew.width / 2 - containerRect.left;
-                const yNew = rectNew.top + rectNew.height / 2 - containerRect.top;
-                tempLine.setAttribute("x1", xNew);
-                tempLine.setAttribute("y1", yNew);
-            }
-        });
-
-        container.appendChild(star);
-    }
-
-    // 마우스 이동 → 임시 선 끝점 따라감
-    document.addEventListener('mousemove', (e) => {
-        if (connectMode && tempLine && lastStar) {
-            const rect1 = lastStar.getBoundingClientRect();
-            const containerRect = container.getBoundingClientRect();
-            const x1 = rect1.left + rect1.width / 2 - containerRect.left;
-            const y1 = rect1.top + rect1.height / 2 - containerRect.top;
-            const x2 = e.clientX - containerRect.left;
-            const y2 = e.clientY - containerRect.top;
-
-            tempLine.setAttribute("x1", x1);
-            tempLine.setAttribute("y1", y1);
-            tempLine.setAttribute("x2", x2);
-            tempLine.setAttribute("y2", y2);
-        }
-    });
-
-    // 별 아닌 곳 클릭 시 모드 해제
-    document.addEventListener('click', (e) => {
-    // 클릭한 게 별이 아닐 때만
-    if (!e.target.classList.contains('star')) {
-        connectMode = false;
-        lastStar = null;
-        if (tempLine) {
-            tempLine.remove();
-            tempLine = null;
-        }
-    }
-});
-    // 선 그리기 함수
-    function drawLine(star1, star2) {
-        const rect1 = star1.getBoundingClientRect();
-        const rect2 = star2.getBoundingClientRect();
-        const containerRect = container.getBoundingClientRect();
-
-        const x1 = rect1.left + rect1.width / 2 - containerRect.left;
-        const y1 = rect1.top + rect1.height / 2 - containerRect.top;
-        const x2 = rect2.left + rect2.width / 2 - containerRect.left;
-        const y2 = rect2.top + rect2.height / 2 - containerRect.top;
-
-        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        line.setAttribute("x1", x1);
-        line.setAttribute("y1", y1);
-        line.setAttribute("x2", x2);
-        line.setAttribute("y2", y2);
-        line.classList.add("star-line");
-
-        svg.appendChild(line);
-    }
-}
-
-// 실행
-createStars('.stars', 100);
-
-
-
-
-
-  // ---- Typing animation (single definition) ----
-  function startTypingAnimation() {
-    const text = "Portfolio";
-    const typedText = document.getElementById("typed-text");
-    const cursor = document.getElementById("typed-cursor");
-    let i = 0;
-
-    function type() {
-      if (!typedText) return;
-      if (i <= text.length) {
-        typedText.textContent = text.slice(0, i);
-        i++;
-        setTimeout(type, 120);
-      }
-    }
-
-    type();
+    return true;
   }
 
-  // Init on first intersection of .hero-title
-  document.addEventListener("DOMContentLoaded", function () {
-    const typingTarget = document.querySelector(".hero-title");
-    if (typingTarget) {
-      const observer = new IntersectionObserver(
-        (entries, observer) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              startTypingAnimation();
-              observer.unobserve(entry.target); // run once
-            }
-          });
-        },
-        { threshold: 0.6 }
-      );
-      observer.observe(typingTarget);
-    }
-  });
-
-/* ---------------- Like counter & Heart FX (plain JS) ---------------- */
-// SAFE like counter (CORS-resilient + local fallback)
-const LIKES_ENDPOINT = "https://script.google.com/macros/s/AKfycbw6jrYpLM3nrZeXmAJsZOXyWg48TwJTrYlVXvcT01kvq0flhDipUV4E7BAOiaSu0iUxcw/exec";
-const LS_KEY = "solbi-like-cache/value";
-
-function setLikeUI(val){
-  const el = document.getElementById("like-count");
-  if (el) el.textContent = Number.isFinite(val) ? val : 0;
-}
-
-function getCachedLike(){ 
-  const v = localStorage.getItem(LS_KEY);
-  return v ? parseInt(v, 10) : 0;
-}
-function setCachedLike(v){
-  try { localStorage.setItem(LS_KEY, String(v)); } catch(e){}
-}
-
-// 1) Init UI from cache immediately
-setLikeUI(getCachedLike());
-
-// 2) Try to fetch latest count (if CORS allows)
-(async function(){
-  try {
-    const res = await fetch(LIKES_ENDPOINT, { method: "GET", credentials: "omit" });
-    // Only read if CORS allowed & JSON
-    const ct = res.headers.get("content-type") || "";
-    if (res.ok && ct.includes("application/json")) {
-      const data = await res.json();
-      if (data && typeof data.value !== "undefined") {
-        setCachedLike(data.value);
-        setLikeUI(data.value);
-      }
-    }
-  } catch (e) {
-    // ignore (CORS or network). UI already shows cached value.
+  // Try immediately and then a couple more times to win race conditions
+  if (!attach()){
+    setTimeout(attach, 120);
+    setTimeout(attach, 280);
   }
 })();
+
 
 // 3) Click: optimistic UI + fire-and-forget increment
 const heartFxContainer = document.getElementById("heart-fx-container");
