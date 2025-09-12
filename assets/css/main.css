@@ -1325,7 +1325,7 @@ input, select, textarea {
 						justify-content: center;
 						align-items: center;
 						margin-top: 1em;
-						position:relative;
+						position:absolute;
 						right: 1em;
 						bottom: 1.5em;
 						pointer-events: auto !important ; 
