@@ -281,6 +281,45 @@ document.addEventListener('DOMContentLoaded', () => {
 				var $content = $popup.find('.content');
 				if ($cap.length && $content.length) {
 					$cap.appendTo($content);
+
+
+// === HINT bubble (only for .caption2 a[data-hint]) ===
+(function(){
+  var $popup = $('.poptrox-popup');
+  var $cap   = $popup.find('.caption');
+  if (!$cap.length) return;
+
+  // Only targets with data-hint attribute
+  $cap.find('.caption2 a[data-hint]').each(function () {
+    var $a   = $(this);
+    var href = $a.attr('href') || '';
+    var key  = 'hint:v2:' + href;      // show once per session/link
+
+    if (sessionStorage.getItem(key)) return;
+    if ($a.find('.hint-bubble').length) return; // avoid duplicates
+
+    var txt = $a.data('hint') || 'View Details';
+    var $bubble = $('<span class="hint-bubble"/>').text(txt);
+    $a.append($bubble);
+
+    // fade-in
+    requestAnimationFrame(function(){ setTimeout(function(){ $bubble.addClass('show'); }, 180); });
+
+    // hide on click (bubble or button)
+    var hide = function(e){
+      try { e.stopPropagation(); } catch(_){}
+      $bubble.removeClass('show');
+      setTimeout(function(){ $bubble.remove(); }, 220);
+      sessionStorage.setItem(key, '1');
+      $a.off('click._hint', hide);
+      $bubble.off('click._hint', hide);
+    };
+    $a.on('click._hint', hide);
+    $bubble.on('click._hint', hide);
+  });
+})();
+
+
 				}
 			} catch (err) {
 				console.warn('[stacked] init failed', err);
@@ -321,6 +360,10 @@ document.addEventListener('DOMContentLoaded', () => {
 	console.log("💥 poptrox 실행됨!", $("#main")[0]._poptrox);  //수정됨
 
 
+/* disabled old hint-bubble */
+/*
+/* disabled old hint-bubble */
+/*
 // === "View Details" hint bubble (only for .caption2 a[data-hint]) + 디버그 로그 ===
 (function () {
   const $popup = $('.poptrox-popup');
@@ -371,6 +414,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 	
 
+
+
+*/
+*/
 //  -------별자리 그리기 로직--------
 // -------------------------
 // 랜덤 별 생성 + 별자리 연결 로직
