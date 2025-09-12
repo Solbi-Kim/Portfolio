@@ -281,52 +281,6 @@ document.addEventListener('DOMContentLoaded', () => {
 				var $content = $popup.find('.content');
 				if ($cap.length && $content.length) {
 					$cap.appendTo($content);
-
-
-// === HINT bubble (only for .caption2 a[data-hint]) ===
-(function(){
-  function attach(){
-    var $popup = $('.poptrox-popup');
-    var $cap   = $popup.find('.caption');
-    if (!$cap.length) return false;
-    // priority: data-hint -> /info/ -> icon class
-    var $targets = $cap.find('.caption2 a[data-hint]');
-    if (!$targets.length) $targets = $cap.find('.caption2 a[href*="/info/"]');
-    if (!$targets.length) $targets = $cap.find('.caption a.icon.solid.fa-info-circle');
-    if (!$targets.length) return false;
-
-    $targets.each(function(){
-      var $a = $(this);
-      var href = $a.attr('href') || ($popup.find('.image').attr('href') || '');
-      var key  = 'hint:v3:' + href;
-      if (sessionStorage.getItem(key)) return;
-      if ($a.find('.hint-bubble').length) return;
-
-      var txt = $a.data('hint') || 'View Details';
-      var $bubble = $('<span class="hint-bubble"/>').text(txt);
-      $a.append($bubble);
-      requestAnimationFrame(function(){ setTimeout(function(){ $bubble.addClass('show'); }, 180); });
-
-      var hide = function(e){
-        try { e.stopPropagation(); } catch(_){}
-        $bubble.removeClass('show');
-        setTimeout(function(){ $bubble.remove(); }, 220);
-        sessionStorage.setItem(key, '1');
-        $a.off('click._hint', hide);
-        $bubble.off('click._hint', hide);
-      };
-      $a.on('click._hint', hide);
-      $bubble.on('click._hint', hide);
-    });
-    return true;
-  }
-  if (!attach()){
-    setTimeout(attach, 120);
-    setTimeout(attach, 280);
-  }
-})();
-
-
 				}
 			} catch (err) {
 				console.warn('[stacked] init failed', err);
@@ -374,7 +328,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (!$cap.length) { console.warn('[hint] no .caption'); return; }
 
   // target: data-hint 달린 버튼만
-  const $targets = $cap.find('.caption2 a[data-hint]');
+  const $targets = $popup2.find('.caption2 a[data-hint]');
   console.log('[hint] targets:', $targets.length, $targets.map((i,el)=>el.outerHTML).get());
 
   if (!$targets.length) {
@@ -1149,40 +1103,5 @@ function __headerOffset(){
 
 
 
-
-
-
-// === Scroll reveal for #main .thumb (row-aware, 120ms stagger) ===
-document.addEventListener('DOMContentLoaded', function () {
-  try {
-    var thumbs = Array.prototype.slice.call(document.querySelectorAll('#main .thumb'));
-    if (!thumbs.length) return;
-
-    var io = new IntersectionObserver(function (entries) {
-      var incoming = entries.filter(function(e){ return e.isIntersecting; }).map(function(e){ return e.target; });
-      if (!incoming.length) return;
-
-      var groups = {};
-      incoming.forEach(function (el) {
-        var top = Math.round(el.getBoundingClientRect().top);
-        (groups[top] = groups[top] || []).push(el);
-      });
-
-      Object.keys(groups).forEach(function (k) {
-        var row = groups[k];
-        row.sort(function (a, b) { return a.getBoundingClientRect().left - b.getBoundingClientRect().left; });
-        row.forEach(function (el, i) {
-          el.style.transitionDelay = (i * 120) + 'ms';
-          el.classList.add('is-visible');
-          io.unobserve(el);
-        });
-      });
-    }, { threshold: 0.12, rootMargin: '0px 0px -10% 0px' });
-
-    thumbs.forEach(function (el) { io.observe(el); });
-  } catch (err) {
-    console.warn('[reveal] failed:', err);
-  }
-});
 
 })(jQuery);  //necessary line
