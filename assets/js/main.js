@@ -181,7 +181,35 @@
     $image_img.hide();
   });
 
+// === Row-aware stagger ===
+document.addEventListener('DOMContentLoaded', () => {
+  const thumbs = Array.from(document.querySelectorAll('#main .thumb'));
+  if (!thumbs.length) return;
 
+  const io = new IntersectionObserver(onEnter, { threshold: 0.12, rootMargin: '0px 0px -10% 0px' });
+  thumbs.forEach(el => io.observe(el));
+
+  function onEnter(entries) {
+    // 이번 턴에 들어온 것만 추림
+    const incoming = entries.filter(e => e.isIntersecting).map(e => e.target);
+    if (!incoming.length) return;
+
+    // 같은 줄(top) 기준으로 그룹핑 → 각 줄에서 좌→우 정렬
+    const groups = {};
+    incoming.forEach(el => {
+      const top = Math.round(el.getBoundingClientRect().top);
+      (groups[top] ||= []).push(el);
+    });
+    Object.values(groups).forEach(row => {
+      row.sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left);
+      row.forEach((el, i) => {
+        el.style.transitionDelay = `${i * 120}ms`; // 한 줄 안에서만 스태거
+        el.classList.add('is-visible');
+        io.unobserve(el);
+      });
+    });
+  }
+});
 	
 // -- Poptrox.
 	$main.poptrox({
@@ -253,59 +281,6 @@
 				var $content = $popup.find('.content');
 				if ($cap.length && $content.length) {
 					$cap.appendTo($content);
-
-// === Hint bubble: ensure button exists in popup (clone from source if missing) ===
-(function(){
-  try {
-    var $popup = $('.poptrox-popup');
-    var $cap   = $popup.find('.caption');
-    var $content = $popup.find('.content');
-
-    // Ensure a .caption2 container exists inside popup
-    var $cap2 = $popup.find('.caption2');
-    if (!$cap2.length) {
-      $cap2 = $('<span class="caption2"/>');
-      ($cap.length ? $cap : $content).append($cap2);
-    }
-
-    // Find target button in popup
-    var $btn = $cap2.find('a[data-hint], a[href*="/info/"], a.icon.solid.fa-info-circle').first();
-
-    // If not present, clone from the source thumb we just clicked
-    if (!$btn.length && window.__lastThumb) {
-      var $srcBtn = $(window.__lastThumb).find('.caption2 a[data-hint], .caption2 a[href*="/info/"], .caption2 a.icon.solid.fa-info-circle').first();
-      if ($srcBtn.length) {
-        $btn = $srcBtn.clone(false, false);
-        if (!$btn.attr('data-hint')) $btn.attr('data-hint','View Details');
-        $cap2.append($btn);
-      }
-    }
-
-    if (!$btn || !$btn.length) { console.warn('[hint] no target button in popup'); return; }
-    if ($btn.data('__hintAttached')) return;
-    $btn.data('__hintAttached', true);
-
-    var txt = $btn.data('hint') || 'View Details';
-    var $bubble = $('<span class="hint-bubble"/>').text(txt);
-    $btn.append($bubble);
-
-    requestAnimationFrame(function(){ setTimeout(function(){ $bubble.addClass('show'); }, 180); });
-
-    var hide = function(e){
-      try { e.stopPropagation(); } catch(_){}
-      $bubble.removeClass('show');
-      setTimeout(function(){ $bubble.remove(); }, 220);
-      $btn.off('click._hint', hide);
-      $bubble.off('click._hint', hide);
-    };
-    $btn.on('click._hint', hide);
-    $bubble.on('click._hint', hide);
-  } catch (err) {
-    console.warn('[hint] failed:', err);
-  }
-})();
-
-
 				}
 			} catch (err) {
 				console.warn('[stacked] init failed', err);
@@ -346,6 +321,55 @@
 	console.log("💥 poptrox 실행됨!", $("#main")[0]._poptrox);  //수정됨
 
 
+// === "View Details" hint bubble (only for .caption2 a[data-hint]) + 디버그 로그 ===
+(function () {
+  const $popup = $('.poptrox-popup');
+  const $cap   = $popup.find('.caption');
+  if (!$cap.length) { console.warn('[hint] no .caption'); return; }
+
+  // target: data-hint 달린 버튼만
+  const $targets = $cap.find('.caption2 a[data-hint]');
+  console.log('[hint] targets:', $targets.length, $targets.map((i,el)=>el.outerHTML).get());
+
+  if (!$targets.length) {
+    console.warn('[hint] .caption2 a[data-hint] not found. HTML에 data-hint 달렸는지 확인');
+    return;
+  }
+
+  $targets.each(function () {
+    const $a   = $(this);
+    const href = $a.attr('href') || '';
+    const key  = 'hint:v2:' + href;           // 세션 한 번만
+
+    if (sessionStorage.getItem(key)) {
+      console.log('[hint] already seen:', href);
+      return;
+    }
+
+    // 말풍선 생성
+    const txt = $a.data('hint') || 'View Details';
+    const $bubble = $('<span class="hint-bubble"/>').text(txt);
+    $a.append($bubble);
+
+    // 바로 보여서 스타일 문제를 눈으로 확인(테스트 후 필요하면 180ms 지연으로 바꿔)
+    requestAnimationFrame(() => $bubble.addClass('show'));
+
+    // 클릭 시 제거
+    function hide(e){
+      try { e.stopPropagation(); } catch(_) {}
+      $bubble.removeClass('show');
+      setTimeout(() => $bubble.remove(), 220);
+      sessionStorage.setItem(key, '1');
+      $a.off('click._hint', hide);
+      $bubble.off('click._hint', hide);
+    }
+    $a.on('click._hint', hide);
+    $bubble.on('click._hint', hide);
+  });
+})();
+
+
+	
 
 //  -------별자리 그리기 로직--------
 // -------------------------
@@ -1079,49 +1103,5 @@ function __headerOffset(){
 
 
 
-
-
-// === Scroll reveal for #main .thumb (row-aware, 120ms stagger) ===
-document.addEventListener('DOMContentLoaded', function () {
-  try {
-    var thumbs = Array.prototype.slice.call(document.querySelectorAll('#main .thumb'));
-    if (!thumbs.length) return;
-
-    var io = new IntersectionObserver(function (entries) {
-      var incoming = entries.filter(function(e){ return e.isIntersecting; }).map(function(e){ return e.target; });
-      if (!incoming.length) return;
-
-      var groups = {};
-      incoming.forEach(function (el) {
-        var top = Math.round(el.getBoundingClientRect().top);
-        (groups[top] = groups[top] || []).push(el);
-      });
-
-      Object.keys(groups).forEach(function (k) {
-        var row = groups[k];
-        row.sort(function (a, b) { return a.getBoundingClientRect().left - b.getBoundingClientRect().left; });
-        row.forEach(function (el, i) {
-          el.style.transitionDelay = (i * 120) + 'ms';
-          el.classList.add('is-visible');
-          io.unobserve(el);
-        });
-      });
-    }, { threshold: 0.12, rootMargin: '0px 0px -10% 0px' });
-
-    thumbs.forEach(function (el) { io.observe(el); });
-  } catch (err) {
-    console.warn('[reveal] failed:', err);
-  }
-});
-
-
-// === Track last clicked thumb (to clone buttons into popup) ===
-document.addEventListener('click', function(e){
-  var el = e.target && e.target.closest ? e.target.closest('#main .thumb > a.image') : null;
-  if (el) {
-    var t = el.closest('.thumb');
-    if (t) window.__lastThumb = t;
-  }
-}, true);
 
 })(jQuery);  //necessary line
