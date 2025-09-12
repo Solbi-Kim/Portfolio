@@ -1362,8 +1362,8 @@ input, select, textarea {
   bottom:auto;
   transform: translateX(-50%) translateY(6px);
 
-  padding: .4em .55em;
-  font-size: .82em;
+  padding: .5em .7em;
+  font-size: .8em;
 
   color: #000 !important;
   font-weight: 700 !important;
