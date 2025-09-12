@@ -181,6 +181,30 @@
     $image_img.hide();
   });
 
+// === Thumb reveal on scroll ===
+document.addEventListener('DOMContentLoaded', () => {
+  const thumbs = Array.from(document.querySelectorAll('#main .thumb'));
+  if (!thumbs.length) return;
+
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-visible');
+        io.unobserve(entry.target); // 한 번만
+      }
+    });
+  }, {
+    root: null,
+    threshold: 0.12,
+    rootMargin: '0px 0px -10% 0px'
+  });
+
+  // 간단한 스태거(줄 단위로 살짝 지연)
+  thumbs.forEach((el, i) => {
+    el.style.setProperty('--reveal-delay', `${(i % 6) * 70}ms`);
+    io.observe(el);
+  });
+});
 
 	
 // -- Poptrox.
