@@ -181,35 +181,7 @@
     $image_img.hide();
   });
 
-// === Row-aware stagger ===
-document.addEventListener('DOMContentLoaded', () => {
-  const thumbs = Array.from(document.querySelectorAll('#main .thumb'));
-  if (!thumbs.length) return;
 
-  const io = new IntersectionObserver(onEnter, { threshold: 0.12, rootMargin: '0px 0px -10% 0px' });
-  thumbs.forEach(el => io.observe(el));
-
-  function onEnter(entries) {
-    // 이번 턴에 들어온 것만 추림
-    const incoming = entries.filter(e => e.isIntersecting).map(e => e.target);
-    if (!incoming.length) return;
-
-    // 같은 줄(top) 기준으로 그룹핑 → 각 줄에서 좌→우 정렬
-    const groups = {};
-    incoming.forEach(el => {
-      const top = Math.round(el.getBoundingClientRect().top);
-      (groups[top] ||= []).push(el);
-    });
-    Object.values(groups).forEach(row => {
-      row.sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left);
-      row.forEach((el, i) => {
-        el.style.transitionDelay = `${i * 120}ms`; // 한 줄 안에서만 스태거
-        el.classList.add('is-visible');
-        io.unobserve(el);
-      });
-    });
-  }
-});
 	
 // -- Poptrox.
 	$main.poptrox({
@@ -281,6 +253,57 @@ document.addEventListener('DOMContentLoaded', () => {
 				var $content = $popup.find('.content');
 				if ($cap.length && $content.length) {
 					$cap.appendTo($content);
+
+// === Hint bubble (caption2 independent; robust targeting with fallbacks) ===
+(function(){
+  try {
+    var $popup = $('.poptrox-popup');
+
+    // 1) prefer explicit data-hint (original markup에만 있을 수 있음)
+    var $targets = $popup.find('.caption2 a[data-hint]');
+
+    // 2) fallback: info 링크(href) 패턴
+    if (!$targets.length) $targets = $popup.find('.caption2 a[href*="/info/"]');
+
+    // 3) fallback: info 아이콘 클래스 보유 anchor
+    if (!$targets.length) $targets = $popup.find('.caption2 a:has(.fa-info-circle)');
+
+    console.log('[hint] anchors found:', $targets.length);
+
+    if (!$targets.length) return;
+
+    $targets.each(function(){
+      var $a = $(this);
+      if ($a.data('__hintAttached')) return;
+      $a.data('__hintAttached', true);
+
+      var href = $a.attr('href') || '';
+      var key  = 'hint:v5:' + href;
+      if (sessionStorage.getItem(key)) return;
+
+      var txt = $a.data('hint') || 'View Details';
+      var $bubble = $('<span class="hint-bubble"/>').text(txt);
+      $a.append($bubble);
+
+      requestAnimationFrame(function(){ setTimeout(function(){ $bubble.addClass('show'); }, 180); });
+
+      var hide = function(e){
+        try { e.stopPropagation(); } catch(_){}
+        $bubble.removeClass('show');
+        setTimeout(function(){ $bubble.remove(); }, 220);
+        sessionStorage.setItem(key, '1');
+        $a.off('click._hint', hide);
+        $bubble.off('click._hint', hide);
+      };
+      $a.on('click._hint', hide);
+      $bubble.on('click._hint', hide);
+    });
+  } catch (err) {
+    console.warn('[hint] attach failed:', err);
+  }
+})();
+
+
 				}
 			} catch (err) {
 				console.warn('[stacked] init failed', err);
@@ -321,45 +344,6 @@ document.addEventListener('DOMContentLoaded', () => {
 	console.log("💥 poptrox 실행됨!", $("#main")[0]._poptrox);  //수정됨
 
 
-// === "View Details" hint bubble (caption2 전용) ===
-try {
-  var $popup = $('.poptrox-popup');
-  var $cap   = $popup.find('.caption');
-  if ($cap.length) {
-    // info 서브페이지 버튼: /info/ 링크를 우선 타겟
-    var $info = $cap.find('.caption2 a[href*="/info/"]').first();
-    // (혹시 href 패턴이 다르면 .caption2 a:last 로 대체 가능)
-    if ($info.length) {
-      var href = $info.attr('href') || '';
-      var seenKey = 'hint:details:' + href;
-
-      if (!sessionStorage.getItem(seenKey)) {
-        // 말풍선 생성
-        var $bubble = $('<span class="hint-bubble">View Details</span>');
-        $info.append($bubble);
-
-        // 페이드인
-        requestAnimationFrame(() => {
-          setTimeout(() => $bubble.addClass('show'), 180);
-        });
-
-        // 클릭 시 제거 (버튼/말풍선 둘 다)
-        function hideBubble(e){
-          try { e.stopPropagation(); } catch(_){}
-          $bubble.removeClass('show');
-          setTimeout(() => $bubble.remove(), 220);
-          sessionStorage.setItem(seenKey, '1');
-        }
-        $info.on('click._hint', hideBubble);
-        $bubble.on('click._hint', hideBubble);
-      }
-    }
-  }
-} catch (err) {
-  console.warn('hint bubble failed:', err);
-}
-
-	
 
 //  -------별자리 그리기 로직--------
 // -------------------------
