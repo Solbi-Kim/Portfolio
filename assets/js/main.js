@@ -181,35 +181,7 @@
     $image_img.hide();
   });
 
-// === Row-aware stagger ===
-document.addEventListener('DOMContentLoaded', () => {
-  const thumbs = Array.from(document.querySelectorAll('#main .thumb'));
-  if (!thumbs.length) return;
 
-  const io = new IntersectionObserver(onEnter, { threshold: 0.12, rootMargin: '0px 0px -10% 0px' });
-  thumbs.forEach(el => io.observe(el));
-
-  function onEnter(entries) {
-    // 이번 턴에 들어온 것만 추림
-    const incoming = entries.filter(e => e.isIntersecting).map(e => e.target);
-    if (!incoming.length) return;
-
-    // 같은 줄(top) 기준으로 그룹핑 → 각 줄에서 좌→우 정렬
-    const groups = {};
-    incoming.forEach(el => {
-      const top = Math.round(el.getBoundingClientRect().top);
-      (groups[top] ||= []).push(el);
-    });
-    Object.values(groups).forEach(row => {
-      row.sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left);
-      row.forEach((el, i) => {
-        el.style.transitionDelay = `${i * 120}ms`; // 한 줄 안에서만 스태거
-        el.classList.add('is-visible');
-        io.unobserve(el);
-      });
-    });
-  }
-});
 	
 // -- Poptrox.
 	$main.poptrox({
@@ -284,40 +256,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 // === HINT bubble (only for .caption2 a[data-hint]) ===
-(function(){
-  var $popup = $('.poptrox-popup');
-  var $cap   = $popup.find('.caption');
-  if (!$cap.length) return;
-
-  // Only targets with data-hint attribute
-  $cap.find('.caption2 a[data-hint]').each(function () {
-    var $a   = $(this);
-    var href = $a.attr('href') || '';
-    var key  = 'hint:v2:' + href;      // show once per session/link
-
-    if (sessionStorage.getItem(key)) return;
-    if ($a.find('.hint-bubble').length) return; // avoid duplicates
-
-    var txt = $a.data('hint') || 'View Details';
-    var $bubble = $('<span class="hint-bubble"/>').text(txt);
-    $a.append($bubble);
-
-    // fade-in
-    requestAnimationFrame(function(){ setTimeout(function(){ $bubble.addClass('show'); }, 180); });
-
-    // hide on click (bubble or button)
-    var hide = function(e){
-      try { e.stopPropagation(); } catch(_){}
-      $bubble.removeClass('show');
-      setTimeout(function(){ $bubble.remove(); }, 220);
-      sessionStorage.setItem(key, '1');
-      $a.off('click._hint', hide);
-      $bubble.off('click._hint', hide);
-    };
-    $a.on('click._hint', hide);
-    $bubble.on('click._hint', hide);
-  });
-})();
+try {
+  var $popup2 = $('.poptrox-popup');
+  var $cap2   = $popup2.find('.caption');
+  if ($cap2.length) {
+    var $targets = $cap2.find('.caption2 a[data-hint]');
+    console.log('[hint] targets:', $targets.length);
+    $targets.each(function(){
+      var $a = $(this);
+      var href = $a.attr('href') || '';
+      var key  = 'hint:v2:' + href;
+      if (sessionStorage.getItem(key)) return;
+      if ($a.find('.hint-bubble').length) return;
+      var txt = $a.data('hint') || 'View Details';
+      var $bubble = $('<span class="hint-bubble"/>').text(txt);
+      $a.append($bubble);
+      requestAnimationFrame(function(){ setTimeout(function(){ $bubble.addClass('show'); }, 180); });
+      var hide = function(e){
+        try { e.stopPropagation(); } catch(_){}
+        $bubble.removeClass('show');
+        setTimeout(function(){ $bubble.remove(); }, 220);
+        sessionStorage.setItem(key, '1');
+        $a.off('click._hint', hide);
+        $bubble.off('click._hint', hide);
+      };
+      $a.on('click._hint', hide);
+      $bubble.on('click._hint', hide);
+    });
+  } else {
+    console.warn('[hint] no .caption found');
+  }
+} catch (e) {
+  console.warn('[hint] failed:', e);
+}
 
 
 				}
@@ -358,59 +329,6 @@ document.addEventListener('DOMContentLoaded', () => {
 	});
 
 	console.log("💥 poptrox 실행됨!", $("#main")[0]._poptrox);  //수정됨
-
-
-/* disabled old hint-bubble */
-/* disabled old hint-bubble */
-// === "View Details" hint bubble (only for .caption2 a[data-hint]) + 디버그 로그 ===
-(function () {
-  const $popup = $('.poptrox-popup');
-  const $cap   = $popup.find('.caption');
-  if (!$cap.length) { console.warn('[hint] no .caption'); return; }
-
-  // target: data-hint 달린 버튼만
-  const $targets = $cap.find('.caption2 a[data-hint]');
-  console.log('[hint] targets:', $targets.length, $targets.map((i,el)=>el.outerHTML).get());
-
-  if (!$targets.length) {
-    console.warn('[hint] .caption2 a[data-hint] not found. HTML에 data-hint 달렸는지 확인');
-    return;
-  }
-
-  $targets.each(function () {
-    const $a   = $(this);
-    const href = $a.attr('href') || '';
-    const key  = 'hint:v2:' + href;           // 세션 한 번만
-
-    if (sessionStorage.getItem(key)) {
-      console.log('[hint] already seen:', href);
-      return;
-    }
-
-    // 말풍선 생성
-    const txt = $a.data('hint') || 'View Details';
-    const $bubble = $('<span class="hint-bubble"/>').text(txt);
-    $a.append($bubble);
-
-    // 바로 보여서 스타일 문제를 눈으로 확인(테스트 후 필요하면 180ms 지연으로 바꿔)
-    requestAnimationFrame(() => $bubble.addClass('show'));
-
-    // 클릭 시 제거
-    function hide(e){
-      try { e.stopPropagation(); } catch(_) {}
-      $bubble.removeClass('show');
-      setTimeout(() => $bubble.remove(), 220);
-      sessionStorage.setItem(key, '1');
-      $a.off('click._hint', hide);
-      $bubble.off('click._hint', hide);
-    }
-    $a.on('click._hint', hide);
-    $bubble.on('click._hint', hide);
-  });
-})();
-
-
-	
 
 
 
