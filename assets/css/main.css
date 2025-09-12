@@ -2230,39 +2230,43 @@ body.donut-active #main:after { pointer-events: auto; opacity: 1; visibility: vi
 }
 
 
+/* ==== HINT BUBBLE FINAL OVERRIDE (below-center, solid box) ===================
+   - Only fix background box + positioning.
+   - Forces bubble to appear BELOW the button, centered.
+   - Prevents clipping and line-height inheritance issues.
+============================================================================= */
+.poptrox-popup .caption2,
+.poptrox-popup .caption2 a { overflow: visible !important; }
 
-/* === Hint bubble support (anchor & stacked fixes) === */
-.poptrox-popup .caption2 a { position: relative; }
-.poptrox-popup.stacked { pointer-events: auto; }
-.poptrox-popup.stacked .caption { pointer-events: auto; }
+.poptrox-popup .caption2 a .hint-bubble{
+  position: absolute !important;
+  left: 50% !important;
+  right: auto !important;
+  top: calc(100% + 10px) !important;  /* BELOW button */
+  bottom: auto !important;
+  transform: translateX(-50%) translateY(6px) !important;
 
+  /* Make it a real rounded box (not a thin line) */
+  display: inline-block !important;
+  line-height: 1.25 !important;
+  padding: .55em .75em !important;
+  box-sizing: border-box !important;
+  background-clip: padding-box !important;
 
-/* === Hint bubble left-anchored to avoid covering video === */
-.poptrox-popup .caption2 a .hint-bubble {
-  right: calc(100% + 10px); /* place to the left of the button */
-  left: auto;
-  bottom: 0;
-  transform: translateY(6px);
+  /* Typography & look */
+  font-size: .82em !important;
+  font-weight: 700 !important;
+  color: #000 !important;
+  background-color: rgba(255,255,255,.5) !important;  /* only the background is semi-transparent */
+  border-radius: .45em !important;
+  box-shadow: 0 6px 14px rgba(0,0,0,.14), 0 1px 3px rgba(0,0,0,.12) !important;
+
+  white-space: nowrap !important;
+  pointer-events: auto !important;
 }
-.poptrox-popup .caption2 a .hint-bubble::after {
-  left: auto;
-  right: -6px;
-  bottom: 8px;
-  border: 6px solid transparent;
-  border-left-color: rgba(0,0,0,.78);
-}
-.poptrox-popup .caption2 a .hint-bubble.show {
-  transform: translateY(0);
-}
-@media (max-width: 520px){
-  /* on tiny screens, prefer top placement to avoid going off-canvas */
-  .poptrox-popup .caption2 a .hint-bubble {
-    right: auto; left: 50%;
-    bottom: calc(100% + 8px);
-    transform: translateX(-50%) translateY(6px);
-  }
-  .poptrox-popup .caption2 a .hint-bubble::after {
-    right: auto; left: 50%; transform: translateX(-50%);
-    bottom: -6px; border-left-color: transparent; border-top-color: rgba(0,0,0,.78);
-  }
+
+/* No arrow tails */
+.poptrox-popup .caption2 a .hint-bubble::before,
+.poptrox-popup .caption2 a .hint-bubble::after{
+  content: none !important;
 }
