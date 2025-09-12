@@ -361,9 +361,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 /* disabled old hint-bubble */
-/*
 /* disabled old hint-bubble */
-/*
 // === "View Details" hint bubble (only for .caption2 a[data-hint]) + 디버그 로그 ===
 (function () {
   const $popup = $('.poptrox-popup');
