@@ -332,7 +332,7 @@ document.addEventListener('DOMContentLoaded', () => {
   var DEBUG              = true;        // 디버그 로그 ON/OFF
   var POLL_MAX_MS        = 60 * 1000;   // 최대 대기 시간(예: 1분). 2분은 120*1000.
   var TICK_MS            = 120;         // 폴링 간격
-  var DETECTED_DELAY_MS  = 3000;        // ★ 버튼 감지 후 말풍선 표시까지 지연(3s)
+  var DETECTED_DELAY_MS  = 60000;        // ★ 버튼 감지 후 말풍선 표시까지 지연(3s)
 
   // 팝업 루트(jQuery 객체)
   var $popup = (function () {
