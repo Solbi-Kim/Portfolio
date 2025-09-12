@@ -254,52 +254,54 @@
 				if ($cap.length && $content.length) {
 					$cap.appendTo($content);
 
-// === Hint bubble (caption2 independent; robust targeting with fallbacks) ===
+// === Hint bubble (robust; waits for .caption2 with MutationObserver) ===
 (function(){
-  try {
+  var attached = false;
+
+  function tryAttach() {
+    if (attached) return;
     var $popup = $('.poptrox-popup');
+    if (!$popup.length) return;
 
-    // 1) prefer explicit data-hint (original markup에만 있을 수 있음)
-    var $targets = $popup.find('.caption2 a[data-hint]');
+    // Prefer data-hint, fallback to /info/ or icon class
+    var $btn = $popup.find('.caption2 a[data-hint], .caption2 a[href*="/info/"], .caption2 a.icon.solid.fa-info-circle').first();
+    console.log('[hint] tryAttach anchors:', $btn.length);
 
-    // 2) fallback: info 링크(href) 패턴
-    if (!$targets.length) $targets = $popup.find('.caption2 a[href*="/info/"]');
+    if (!$btn.length) return;
 
-    // 3) fallback: info 아이콘 클래스 보유 anchor
-    if (!$targets.length) $targets = $popup.find('.caption2 a:has(.fa-info-circle)');
+    if ($btn.data('__hintAttached')) { attached = true; return; }
+    $btn.data('__hintAttached', true);
 
-    console.log('[hint] anchors found:', $targets.length);
+    var txt = $btn.data('hint') || 'View Details';
+    var $bubble = $('<span class="hint-bubble"/>').text(txt);
+    $btn.append($bubble);
 
-    if (!$targets.length) return;
+    requestAnimationFrame(function(){ setTimeout(function(){ $bubble.addClass('show'); }, 180); });
 
-    $targets.each(function(){
-      var $a = $(this);
-      if ($a.data('__hintAttached')) return;
-      $a.data('__hintAttached', true);
+    var hide = function(e){
+      try { e.stopPropagation(); } catch(_){}
+      $bubble.removeClass('show');
+      setTimeout(function(){ $bubble.remove(); }, 220);
+      $btn.off('click._hint', hide);
+      $bubble.off('click._hint', hide);
+    };
+    $btn.on('click._hint', hide);
+    $bubble.on('click._hint', hide);
 
-      var href = $a.attr('href') || '';
-      var key  = 'hint:v5:' + href;
-      if (sessionStorage.getItem(key)) return;
+    attached = true;
+  }
 
-      var txt = $a.data('hint') || 'View Details';
-      var $bubble = $('<span class="hint-bubble"/>').text(txt);
-      $a.append($bubble);
+  // Quick retries to cover race conditions
+  [0, 150, 350, 700, 1200].forEach(function(ms){
+    setTimeout(tryAttach, ms);
+  });
 
-      requestAnimationFrame(function(){ setTimeout(function(){ $bubble.addClass('show'); }, 180); });
-
-      var hide = function(e){
-        try { e.stopPropagation(); } catch(_){}
-        $bubble.removeClass('show');
-        setTimeout(function(){ $bubble.remove(); }, 220);
-        sessionStorage.setItem(key, '1');
-        $a.off('click._hint', hide);
-        $bubble.off('click._hint', hide);
-      };
-      $a.on('click._hint', hide);
-      $bubble.on('click._hint', hide);
-    });
-  } catch (err) {
-    console.warn('[hint] attach failed:', err);
+  // Observe DOM changes inside the popup for up to 3s
+  var node = document.querySelector('.poptrox-popup');
+  if (node) {
+    var mo = new MutationObserver(function(){ tryAttach(); });
+    mo.observe(node, { childList: true, subtree: true });
+    setTimeout(function(){ try { mo.disconnect(); } catch(_){} }, 3000);
   }
 })();
 
