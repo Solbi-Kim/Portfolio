@@ -1346,6 +1346,7 @@ input, select, textarea {
 						transition: transform 0.25s ease, background 0.25s ease, color 0.25s ease;
 						pointer-events: auto !important ; 
 						position: relative;
+						overflow: visible !important;
 		}
 
 		.poptrox-popup .caption2 a:hover {
