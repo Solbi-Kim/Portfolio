@@ -503,40 +503,71 @@ createStars('.stars', 100);
   });
 
 /* ---------------- Like counter & Heart FX (plain JS) ---------------- */
+// SAFE like counter (CORS-resilient + local fallback)
+const LIKES_ENDPOINT = "https://script.google.com/macros/s/AKfycbw6jrYpLM3nrZeXmAJsZOXyWg48TwJTrYlVXvcT01kvq0flhDipUV4E7BAOiaSu0iUxcw/exec";
+const LS_KEY = "solbi-like-cache/value";
 
-const counterKey = "solbi-portfolio-2024/likes";
+function setLikeUI(val){
+  const el = document.getElementById("like-count");
+  if (el) el.textContent = Number.isFinite(val) ? val : 0;
+}
 
-// Load like count on page load
-fetch(
-  "https://script.google.com/macros/s/AKfycbw6jrYpLM3nrZeXmAJsZOXyWg48TwJTrYlVXvcT01kvq0flhDipUV4E7BAOiaSu0iUxcw/exec"
-)
-  .then((res) => res.json())
-  .then((res) => {
-    const el = document.getElementById("like-count");
-    if (el) el.textContent = res.value ?? 0;
-  })
-  .catch(() => {
-    const el = document.getElementById("like-count");
-    if (el) el.textContent = 0;
-  });
+function getCachedLike(){ 
+  const v = localStorage.getItem(LS_KEY);
+  return v ? parseInt(v, 10) : 0;
+}
+function setCachedLike(v){
+  try { localStorage.setItem(LS_KEY, String(v)); } catch(e){}
+}
 
+// 1) Init UI from cache immediately
+setLikeUI(getCachedLike());
+
+// 2) Try to fetch latest count (if CORS allows)
+(async function(){
+  try {
+    const res = await fetch(LIKES_ENDPOINT, { method: "GET", credentials: "omit" });
+    // Only read if CORS allowed & JSON
+    const ct = res.headers.get("content-type") || "";
+    if (res.ok && ct.includes("application/json")) {
+      const data = await res.json();
+      if (data && typeof data.value !== "undefined") {
+        setCachedLike(data.value);
+        setLikeUI(data.value);
+      }
+    }
+  } catch (e) {
+    // ignore (CORS or network). UI already shows cached value.
+  }
+})();
+
+// 3) Click: optimistic UI + fire-and-forget increment
 const heartFxContainer = document.getElementById("heart-fx-container");
 const heartBtn = document.getElementById("like-btn");
 
 if (heartBtn) {
   heartBtn.addEventListener("click", function () {
     launchHearts();
-    fetch(
-      "https://script.google.com/macros/s/AKfycbw6jrYpLM3nrZeXmAJsZOXyWg48TwJTrYlVXvcT01kvq0flhDipUV4E7BAOiaSu0iUxcw/exec?inc=1"
-    )
-      .then((res) => res.json())
-      .then((res) => {
-        const el = document.getElementById("like-count");
-        if (el) el.textContent = res.value;
-      });
+
+    // optimistic UI update
+    const cur = getCachedLike();
+    const next = cur + 1;
+    setCachedLike(next);
+    setLikeUI(next);
+
+    // send increment without caring about CORS
+    const incUrl = LIKES_ENDPOINT + "?inc=1&ts=" + Date.now();
+    try {
+      if (navigator.sendBeacon) {
+        const blob = new Blob([], { type: "application/x-www-form-urlencoded" });
+        navigator.sendBeacon(incUrl, blob);
+      } else {
+        const img = new Image();
+        img.src = incUrl;
+      }
+    } catch(e){ /* ignore */ }
   });
 }
-
 function launchHearts() {
   const emojis = [
     "❤️",
