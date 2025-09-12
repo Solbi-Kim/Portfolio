@@ -254,22 +254,35 @@
 				if ($cap.length && $content.length) {
 					$cap.appendTo($content);
 
-// === Hint bubble (robust; waits for .caption2 with MutationObserver) ===
+// === Hint bubble: ensure button exists in popup (clone from source if missing) ===
 (function(){
-  var attached = false;
-
-  function tryAttach() {
-    if (attached) return;
+  try {
     var $popup = $('.poptrox-popup');
-    if (!$popup.length) return;
+    var $cap   = $popup.find('.caption');
+    var $content = $popup.find('.content');
 
-    // Prefer data-hint, fallback to /info/ or icon class
-    var $btn = $popup.find('.caption2 a[data-hint], .caption2 a[href*="/info/"], .caption2 a.icon.solid.fa-info-circle').first();
-    console.log('[hint] tryAttach anchors:', $btn.length);
+    // Ensure a .caption2 container exists inside popup
+    var $cap2 = $popup.find('.caption2');
+    if (!$cap2.length) {
+      $cap2 = $('<span class="caption2"/>');
+      ($cap.length ? $cap : $content).append($cap2);
+    }
 
-    if (!$btn.length) return;
+    // Find target button in popup
+    var $btn = $cap2.find('a[data-hint], a[href*="/info/"], a.icon.solid.fa-info-circle').first();
 
-    if ($btn.data('__hintAttached')) { attached = true; return; }
+    // If not present, clone from the source thumb we just clicked
+    if (!$btn.length && window.__lastThumb) {
+      var $srcBtn = $(window.__lastThumb).find('.caption2 a[data-hint], .caption2 a[href*="/info/"], .caption2 a.icon.solid.fa-info-circle').first();
+      if ($srcBtn.length) {
+        $btn = $srcBtn.clone(false, false);
+        if (!$btn.attr('data-hint')) $btn.attr('data-hint','View Details');
+        $cap2.append($btn);
+      }
+    }
+
+    if (!$btn || !$btn.length) { console.warn('[hint] no target button in popup'); return; }
+    if ($btn.data('__hintAttached')) return;
     $btn.data('__hintAttached', true);
 
     var txt = $btn.data('hint') || 'View Details';
@@ -287,21 +300,8 @@
     };
     $btn.on('click._hint', hide);
     $bubble.on('click._hint', hide);
-
-    attached = true;
-  }
-
-  // Quick retries to cover race conditions
-  [0, 150, 350, 700, 1200].forEach(function(ms){
-    setTimeout(tryAttach, ms);
-  });
-
-  // Observe DOM changes inside the popup for up to 3s
-  var node = document.querySelector('.poptrox-popup');
-  if (node) {
-    var mo = new MutationObserver(function(){ tryAttach(); });
-    mo.observe(node, { childList: true, subtree: true });
-    setTimeout(function(){ try { mo.disconnect(); } catch(_){} }, 3000);
+  } catch (err) {
+    console.warn('[hint] failed:', err);
   }
 })();
 
@@ -1113,5 +1113,15 @@ document.addEventListener('DOMContentLoaded', function () {
     console.warn('[reveal] failed:', err);
   }
 });
+
+
+// === Track last clicked thumb (to clone buttons into popup) ===
+document.addEventListener('click', function(e){
+  var el = e.target && e.target.closest ? e.target.closest('#main .thumb > a.image') : null;
+  if (el) {
+    var t = el.closest('.thumb');
+    if (t) window.__lastThumb = t;
+  }
+}, true);
 
 })(jQuery);  //necessary line
