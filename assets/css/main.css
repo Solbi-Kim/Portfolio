@@ -1371,6 +1371,7 @@ input, select, textarea {
   background: rgba(255, 255, 255, 0.5); /* 50% 투명 흰색 */
   color: #000;                          /* 검은 글자 */
   border-radius: .45em;
+  display: inline-block;
 
   /* 살짝 띄워 보이게 */
   box-shadow: 0 6px 14px rgba(0,0,0,.14), 0 2px 6px rgba(0,0,0,.12);
