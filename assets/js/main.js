@@ -181,7 +181,35 @@
     $image_img.hide();
   });
 
+// === Row-aware stagger ===
+document.addEventListener('DOMContentLoaded', () => {
+  const thumbs = Array.from(document.querySelectorAll('#main .thumb'));
+  if (!thumbs.length) return;
 
+  const io = new IntersectionObserver(onEnter, { threshold: 0.12, rootMargin: '0px 0px -10% 0px' });
+  thumbs.forEach(el => io.observe(el));
+
+  function onEnter(entries) {
+    // 이번 턴에 들어온 것만 추림
+    const incoming = entries.filter(e => e.isIntersecting).map(e => e.target);
+    if (!incoming.length) return;
+
+    // 같은 줄(top) 기준으로 그룹핑 → 각 줄에서 좌→우 정렬
+    const groups = {};
+    incoming.forEach(el => {
+      const top = Math.round(el.getBoundingClientRect().top);
+      (groups[top] ||= []).push(el);
+    });
+    Object.values(groups).forEach(row => {
+      row.sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left);
+      row.forEach((el, i) => {
+        el.style.transitionDelay = `${i * 120}ms`; // 한 줄 안에서만 스태거
+        el.classList.add('is-visible');
+        io.unobserve(el);
+      });
+    });
+  }
+});
 	
 // -- Poptrox.
 	$main.poptrox({
@@ -255,31 +283,20 @@
 					$cap.appendTo($content);
 
 
-// === HINT bubble (robust attach with retries) ===
+// === HINT bubble (only for .caption2 a[data-hint]) ===
 (function(){
-  function findTargets($root){
-    // Priority 1: data-hint
-    var t = $root.find('.caption2 a[data-hint]');
-    if (t.length) return t;
-    // Priority 2: info href
-    t = $root.find('.caption2 a[href*="/info/"]');
-    if (t.length) return t;
-    // Priority 3: icon class directly on anchor
-    t = $root.find('.caption a.icon.solid.fa-info-circle');
-    return t;
-  }
-
   function attach(){
     var $popup = $('.poptrox-popup');
     var $cap   = $popup.find('.caption');
     if (!$cap.length) return false;
-
-    var $targets = findTargets($cap);
+    // priority: data-hint -> /info/ -> icon class
+    var $targets = $cap.find('.caption2 a[data-hint]');
+    if (!$targets.length) $targets = $cap.find('.caption2 a[href*="/info/"]');
+    if (!$targets.length) $targets = $cap.find('.caption a.icon.solid.fa-info-circle');
     if (!$targets.length) return false;
 
-    $targets.each(function () {
+    $targets.each(function(){
       var $a = $(this);
-      // prefer per-link key (href), else per-popup
       var href = $a.attr('href') || ($popup.find('.image').attr('href') || '');
       var key  = 'hint:v3:' + href;
       if (sessionStorage.getItem(key)) return;
@@ -288,7 +305,6 @@
       var txt = $a.data('hint') || 'View Details';
       var $bubble = $('<span class="hint-bubble"/>').text(txt);
       $a.append($bubble);
-
       requestAnimationFrame(function(){ setTimeout(function(){ $bubble.addClass('show'); }, 180); });
 
       var hide = function(e){
@@ -304,8 +320,6 @@
     });
     return true;
   }
-
-  // Try immediately and then a couple more times to win race conditions
   if (!attach()){
     setTimeout(attach, 120);
     setTimeout(attach, 280);
@@ -313,33 +327,301 @@
 })();
 
 
-// 3) Click: optimistic UI + fire-and-forget increment
+				}
+			} catch (err) {
+				console.warn('[stacked] init failed', err);
+			}
+
+			// === 버튼/링크 클릭 시 닫기 방지 (정리 버전) ===
+			$(document)
+				.off('click.px', '.poptrox-popup .caption a, .poptrox-popup .caption button')
+				.on('click.px', '.poptrox-popup .caption a, .poptrox-popup .caption button', function (e) {
+					e.stopPropagation(); // 팝업 닫기 방지
+					// 기본 동작 실행 (a면 링크 이동, button이면 버튼 동작)
+				});
+		},
+		overlayOpacity: 0,
+		popupCloserText: "",
+		popupHeight: 150,
+		popupLoaderText: "",
+		popupSpeed: 300,
+		popupWidth: 150,
+		selector: ".thumb > a.image",
+		usePopupCaption: true,
+		usePopupCloser: true,
+		usePopupDefaultStyling: false,
+		usePopupForceClose: true,
+		usePopupLoader: true,
+		usePopupNav: true,
+		windowMargin: 10
+	});
+
+	// -- Hack: Set margins to 0 when 'xsmall' activates.
+	breakpoints.on("<=xsmall", function () {
+		$main[0]._poptrox.windowMargin = 0;
+	});
+	breakpoints.on(">xsmall", function () {
+		$main[0]._poptrox.windowMargin = 50;
+	});
+
+	console.log("💥 poptrox 실행됨!", $("#main")[0]._poptrox);  //수정됨
+
+
+// === "View Details" hint bubble (only for .caption2 a[data-hint]) + 디버그 로그 ===
+(function () {
+  const $popup = $('.poptrox-popup');
+  const $cap   = $popup.find('.caption');
+  if (!$cap.length) { console.warn('[hint] no .caption'); return; }
+
+  // target: data-hint 달린 버튼만
+  const $targets = $cap.find('.caption2 a[data-hint]');
+  console.log('[hint] targets:', $targets.length, $targets.map((i,el)=>el.outerHTML).get());
+
+  if (!$targets.length) {
+    console.warn('[hint] .caption2 a[data-hint] not found. HTML에 data-hint 달렸는지 확인');
+    return;
+  }
+
+  $targets.each(function () {
+    const $a   = $(this);
+    const href = $a.attr('href') || '';
+    const key  = 'hint:v2:' + href;           // 세션 한 번만
+
+    if (sessionStorage.getItem(key)) {
+      console.log('[hint] already seen:', href);
+      return;
+    }
+
+    // 말풍선 생성
+    const txt = $a.data('hint') || 'View Details';
+    const $bubble = $('<span class="hint-bubble"/>').text(txt);
+    $a.append($bubble);
+
+    // 바로 보여서 스타일 문제를 눈으로 확인(테스트 후 필요하면 180ms 지연으로 바꿔)
+    requestAnimationFrame(() => $bubble.addClass('show'));
+
+    // 클릭 시 제거
+    function hide(e){
+      try { e.stopPropagation(); } catch(_) {}
+      $bubble.removeClass('show');
+      setTimeout(() => $bubble.remove(), 220);
+      sessionStorage.setItem(key, '1');
+      $a.off('click._hint', hide);
+      $bubble.off('click._hint', hide);
+    }
+    $a.on('click._hint', hide);
+    $bubble.on('click._hint', hide);
+  });
+})();
+
+
+	
+
+//  -------별자리 그리기 로직--------
+// -------------------------
+// 랜덤 별 생성 + 별자리 연결 로직
+// -------------------------
+function createStars(containerSelector, count = 512) {  //별 개수
+    const container = document.querySelector(containerSelector);
+    if (!container) return;
+
+    const starChars = ['\u2726', '\u2727', '\u2722']; // ✦, ✧, ✢
+    let connectMode = false;
+    let lastStar = null;
+    let tempLine = null; // 마우스 따라가는 임시 선
+
+    // SVG 레이어 생성
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.classList.add("star-lines");
+    svg.setAttribute("width", "100%");
+    svg.setAttribute("height", "100%");
+    svg.style.position = "absolute";
+    svg.style.top = "0";
+    svg.style.left = "0";
+    svg.style.zIndex = "0"; // 별보다 뒤에
+    container.appendChild(svg);
+
+    // 랜덤 별 생성
+    for (let i = 0; i < count; i++) {
+        const star = document.createElement('span');
+        star.className = 'star';
+        star.textContent = starChars[Math.floor(Math.random() * starChars.length)];
+        star.style.top = `${Math.random() * 100}%`;
+        star.style.left = `${Math.random() * 100}%`;
+        star.style.fontSize = `${Math.random() * 11 + 3}px`; // 3~14px
+        star.style.animationDelay = `${Math.random() * 3}s`;
+        star.style.pointerEvents = 'auto'; // 클릭 가능하게
+
+        // 클릭 이벤트
+        star.addEventListener('click', (e) => {
+            e.stopPropagation();
+
+            const rect = star.getBoundingClientRect();
+            const containerRect = container.getBoundingClientRect();
+            const x = rect.left + rect.width / 2 - containerRect.left;
+            const y = rect.top + rect.height / 2 - containerRect.top;
+
+            if (!connectMode) {
+                // 첫 클릭 → 연결 모드 켜기
+                connectMode = true;
+                lastStar = e.target;
+
+                // 임시 선 생성
+                tempLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                tempLine.classList.add("temp-line");
+                tempLine.setAttribute("x1", x);
+                tempLine.setAttribute("y1", y);
+                tempLine.setAttribute("x2", x);
+                tempLine.setAttribute("y2", y);
+                svg.appendChild(tempLine);
+            } else {
+                // 두 번째 이후 클릭 → 선 그리기
+                drawLine(lastStar, e.target);
+
+                // 새 임시 선을 현재 별에서 시작
+                lastStar = e.target;
+                const rectNew = lastStar.getBoundingClientRect();
+                const xNew = rectNew.left + rectNew.width / 2 - containerRect.left;
+                const yNew = rectNew.top + rectNew.height / 2 - containerRect.top;
+                tempLine.setAttribute("x1", xNew);
+                tempLine.setAttribute("y1", yNew);
+            }
+        });
+
+        container.appendChild(star);
+    }
+
+    // 마우스 이동 → 임시 선 끝점 따라감
+    document.addEventListener('mousemove', (e) => {
+        if (connectMode && tempLine && lastStar) {
+            const rect1 = lastStar.getBoundingClientRect();
+            const containerRect = container.getBoundingClientRect();
+            const x1 = rect1.left + rect1.width / 2 - containerRect.left;
+            const y1 = rect1.top + rect1.height / 2 - containerRect.top;
+            const x2 = e.clientX - containerRect.left;
+            const y2 = e.clientY - containerRect.top;
+
+            tempLine.setAttribute("x1", x1);
+            tempLine.setAttribute("y1", y1);
+            tempLine.setAttribute("x2", x2);
+            tempLine.setAttribute("y2", y2);
+        }
+    });
+
+    // 별 아닌 곳 클릭 시 모드 해제
+    document.addEventListener('click', (e) => {
+    // 클릭한 게 별이 아닐 때만
+    if (!e.target.classList.contains('star')) {
+        connectMode = false;
+        lastStar = null;
+        if (tempLine) {
+            tempLine.remove();
+            tempLine = null;
+        }
+    }
+});
+    // 선 그리기 함수
+    function drawLine(star1, star2) {
+        const rect1 = star1.getBoundingClientRect();
+        const rect2 = star2.getBoundingClientRect();
+        const containerRect = container.getBoundingClientRect();
+
+        const x1 = rect1.left + rect1.width / 2 - containerRect.left;
+        const y1 = rect1.top + rect1.height / 2 - containerRect.top;
+        const x2 = rect2.left + rect2.width / 2 - containerRect.left;
+        const y2 = rect2.top + rect2.height / 2 - containerRect.top;
+
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute("x1", x1);
+        line.setAttribute("y1", y1);
+        line.setAttribute("x2", x2);
+        line.setAttribute("y2", y2);
+        line.classList.add("star-line");
+
+        svg.appendChild(line);
+    }
+}
+
+// 실행
+createStars('.stars', 100);
+
+
+
+
+
+  // ---- Typing animation (single definition) ----
+  function startTypingAnimation() {
+    const text = "Portfolio";
+    const typedText = document.getElementById("typed-text");
+    const cursor = document.getElementById("typed-cursor");
+    let i = 0;
+
+    function type() {
+      if (!typedText) return;
+      if (i <= text.length) {
+        typedText.textContent = text.slice(0, i);
+        i++;
+        setTimeout(type, 120);
+      }
+    }
+
+    type();
+  }
+
+  // Init on first intersection of .hero-title
+  document.addEventListener("DOMContentLoaded", function () {
+    const typingTarget = document.querySelector(".hero-title");
+    if (typingTarget) {
+      const observer = new IntersectionObserver(
+        (entries, observer) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              startTypingAnimation();
+              observer.unobserve(entry.target); // run once
+            }
+          });
+        },
+        { threshold: 0.6 }
+      );
+      observer.observe(typingTarget);
+    }
+  });
+
+/* ---------------- Like counter & Heart FX (plain JS) ---------------- */
+
+const counterKey = "solbi-portfolio-2024/likes";
+
+// Load like count on page load
+fetch(
+  "https://script.google.com/macros/s/AKfycbw6jrYpLM3nrZeXmAJsZOXyWg48TwJTrYlVXvcT01kvq0flhDipUV4E7BAOiaSu0iUxcw/exec"
+)
+  .then((res) => res.json())
+  .then((res) => {
+    const el = document.getElementById("like-count");
+    if (el) el.textContent = res.value ?? 0;
+  })
+  .catch(() => {
+    const el = document.getElementById("like-count");
+    if (el) el.textContent = 0;
+  });
+
 const heartFxContainer = document.getElementById("heart-fx-container");
 const heartBtn = document.getElementById("like-btn");
 
 if (heartBtn) {
   heartBtn.addEventListener("click", function () {
     launchHearts();
-
-    // optimistic UI update
-    const cur = getCachedLike();
-    const next = cur + 1;
-    setCachedLike(next);
-    setLikeUI(next);
-
-    // send increment without caring about CORS
-    const incUrl = LIKES_ENDPOINT + "?inc=1&ts=" + Date.now();
-    try {
-      if (navigator.sendBeacon) {
-        const blob = new Blob([], { type: "application/x-www-form-urlencoded" });
-        navigator.sendBeacon(incUrl, blob);
-      } else {
-        const img = new Image();
-        img.src = incUrl;
-      }
-    } catch(e){ /* ignore */ }
+    fetch(
+      "https://script.google.com/macros/s/AKfycbw6jrYpLM3nrZeXmAJsZOXyWg48TwJTrYlVXvcT01kvq0flhDipUV4E7BAOiaSu0iUxcw/exec?inc=1"
+    )
+      .then((res) => res.json())
+      .then((res) => {
+        const el = document.getElementById("like-count");
+        if (el) el.textContent = res.value;
+      });
   });
 }
+
 function launchHearts() {
   const emojis = [
     "❤️",
@@ -869,6 +1151,7 @@ function __headerOffset(){
 
 
 
+
 // === Scroll reveal for #main .thumb (row-aware, 120ms stagger) ===
 document.addEventListener('DOMContentLoaded', function () {
   try {
@@ -876,11 +1159,9 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!thumbs.length) return;
 
     var io = new IntersectionObserver(function (entries) {
-      // pick intersecting targets only
       var incoming = entries.filter(function(e){ return e.isIntersecting; }).map(function(e){ return e.target; });
       if (!incoming.length) return;
 
-      // group by top (row grouping), then sort by left
       var groups = {};
       incoming.forEach(function (el) {
         var top = Math.round(el.getBoundingClientRect().top);
@@ -891,7 +1172,7 @@ document.addEventListener('DOMContentLoaded', function () {
         var row = groups[k];
         row.sort(function (a, b) { return a.getBoundingClientRect().left - b.getBoundingClientRect().left; });
         row.forEach(function (el, i) {
-          el.style.transitionDelay = (i * 120) + 'ms'; // slower, more "느끼"
+          el.style.transitionDelay = (i * 120) + 'ms';
           el.classList.add('is-visible');
           io.unobserve(el);
         });
