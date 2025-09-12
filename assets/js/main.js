@@ -181,32 +181,35 @@
     $image_img.hide();
   });
 
-// === Thumb reveal on scroll ===
+// === Row-aware stagger ===
 document.addEventListener('DOMContentLoaded', () => {
   const thumbs = Array.from(document.querySelectorAll('#main .thumb'));
   if (!thumbs.length) return;
 
-  const io = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('is-visible');
-        io.unobserve(entry.target); // 한 번만
-      }
+  const io = new IntersectionObserver(onEnter, { threshold: 0.12, rootMargin: '0px 0px -10% 0px' });
+  thumbs.forEach(el => io.observe(el));
+
+  function onEnter(entries) {
+    // 이번 턴에 들어온 것만 추림
+    const incoming = entries.filter(e => e.isIntersecting).map(e => e.target);
+    if (!incoming.length) return;
+
+    // 같은 줄(top) 기준으로 그룹핑 → 각 줄에서 좌→우 정렬
+    const groups = {};
+    incoming.forEach(el => {
+      const top = Math.round(el.getBoundingClientRect().top);
+      (groups[top] ||= []).push(el);
     });
-  }, {
-    root: null,
-    threshold: 0.12,
-    rootMargin: '0px 0px -10% 0px'
-  });
-
-  // 간단한 스태거(줄 단위로 살짝 지연)
-  thumbs.forEach((el, i) => {
-    el.style.setProperty('--reveal-delay', `${(i % 6) * 70}ms`);
-	el.style.transitionDelay = 'var(--reveal-delay, 0ms)';
-    io.observe(el);
-  });
+    Object.values(groups).forEach(row => {
+      row.sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left);
+      row.forEach((el, i) => {
+        el.style.transitionDelay = `${i * 90}ms`; // 한 줄 안에서만 스태거
+        el.classList.add('is-visible');
+        io.unobserve(el);
+      });
+    });
+  }
 });
-
 	
 // -- Poptrox.
 	$main.poptrox({
