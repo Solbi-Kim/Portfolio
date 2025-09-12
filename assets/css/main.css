@@ -1325,7 +1325,7 @@ input, select, textarea {
 						justify-content: center;
 						align-items: center;
 						margin-top: 1em;
-						position:absolute;
+						position:relative;
 						right: 1em;
 						bottom: 1.5em;
 						pointer-events: auto !important ; 
@@ -1364,10 +1364,11 @@ input, select, textarea {
   font-size: .9em;
   line-height: 1.2;
 
-  background: #fff;           /* 하얀 배경 */
-  color: #111;                /* 검은 글씨 */
-  border: 1px solid rgba(0,0,0,.08);
+  background: rgba(255, 255, 255, 0.5); /* 50% 투명 흰색 */
+  color: #000;                          /* 검은 글자 */
   border-radius: .5em;
+
+  /* 살짝 띄워 보이게 */
   box-shadow: 0 8px 20px rgba(0,0,0,.18), 0 2px 6px rgba(0,0,0,.12);
 
   white-space: nowrap;
@@ -1375,39 +1376,31 @@ input, select, textarea {
   opacity: 0;
   transition: opacity .35s ease, transform .35s ease;
 
-  z-index: 20050;             /* 영상/iframe 위로 끌어올림 */
+  z-index: 20050; /* 영상/iframe 위 */
 }
 
-/* 꼬리: 바깥(외곽선) + 안쪽(흰색) 이중 삼각형 */
-.poptrox-popup .caption2 a .hint-bubble::before{
-  content: "";
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: -7px;
-  border: 7px solid transparent;
-  border-top-color: rgba(0,0,0,.08); /* 외곽선 느낌 */
-}
-.poptrox-popup .caption2 a .hint-bubble::after{
-  content: "";
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: -6px;
-  border: 6px solid transparent;
-  border-top-color: #fff;     /* 흰색 꼬리 */
-}
-
-/* 등장 모션: opacity + 가벼운 Y 이동 */
-.poptrox-popup .caption2 a .hint-bubble.show{
+.poptrox-popup .caption2 a .hint-bubble.show {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
 }
 
+/* 꼬리(삼각형) 완전 제거 */
+.poptrox-popup .caption2 a .hint-bubble::before,
+.poptrox-popup .caption2 a .hint-bubble::after {
+  content: none !important;
+}
+
 /* 모션 비선호 대응 */
-@media (prefers-reduced-motion: reduce){
-  .poptrox-popup .caption2 a .hint-bubble{
-    transition: none;
+@media (prefers-reduced-motion: reduce) {
+  .poptrox-popup .caption2 a .hint-bubble { transition: none; }
+}
+
+/* 가능하면 오버레이 합성 모드 적용(지원 브라우저에서만) */
+@supports (mix-blend-mode: overlay) {
+  .poptrox-popup .caption2 a .hint-bubble {
+    mix-blend-mode: overlay; /* 텍스트까지 섞여 어두워질 수 있음 -> 아래 보정 */
+    /* 가독성 보정(필요시): */
+    text-shadow: 0 1px 2px rgba(255,255,255,.35), 0 -1px 2px rgba(0,0,0,.15);
   }
 }
 
