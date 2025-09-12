@@ -1355,36 +1355,31 @@ input, select, textarea {
 		}
 
 .poptrox-popup .caption2 a .hint-bubble{
-  position: absolute !important;
+  position: absolute !important; 
   left: 50% !important;
-  right: auto !important;
-  top: calc(100% + 10px) !important;     /* 버튼 '아래' */
-  bottom: auto !important;
-  transform: translateX(-50%) translateY(6px) !important;
+  right:auto !important;
+  top: calc(100% + 10px);  /* 버튼 바로 위 */
+  bottom:auto;
+  transform: translateX(-50%) translateY(6px);
 
-  /* <<< 핵심 수정: 진짜 박스가 되도록 강제 >>> */
-  display: inline-block !important;      /* 인라인 요소가 아니라 실제 상자 */
-  line-height: 1.25 !important;          /* 상속 무시하고 자체 라인 높이 */
-  padding: .5em .7em !important;         /* 세로 여백을 넉넉하게 */
-  box-sizing: border-box !important;     /* 패딩 포함 박스 계산 */
-  background-clip: padding-box !important;
+  padding: .4em .55em;
+  font-size: .82em;
 
-  /* 타이포/색상 */
-  font-size: .82em !important;
-  font-weight: 700 !important;
   color: #000 !important;
+  font-weight: 700 !important;
+  background: rgba(255, 255, 255, 0.5); /* 50% 투명 흰색 */
+  color: #000;                          /* 검은 글자 */
+  border-radius: .45em;
 
-  /* 배경과 모양 */
-  background: rgba(255,255,255,.5) !important;  /* 50% 투명 흰색 */
-  border-radius: .5em !important;
-  box-shadow: 0 6px 14px rgba(0,0,0,.14), 0 1px 3px rgba(0,0,0,.12) !important;
+  /* 살짝 띄워 보이게 */
+  box-shadow: 0 6px 14px rgba(0,0,0,.14), 0 2px 6px rgba(0,0,0,.12);
 
-  white-space: nowrap !important;
-  pointer-events: auto !important;
-  opacity: 0 !important;
-  transition: opacity .35s ease, transform .35s ease !important;
+  white-space: nowrap;
+  pointer-events: auto;
+  opacity: 0;
+  transition: opacity .35s ease, transform .35s ease;
 
-  z-index: 500 !important;               /* iframe 위로는 한계 있지만 기본은 올려둠 */
+  z-index: 500; /* 영상/iframe 위 */
 }
 
 .poptrox-popup .caption2 a .hint-bubble.show {
@@ -2269,4 +2264,3 @@ body.donut-active #main:after { pointer-events: auto; opacity: 1; visibility: vi
     bottom: -6px; border-left-color: transparent; border-top-color: rgba(0,0,0,.78);
   }
 }
-
