@@ -366,37 +366,37 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // 말풍선 붙이기(+다음 프레임에 .show 추가하여 트랜지션 보장)
-  function attachNow($btn, originTag) {
-    if (!$btn || !$btn.length) return false;
-    if ($btn.data('__hintShown')) return true; // 중복 방지
+ function attachNow($btn, originTag) {
+  if (!$btn || !$btn.length) return false;
+  if ($btn.data('__hintShown')) return true;
 
-    $btn.data('__hintShown', true);
-    $btn.find('.hint-bubble').remove();
+  $btn.data('__hintShown', true);
+  $btn.find('.hint-bubble').remove();
 
-    var txt     = $btn.data('hint') || 'View Details';
-    var $bubble = $('<span class="hint-bubble"/>').text(txt).appendTo($btn);
+  var txt     = $btn.data('hint') || 'View Details';
+  var $bubble = $('<span class="hint-bubble"/>').text(txt).appendTo($btn);
 
-    // 같은 프레임에서 .show 추가하면 애니메이션이 스킵될 수 있으니 rAF 2단계로 보장
+  // ★ 지연/등장 연출은 CSS가 맡는다 → .show는 즉시 부여
+  //   (animation-delay로 실제 노출 타이밍이 뒤로 밀림)
+  requestAnimationFrame(function () {
+    void $bubble[0].offsetHeight;    // reflow
     requestAnimationFrame(function () {
-      void $bubble[0].offsetHeight; // reflow
-      requestAnimationFrame(function () {
-        $bubble.addClass('show');
-      });
+      $bubble.addClass('show');
     });
+  });
 
-    // 클릭 시 제거
-    var hide = function (e) {
-      try { e.stopPropagation(); } catch (_) {}
-      $bubble.remove();
-      $btn.off('click._hint', hide);
-      $bubble.off('click._hint', hide);
-    };
-    $btn.on('click._hint', hide);
-    $bubble.on('click._hint', hide);
+  var hide = function (e) {
+    try { e.stopPropagation(); } catch (_) {}
+    $bubble.remove();
+    $btn.off('click._hint', hide);
+    $bubble.off('click._hint', hide);
+  };
+  $btn.on('click._hint', hide);
+  $bubble.on('click._hint', hide);
 
-    if (DEBUG) console.info('[hint][attach]', originTag, 'text:', txt, 'btn:', $btn[0]);
-    return true;
-  }
+  if (DEBUG) console.info('[hint][attach]', originTag, 'text:', txt, 'btn:', $btn[0]);
+  return true;
+}
 
   // 즉시 시도 → 실패 시 짧게 폴링
   (function run() {
