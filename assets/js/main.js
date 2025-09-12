@@ -321,52 +321,126 @@ document.addEventListener('DOMContentLoaded', () => {
 	console.log("💥 poptrox 실행됨!", $("#main")[0]._poptrox);  //수정됨
 
 
-// === "View Details" hint bubble (only for .caption2 a[data-hint]) + 디버그 로그 ===
+
+	
+
+// === HINT: video-play trigger (FINAL) ===
 (function () {
-  const $popup = $('.poptrox-popup');
-  const $cap   = $popup.find('.caption');
-  if (!$cap.length) { console.warn('[hint] no .caption'); return; }
-
-  // target: data-hint 달린 버튼만
-  const $targets = $cap.find('.caption2 a[data-hint]');
-  console.log('[hint] targets:', $targets.length, $targets.map((i,el)=>el.outerHTML).get());
-
-  if (!$targets.length) {
-    console.warn('[hint] .caption2 a[data-hint] not found. HTML에 data-hint 달렸는지 확인');
-    return;
+  // 0) 마지막으로 클릭한 썸네일 추적 (딱 한 번만 설치)
+  if (!window.__hintTrackerInstalled) {
+    window.__hintTrackerInstalled = true;
+    document.addEventListener('click', function (e) {
+      var link = e.target && e.target.closest ? e.target.closest('#main .thumb > a.image') : null;
+      if (link) {
+        var t = link.closest('.thumb');
+        if (t) window.__lastThumb = t;
+      }
+    }, true);
   }
 
-  $targets.each(function () {
-    const $a   = $(this);
-    const href = $a.attr('href') || '';
-    const key  = 'hint:v2:' + href;           // 세션 한 번만
+  var $popup = $('.poptrox-popup');
 
-    if (sessionStorage.getItem(key)) {
-      console.log('[hint] already seen:', href);
-      return;
+  function ensureCap2() {
+    var $cap2 = $popup.find('.caption2');
+    if (!$cap2.length) {
+      $cap2 = $('<span class="caption2"/>');
+      var $host = $popup.find('.caption, .content').first();
+      if (!$host.length) $host = $popup;
+      $host.append($cap2);
     }
+    return $cap2;
+  }
 
-    // 말풍선 생성
-    const txt = $a.data('hint') || 'View Details';
-    const $bubble = $('<span class="hint-bubble"/>').text(txt);
-    $a.append($bubble);
+  function getOrCloneButton() {
+    // 1) 팝업 안에서 먼저 찾기
+    var $btn = $popup.find('.caption2 a[data-hint], .caption2 a[href*="/info/"], .caption2 a.icon.solid.fa-info-circle').first();
+    if ($btn.length) return $btn;
 
-    // 바로 보여서 스타일 문제를 눈으로 확인(테스트 후 필요하면 180ms 지연으로 바꿔)
-    requestAnimationFrame(() => $bubble.addClass('show'));
+    // 2) 없으면 방금 클릭한 썸네일에서 복제
+    if (window.__lastThumb) {
+      var $src = $(window.__lastThumb).find('.caption2 a[data-hint], .caption2 a[href*="/info/"], .caption2 a.icon.solid.fa-info-circle').first();
+      if ($src.length) {
+        var $cap2 = ensureCap2();
+        $btn = $src.clone(false, false);
+        if (!$btn.attr('data-hint')) $btn.attr('data-hint', 'View Details');
+        $cap2.append($btn);
+        return $btn;
+      }
+    }
+    return $btn; // empty
+  }
 
-    // 클릭 시 제거
-    function hide(e){
-      try { e.stopPropagation(); } catch(_) {}
-      $bubble.removeClass('show');
-      setTimeout(() => $bubble.remove(), 220);
-      sessionStorage.setItem(key, '1');
-      $a.off('click._hint', hide);
+  function showBubble() {
+    var $btn = getOrCloneButton();
+    if (!$btn || !$btn.length) return;
+    if ($btn.data('__hintShown')) return;
+    $btn.data('__hintShown', true);
+
+    // 말풍선 생성 (CSS에서 .show로 페이드인 처리)
+    $btn.find('.hint-bubble').remove();
+    var txt = $btn.data('hint') || 'View Details';
+    var $bubble = $('<span class="hint-bubble show"/>').text(txt);
+    $btn.append($bubble);
+
+    // 말풍선/버튼 클릭 시 제거
+    var hide = function (e) {
+      try { e.stopPropagation(); } catch (_) {}
+      $bubble.remove();
+      $btn.off('click._hint', hide);
       $bubble.off('click._hint', hide);
-    }
-    $a.on('click._hint', hide);
+    };
+    $btn.on('click._hint', hide);
     $bubble.on('click._hint', hide);
-  });
+  }
+
+  function bindPlayTrigger() {
+    var iframe = $popup.find('iframe')[0];
+    var fallbackBound = false;
+
+    function bindFallback() {
+      if (fallbackBound) return;
+      fallbackBound = true;
+      // 팝업 내부 첫 클릭 = 대체 트리거 (크로스오리진 플레이어 대비)
+      $popup.one('click._hintFallback', function () { showBubble(); });
+    }
+
+    if (iframe) {
+      try {
+        var onLoad = function () {
+          try {
+            var doc = iframe.contentWindow && iframe.contentWindow.document;
+            if (!doc) return bindFallback();
+            var media = doc.querySelector('video, audio');
+            if (!media) return bindFallback();
+            if (!media.paused) showBubble();
+            else media.addEventListener('play', function () { showBubble(); }, { once: true });
+          } catch (e) { bindFallback(); }
+        };
+        iframe.addEventListener('load', onLoad, { once: true });
+        // 이미 로드된 상태면 즉시 처리
+        try {
+          var docNow = iframe.contentWindow && iframe.contentWindow.document;
+          if (docNow && docNow.readyState !== 'loading') onLoad();
+        } catch (e) { /* ignore */ }
+      } catch (e) {
+        bindFallback();
+      }
+    } else {
+      // iframe이 아니면 팝업 내부의 video/audio 직접 후킹
+      var mediaEl = $popup.find('video, audio')[0];
+      if (mediaEl) {
+        if (!mediaEl.paused) showBubble();
+        else mediaEl.addEventListener('play', function () { showBubble(); }, { once: true });
+      } else {
+        bindFallback();
+      }
+    }
+  }
+
+  // 실행
+  bindPlayTrigger();
 })();
+
 
 
 	
