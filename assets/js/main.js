@@ -323,86 +323,107 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-// === HINT: start timer WHEN the popup appears (robust 2s force-once + smooth show) ===
+// === HINT BUBBLE: show with popup + debug logs =================================
+// 목적:
+//  - 팝업이 "열린 그 순간"부터 바로 시도하고, 버튼이 늦게 들어오면
+//    짧게(기본 3s) 120ms 간격으로 기다리다가 나타나는 즉시 붙임.
+//  - 붙일 때는 다음 프레임에 .show 추가 → opacity/transform 트랜지션 항상 보장.
+//  - 디버깅을 위해: (1) 팝업 열림 로그, (2) data-hint 감지 로그 출력.
+// 사용법:
+//  - 이 블록을 onPopupOpen 내부, `$cap.appendTo($content);` 바로 아래에 붙인다.
+//  - 기존 hint-bubble 관련 코드(2초 강제/클릭/재생/옵저버/클론 등)는 삭제.
+// ================================================================================
 (function () {
-  var START_DELAY = 2000;  // 팝업 뜬 뒤 2초 후
-  var POLL_MAX    = 5000;  // 버튼 대기 최대 5초
-  var TICK        = 120;   // 폴링 간격
+  var DEBUG       = true;   // 필요 시 false로 끄면 로그 안 찍힘
+  var POLL_MAX_MS = 3000;   // 버튼 늦게 생성될 때 최대 대기 시간
+  var TICK_MS     = 120;    // 폴링 간격
 
-  function attachBubble($popup) {
-    // 2초 후 시작
-    setTimeout(function () {
-      var waited = 0;
-      var iv = setInterval(function () {
-        var $btn = $popup.find(
-          '.caption2 a[data-hint], .caption2 a[href*="/info/"], .caption2 a.icon.solid.fa-info-circle'
-        ).first();
+  // 팝업 루트를 jQuery 객체로 가져오기(여러 개면 가장 마지막 것)
+  var $popup = (function () {
+    var $all = $('.poptrox-popup');
+    return $all.length ? $all.eq(-1) : $all;
+  })();
 
-        if ($btn.length) {
-          // 이미 붙어있으면 스킵
-          if ($btn.data('__hintShown')) { clearInterval(iv); return; }
-          $btn.data('__hintShown', true);
+  // 1) 팝업 열림 알림
+  if (DEBUG) {
+    console.info('[hint][open] popup opened. nodes:', $popup.length, $popup.get(0));
+  }
+  if (!$popup.length) return; // 안전 가드
 
-          // 버블 생성(처음엔 숨김 상태)
-          $btn.find('.hint-bubble').remove();
-          var txt = $btn.data('hint') || 'View Details';
-          var $bubble = $('<span class="hint-bubble"/>').text(txt).appendTo($btn);
-
-          // 다음 프레임에 .show 추가 → opacity/transform 트랜지션 항상 보임
-          requestAnimationFrame(function () {
-            void $bubble[0].offsetHeight; // reflow
-            requestAnimationFrame(function () { $bubble.addClass('show'); });
-          });
-
-          // 버블/버튼 클릭 시 제거
-          var hide = function (e) {
-            try { e.stopPropagation(); } catch (_) {}
-            $bubble.remove();
-            $btn.off('click._hint', hide);
-            $bubble.off('click._hint', hide);
-          };
-          $btn.on('click._hint', hide);
-          $bubble.on('click._hint', hide);
-
-          clearInterval(iv);
-        } else {
-          waited += TICK;
-          if (waited >= POLL_MAX) clearInterval(iv);
-        }
-      }, TICK);
-    }, START_DELAY);
+  // 대상 버튼 찾기: data-hint 우선 → 없으면 info 계열 fallback
+  function findButtons$($p) {
+    var $dh = $p.find('.caption2 a[data-hint]');
+    if ($dh.length) {
+      if (DEBUG) {
+        console.info(
+          '[hint][found:data-hint] count:',
+          $dh.length,
+          $dh.map(function (i, el) { return el.outerHTML; }).get()
+        );
+      }
+      return $dh.first();
+    }
+    var $fb = $p.find('.caption2 a[href*="/info/"], .caption2 a.icon.solid.fa-info-circle');
+    if ($fb.length && DEBUG) {
+      console.warn('[hint][fallback] no data-hint; using info-like anchor:', $fb[0]);
+    }
+    return $fb.first(); // 없으면 빈 jQuery 객체 반환
   }
 
-  // 팝업 등장 감지: .poptrox-popup가 DOM에 추가되면 그때부터 타이머 스타트
-  function watchPopupAppear() {
-    // 이미 떠 있는 경우도 처리
-    var $now = $('.poptrox-popup:visible');
-    if ($now.length) attachBubble($now);
+  // 말풍선 붙이기(+다음 프레임에 .show 추가하여 트랜지션 보장)
+  function attachNow($btn, originTag) {
+    if (!$btn || !$btn.length) return false;
+    if ($btn.data('__hintShown')) return true; // 중복 방지
 
-    var mo = new MutationObserver(function (records) {
-      records.forEach(function (rec) {
-        Array.prototype.forEach.call(rec.addedNodes || [], function (node) {
-          if (node.nodeType !== 1) return;
-          if (node.matches && node.matches('.poptrox-popup')) {
-            attachBubble($(node));
-          } else if (node.querySelector) {
-            var el = node.querySelector('.poptrox-popup');
-            if (el) attachBubble($(el));
-          }
-        });
+    $btn.data('__hintShown', true);
+    $btn.find('.hint-bubble').remove();
+
+    var txt     = $btn.data('hint') || 'View Details';
+    var $bubble = $('<span class="hint-bubble"/>').text(txt).appendTo($btn);
+
+    // 같은 프레임에서 .show 추가하면 애니메이션이 스킵될 수 있으니 rAF 2단계로 보장
+    requestAnimationFrame(function () {
+      void $bubble[0].offsetHeight; // reflow
+      requestAnimationFrame(function () {
+        $bubble.addClass('show');
       });
     });
-    mo.observe(document.body, { childList: true, subtree: true });
+
+    // 클릭 시 제거
+    var hide = function (e) {
+      try { e.stopPropagation(); } catch (_) {}
+      $bubble.remove();
+      $btn.off('click._hint', hide);
+      $bubble.off('click._hint', hide);
+    };
+    $btn.on('click._hint', hide);
+    $bubble.on('click._hint', hide);
+
+    if (DEBUG) console.info('[hint][attach]', originTag, 'text:', txt, 'btn:', $btn[0]);
+    return true;
   }
 
-  // 초기화
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', watchPopupAppear, { once: true });
-  } else {
-    watchPopupAppear();
-  }
+  // 즉시 시도 → 실패 시 짧게 폴링
+  (function run() {
+    var $btn0 = findButtons$($popup);
+    if (attachNow($btn0, 'immediate')) return;
+
+    if (DEBUG) console.log('[hint][wait] waiting for .caption2 button up to', POLL_MAX_MS, 'ms');
+    var waited = 0;
+    var iv = setInterval(function () {
+      var $btn = findButtons$($popup);
+      if (attachNow($btn, 'poll:' + waited + 'ms')) {
+        clearInterval(iv);
+        return;
+      }
+      waited += TICK_MS;
+      if (waited >= POLL_MAX_MS) {
+        clearInterval(iv);
+        if (DEBUG) console.warn('[hint][timeout] target button not found within', POLL_MAX_MS, 'ms');
+      }
+    }, TICK_MS);
+  })();
 })();
-
 
 
 
