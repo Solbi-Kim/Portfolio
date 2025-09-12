@@ -1358,38 +1358,34 @@ input, select, textarea {
   position: absolute !important; 
   left: 50% !important;
   right:auto !important;
-  bottom: calc(100% + 10px);  /* 버튼 바로 위 */
+  top: calc(100% + 10px);  /* 버튼 바로 위 */
+  bottom:auto;
   transform: translateX(-50%) translateY(6px);
 
-  padding: .5em .7em;
-  font-size: .9em;
-  line-height: 1.2;
+  padding: .4em .55em;
+  font-size: .82em;
 
+  color: #000 !important;
+  font-weight: 700 !important;
   background: rgba(255, 255, 255, 0.5); /* 50% 투명 흰색 */
   color: #000;                          /* 검은 글자 */
   border-radius: .5em;
 
   /* 살짝 띄워 보이게 */
-  box-shadow: 0 8px 20px rgba(0,0,0,.18), 0 2px 6px rgba(0,0,0,.12);
+  box-shadow: 0 8px 20px rgba(0,0,0,.14), 0 2px 6px rgba(0,0,0,.12);
 
   white-space: nowrap;
   pointer-events: auto;
   opacity: 0;
   transition: opacity .35s ease, transform .35s ease;
 
-  z-index: 20050; /* 영상/iframe 위 */
+  z-index: 500; /* 영상/iframe 위 */
 }
 
 .poptrox-popup .caption2 a .hint-bubble.show {
   opacity: 1 !important;
   bottom: calc(100% + 10px) !important;        /* ← 최종 세로 위치 */
   transform: translateX(-50%) translateY(0) !important;
-}
-
-/* 꼬리(삼각형) 완전 제거 */
-.poptrox-popup .caption2 a .hint-bubble::before,
-.poptrox-popup .caption2 a .hint-bubble::after {
-  content: none !important;
 }
 
 /* 모션 비선호 대응 */
