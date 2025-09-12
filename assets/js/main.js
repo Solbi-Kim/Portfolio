@@ -321,6 +321,45 @@ document.addEventListener('DOMContentLoaded', () => {
 	console.log("💥 poptrox 실행됨!", $("#main")[0]._poptrox);  //수정됨
 
 
+// === "View Details" hint bubble (caption2 전용) ===
+try {
+  var $popup = $('.poptrox-popup');
+  var $cap   = $popup.find('.caption');
+  if ($cap.length) {
+    // info 서브페이지 버튼: /info/ 링크를 우선 타겟
+    var $info = $cap.find('.caption2 a[href*="/info/"]').first();
+    // (혹시 href 패턴이 다르면 .caption2 a:last 로 대체 가능)
+    if ($info.length) {
+      var href = $info.attr('href') || '';
+      var seenKey = 'hint:details:' + href;
+
+      if (!sessionStorage.getItem(seenKey)) {
+        // 말풍선 생성
+        var $bubble = $('<span class="hint-bubble">View Details</span>');
+        $info.append($bubble);
+
+        // 페이드인
+        requestAnimationFrame(() => {
+          setTimeout(() => $bubble.addClass('show'), 180);
+        });
+
+        // 클릭 시 제거 (버튼/말풍선 둘 다)
+        function hideBubble(e){
+          try { e.stopPropagation(); } catch(_){}
+          $bubble.removeClass('show');
+          setTimeout(() => $bubble.remove(), 220);
+          sessionStorage.setItem(seenKey, '1');
+        }
+        $info.on('click._hint', hideBubble);
+        $bubble.on('click._hint', hideBubble);
+      }
+    }
+  }
+} catch (err) {
+  console.warn('hint bubble failed:', err);
+}
+
+	
 
 //  -------별자리 그리기 로직--------
 // -------------------------
