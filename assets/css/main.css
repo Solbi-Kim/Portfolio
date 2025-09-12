@@ -1345,6 +1345,7 @@ input, select, textarea {
 						color: white;
 						transition: transform 0.25s ease, background 0.25s ease, color 0.25s ease;
 						pointer-events: auto !important ; 
+						position: relative;
 			}
 
 			.poptrox-popup .caption2 a:hover {
@@ -1352,6 +1353,41 @@ input, select, textarea {
 						background: white;          /* 버튼 배경색 하얀색 */
 						color: #000;                 /* 아이콘 색은 검정으로 */
 			}
+
+			.poptrox-popup .caption .caption2 a .hint-bubble {
+				position: absolute;
+ 				left: 50%;
+  				bottom: calc(100% + 8px);         /* 버튼 바로 위 */
+  				transform: translateX(-50%) translateY(6px);
+  				padding: .45em .6em;
+  				font-size: .85em;
+  				line-height: 1.2;
+  				background: rgba(0,0,0,.78);
+  				color: #fff;
+  				border-radius: .5em;
+  				white-space: nowrap;
+  				pointer-events: auto;
+  				opacity: 0;
+  				transition: opacity .35s ease, transform .35s ease;
+  				z-index: 5;
+			}
+			.poptrox-popup .caption .caption2 a .hint-bubble::after {
+  				content: "";
+  				position: absolute;
+				left: 50%; transform: translateX(-50%);
+  				bottom: -6px;                     /* 아래로 향하는 꼬리 */
+	  			border: 6px solid transparent;
+  				border-top-color: rgba(0,0,0,.78);
+			}
+			.poptrox-popup .caption .caption2 a .hint-bubble.show {
+  				opacity: 1;
+  				transform: translateX(-50%) translateY(0);
+			}	
+
+/* 모션 선호 안 함 대응 */
+@media (prefers-reduced-motion: reduce){
+  .poptrox-popup .caption .caption2 a .hint-bubble{ transition: none; }
+}
 
 
 
