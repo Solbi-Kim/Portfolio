@@ -1078,4 +1078,38 @@ function __headerOffset(){
 
 
 
+
+// === Scroll reveal for #main .thumb (row-aware, 120ms stagger) ===
+document.addEventListener('DOMContentLoaded', function () {
+  try {
+    var thumbs = Array.prototype.slice.call(document.querySelectorAll('#main .thumb'));
+    if (!thumbs.length) return;
+
+    var io = new IntersectionObserver(function (entries) {
+      var incoming = entries.filter(function(e){ return e.isIntersecting; }).map(function(e){ return e.target; });
+      if (!incoming.length) return;
+
+      var groups = {};
+      incoming.forEach(function (el) {
+        var top = Math.round(el.getBoundingClientRect().top);
+        (groups[top] = groups[top] || []).push(el);
+      });
+
+      Object.keys(groups).forEach(function (k) {
+        var row = groups[k];
+        row.sort(function (a, b) { return a.getBoundingClientRect().left - b.getBoundingClientRect().left; });
+        row.forEach(function (el, i) {
+          el.style.transitionDelay = (i * 120) + 'ms';
+          el.classList.add('is-visible');
+          io.unobserve(el);
+        });
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -10% 0px' });
+
+    thumbs.forEach(function (el) { io.observe(el); });
+  } catch (err) {
+    console.warn('[reveal] failed:', err);
+  }
+});
+
 })(jQuery);  //necessary line
