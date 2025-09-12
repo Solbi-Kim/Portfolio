@@ -1364,7 +1364,7 @@ input, select, textarea {
 
   padding: .5em .7em;
   font-size: .8em;
-  line-height: 1.25;
+  line-height: 2.5;
   color: #000 !important;
   font-weight: 700 !important;
   background: rgba(255, 255, 255, 0.5); /* 50% 투명 흰색 */
