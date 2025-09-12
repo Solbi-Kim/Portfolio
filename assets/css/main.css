@@ -1303,25 +1303,23 @@ input, select, textarea {
   			z-index: 1005;   
 		}
 
-			.poptrox-popup .caption h2, .poptrox-popup .caption h3, .poptrox-popup .caption h4, .poptrox-popup .caption h5, .poptrox-popup .caption h6 {
+		.poptrox-popup .caption h2, .poptrox-popup .caption h3, .poptrox-popup .caption h4, .poptrox-popup .caption h5, .poptrox-popup .caption h6 {
 				margin: 0 0 0.5em 0;
-			}
+		}
 
-			.poptrox-popup .caption p {
-				color: #ffffff;
-
-
-				display: flex;
-    			justify-content: center;   /* 텍스트를 중앙으로 추가된코드 */
-    			align-items: center;
-    			position: relative;
-			}
-			.poptrox-popup .caption a {
-  				pointer-events: auto !important ;   
-			}
+		.poptrox-popup .caption p {
+			color: #ffffff;
+			display: flex;
+    		justify-content: center;   /* 텍스트를 중앙으로 추가된코드 */
+    		align-items: center;
+    		position: relative;
+		}
+		.poptrox-popup .caption a {
+  			pointer-events: auto !important ;   
+		}
 
 
-			.poptrox-popup .caption2 {
+		.poptrox-popup .caption2 {
 						display: inline-flex;       /* 버튼들 가로로 나란히 */
 						gap: 0.8em;                 /* 버튼 간격 */
 						justify-content: center;
@@ -1331,9 +1329,9 @@ input, select, textarea {
 						right: 1em;
 						bottom: 1.5em;
 						pointer-events: auto !important ; 
-			}
+		}
 
-			.poptrox-popup .caption2 a {
+		.poptrox-popup .caption2 a {
 						font-size: 1.5em;           /* 아이콘 크기 */
 						width: 2.5em;               /* 버튼 크기 */
 						height: 2.5em;
@@ -1346,15 +1344,15 @@ input, select, textarea {
 						transition: transform 0.25s ease, background 0.25s ease, color 0.25s ease;
 						pointer-events: auto !important ; 
 						position: relative;
-			}
+		}
 
-			.poptrox-popup .caption2 a:hover {
+		.poptrox-popup .caption2 a:hover {
 						transform: scale(1.2);      /* 살짝 확대 */
 						background: white;          /* 버튼 배경색 하얀색 */
 						color: #000;                 /* 아이콘 색은 검정으로 */
-			}
+		}
 
-			.poptrox-popup .caption .caption2 a .hint-bubble {
+		.poptrox-popup .caption .caption2 a .hint-bubble {
 				position: absolute;
  				left: 50%;
   				bottom: calc(100% + 8px);         /* 버튼 바로 위 */
@@ -1370,24 +1368,24 @@ input, select, textarea {
   				opacity: 0;
   				transition: opacity .35s ease, transform .35s ease;
   				z-index: 5;
-			}
-			.poptrox-popup .caption .caption2 a .hint-bubble::after {
+		}
+		.poptrox-popup .caption .caption2 a .hint-bubble::after {
   				content: "";
   				position: absolute;
 				left: 50%; transform: translateX(-50%);
   				bottom: -6px;                     /* 아래로 향하는 꼬리 */
 	  			border: 6px solid transparent;
   				border-top-color: rgba(0,0,0,.78);
-			}
-			.poptrox-popup .caption .caption2 a .hint-bubble.show {
+		}
+		.poptrox-popup .caption .caption2 a .hint-bubble.show {
   				opacity: 1;
   				transform: translateX(-50%) translateY(0);
-			}	
+		}	
 
-/* 모션 선호 안 함 대응 */
-@media (prefers-reduced-motion: reduce){
-  .poptrox-popup .caption .caption2 a .hint-bubble{ transition: none; }
-}
+			/* 모션 선호 안 함 대응 */
+		@media (prefers-reduced-motion: reduce){
+  			.poptrox-popup .caption .caption2 a .hint-bubble{ transition: none; }
+		}
 
 
 
