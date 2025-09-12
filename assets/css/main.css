@@ -1369,10 +1369,10 @@ input, select, textarea {
   font-weight: 700 !important;
   background: rgba(255, 255, 255, 0.5); /* 50% 투명 흰색 */
   color: #000;                          /* 검은 글자 */
-  border-radius: .5em;
+  border-radius: .45em;
 
   /* 살짝 띄워 보이게 */
-  box-shadow: 0 8px 20px rgba(0,0,0,.14), 0 2px 6px rgba(0,0,0,.12);
+  box-shadow: 0 6px 14px rgba(0,0,0,.14), 0 2px 6px rgba(0,0,0,.12);
 
   white-space: nowrap;
   pointer-events: auto;
@@ -1383,9 +1383,16 @@ input, select, textarea {
 }
 
 .poptrox-popup .caption2 a .hint-bubble.show {
-  opacity: 1 !important;
-  bottom: calc(100% + 10px) !important;        /* ← 최종 세로 위치 */
-  transform: translateX(-50%) translateY(0) !important;
+  animation: hintIn .28s ease forwards;
+  animation-delay: var(--hint-delay, 3s);   /* ★ 기본 3초 지연 (원하면 바꿔) */
+  pointer-events: auto;
+}
+
+@keyframes hintIn{
+  to{
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
 }
 
 /* 모션 비선호 대응 */
