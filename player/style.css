@@ -24,8 +24,10 @@ html, body {
 }
 
 .ccv-frame {
-  width: min(100vw, calc(100vh * (16 / 9)));
-  height: min(100vh, calc(100vw * (9 / 16)));
+  --ratio: 16/9;
+  aspect-ratio: var(--ratio);
+  width: min(100vw, calc(100vh * var(--ratio)));
+  height: min(100vh, calc(100vw / var(--ratio)));
 }
 
 .vjs-ccv.video-js .vjs-poster {
@@ -43,6 +45,13 @@ html, body {
   overflow: hidden;
   box-shadow: 0 10px 30px rgba(0,0,0,.35);
   background: transparent !important;
+}
+
+.vjs-ccv .vjs-tech {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain;
+  object-position: center;
 }
 
 /* 큰 재생 버튼 */
