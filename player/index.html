@@ -35,27 +35,47 @@
   
   <script>
 
-  const player = videojs('shoviPlayer', { fluid: false });
-  player.addClass('vjs-fill');
-    
-  function applyVideoAspect(player) {
-    const tech = player.tech_ && player.tech_.el && player.tech_.el();
-    if (!tech || !tech.videoWidth || !tech.videoHeight) return;
-
-    const w = tech.videoWidth;
-    const h = tech.videoHeight;
-    const frame = document.querySelector('.ccv-frame');
-    if (frame) {
-      frame.style.setProperty('--ratio', `${w} / ${h}`);
+(function () {
+  function getExistingPlayer() {
+    // v8 안전 접근: 이미 있으면 그거 쓰고, 없으면 undefined
+    if (videojs.getPlayer) {
+      return videojs.getPlayer('shoviPlayer');
     }
+    // 구버전 호환
+    return (videojs.players && videojs.players['shoviPlayer']) || undefined;
   }
 
-  // 메타데이터 로드 시점에 비율 반영
-  player.on('loadedmetadata', () => applyVideoAspect(player));
-  player.on('loadeddata',     () => applyVideoAspect(player));
+  function applyVideoAspect(p) {
+    const tech = p && p.tech_ && p.tech_.el && p.tech_.el();
+    if (!tech || !tech.videoWidth || !tech.videoHeight) return;
+    const w = tech.videoWidth, h = tech.videoHeight;
+    const frame = document.querySelector('.ccv-frame');
+    if (frame) frame.style.setProperty('--ratio', `${w} / ${h}`);
+  }
+
+  function wire() {
+    const p = getExistingPlayer();
+    if (!p) return; // app.js가 아직 준비 안 됐으면 그냥 종료 (중복 인스턴스 생성 금지)
+
+    // 혹시 이전에 바인딩된 게 있으면 지우고 다시 (중복 바인딩 방지)
+    p.off('loadedmetadata', applyVideoAspect);
+    p.off('loadeddata',     applyVideoAspect);
+
+    p.on('loadedmetadata', () => applyVideoAspect(p));
+    p.on('loadeddata',     () => applyVideoAspect(p));
+  }
+
+  // DOM 준비 후 한 번, 그리고 약간 늦게 한 번 더 (스크립트 로드 순서 이슈 예방)
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', wire);
+  } else {
+    wire();
+  }
+  setTimeout(wire, 0);
+})();
 </script>
 
-  <!-- 우리 JS -->
-  <script src="./app.js"></script>
+<script src="./app.js"></script>
+  
 </body>
 </html>
