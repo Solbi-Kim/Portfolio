@@ -46,7 +46,8 @@
       frame.style.setProperty('--ratio', `${w} / ${h}`);
     }
   }
-   const player = videojs('shoviPlayer');
+   const player = videojs('shoviPlayer', {fluid: false});
+    player.addClass('vjs-fill');
   // 메타데이터 로드 시점에 비율 반영
   player.on('loadedmetadata', function () {
     applyVideoAspect(player);
