@@ -35,6 +35,9 @@
   
   <script>
 
+  const player = videojs('shoviPlayer', { fluid: false });
+  player.addClass('vjs-fill');
+    
   function applyVideoAspect(player) {
     const tech = player.tech_ && player.tech_.el && player.tech_.el();
     if (!tech || !tech.videoWidth || !tech.videoHeight) return;
@@ -46,17 +49,10 @@
       frame.style.setProperty('--ratio', `${w} / ${h}`);
     }
   }
-   const player = videojs('shoviPlayer', {fluid: false});
-    player.addClass('vjs-fill');
-  // 메타데이터 로드 시점에 비율 반영
-  player.on('loadedmetadata', function () {
-    applyVideoAspect(player);
-  });
 
-  // 소스가 바뀌어도 다시 반영
-  player.on('loadeddata', function () {
-    applyVideoAspect(player);
-  });
+  // 메타데이터 로드 시점에 비율 반영
+  player.on('loadedmetadata', () => applyVideoAspect(player));
+  player.on('loadeddata',     () => applyVideoAspect(player));
 </script>
 
   <!-- 우리 JS -->
