@@ -2236,15 +2236,13 @@ body.donut-active #main:after { pointer-events: auto; opacity: 1; visibility: vi
    - Prevents clipping and line-height inheritance issues.
 ============================================================================= */
 .poptrox-popup .caption2,
-.poptrox-popup .caption2 a { overflow: visible !important; }
+.poptrox-popup .caption2 a { overflow: visible !important; position: relative !important; }
 
 .poptrox-popup .caption2 a .hint-bubble{
   position: absolute !important;
-  left: 50% !important;
-  right: auto !important;
-  top: calc(100% + 10px) !important;  /* BELOW button */
-  bottom: auto !important;
-  transform: translateX(-50%) translateY(6px) !important;
+  left: calc(100% + 10px) !important; /* 버튼 오른쪽 10px */
+  top: 50% !important;
+  transform: translateY(-50%) !important;
 
   /* Make it a real rounded box (not a thin line) */
   display: inline-block !important;
