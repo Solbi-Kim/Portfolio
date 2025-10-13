@@ -1935,6 +1935,7 @@ body.donut-active #main:after { pointer-events: auto; opacity: 1; visibility: vi
   transform: translate(-50%, -50%);
   width: 80vw;        /* 크기 */
   max-width: none;    /* 제한 해제 */
+  min-width: 730px;   /* ⬅️ 이거 한 줄 추가 */
   height: auto;       /* 종횡비 유지 */
   pointer-events: none;
 }
