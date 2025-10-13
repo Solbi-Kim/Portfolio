@@ -24,10 +24,9 @@ html, body {
 }
 
 .ccv-frame {
-  --ratio: 16/9;
-  aspect-ratio: var(--ratio);
-  width: min(100vw, calc(100vh * var(--ratio)));
-  height: min(100vh, calc(100vw / var(--ratio)));
+  width: 100%;
+  height: 100%;
+  position: relative;
 }
 
 .vjs-ccv.video-js .vjs-poster {
@@ -51,7 +50,7 @@ html, body {
   width: 100% !important;
   height: 100% !important;
   object-fit: contain;
-  object-position: center;
+  object-position: center center;
 }
 
 /* 큰 재생 버튼 */
