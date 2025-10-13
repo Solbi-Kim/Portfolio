@@ -32,6 +32,31 @@
   <!-- CDN JS -->
   <script src="https://unpkg.com/video.js@8/dist/video.min.js"></script>
   <script src="https://unpkg.com/hls.js@latest"></script>
+  
+  <script>
+
+  function applyVideoAspect(player) {
+    const tech = player.tech_ && player.tech_.el && player.tech_.el();
+    if (!tech || !tech.videoWidth || !tech.videoHeight) return;
+
+    const w = tech.videoWidth;
+    const h = tech.videoHeight;
+    const frame = document.querySelector('.ccv-frame');
+    if (frame) {
+      frame.style.setProperty('--ratio', `${w} / ${h}`);
+    }
+  }
+
+  // 메타데이터 로드 시점에 비율 반영
+  player.on('loadedmetadata', function () {
+    applyVideoAspect(player);
+  });
+
+  // 소스가 바뀌어도 다시 반영
+  player.on('loadeddata', function () {
+    applyVideoAspect(player);
+  });
+</script>
 
   <!-- 우리 JS -->
   <script src="./app.js"></script>
