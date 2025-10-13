@@ -2237,7 +2237,7 @@ body.donut-active #main:after { pointer-events: auto; opacity: 1; visibility: vi
    - Prevents clipping and line-height inheritance issues.
 ============================================================================= */
 .poptrox-popup .caption2,
-.poptrox-popup .caption2 a { overflow: visible !important; position: relative !important; }
+.poptrox-popup .caption2 a { overflow: visible !important; }
 
 .poptrox-popup .caption2 a .hint-bubble{
   position: absolute !important;
