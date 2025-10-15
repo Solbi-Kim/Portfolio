@@ -1943,7 +1943,7 @@ body.donut-active #main:after { pointer-events: auto; opacity: 1; visibility: vi
   .donut-back,
   .donut-front,
   .donut-BG {
-    width: 100vw;     /* 작은 화면에선 꽉 채움 */
+    width: 120vw;     /* 작은 화면에선 꽉 채움 */
     /* iOS 사파리 안전하게 가려면 아래 중 택1
        width: 100svw;  또는  width: 100dvw; */
   }
