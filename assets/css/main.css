@@ -1929,15 +1929,24 @@ body.donut-active #main:after { pointer-events: auto; opacity: 1; visibility: vi
 .donut-back,
 .donut-front,
 .donut-BG {
-  position: absolute;
+   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 80vw;        /* 크기 */
-  max-width: none;    /* 제한 해제 */
-  min-width: 730px;   /* ⬅️ 이거 한 줄 추가 */
-  height: auto;       /* 종횡비 유지 */
+  width: 80vw;        /* 기본 */
+  max-width: none;
+  height: auto;
   pointer-events: none;
+}
+
+@media (max-width: 730px) {
+  .donut-back,
+  .donut-front,
+  .donut-BG {
+    width: 100vw;     /* 작은 화면에선 꽉 채움 */
+    /* iOS 사파리 안전하게 가려면 아래 중 택1
+       width: 100svw;  또는  width: 100dvw; */
+  }
 }
 
 .donut-BG {
