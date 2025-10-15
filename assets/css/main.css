@@ -2112,6 +2112,7 @@ body.donut-active #main:after { pointer-events: auto; opacity: 1; visibility: vi
   width: 15vw;             /* responsive size; tweak if needed */
   height: auto;
 }
+@media (max-width: 730px) { .rocket-fly:20vw; }
 
 
 /* Footer */
