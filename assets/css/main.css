@@ -1926,18 +1926,6 @@ body.donut-active #main:after { pointer-events: auto; opacity: 1; visibility: vi
   pointer-events: none;
 }
 
-.donut-back,
-.donut-front,
-.donut-BG {
-   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 80vw;        /* 기본 */
-  max-width: none;
-  height: auto;
-  pointer-events: none;
-}
 
 .donut-BG {
   z-index: 1;
