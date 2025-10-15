@@ -1982,6 +1982,25 @@ body.donut-active #main:after { pointer-events: auto; opacity: 1; visibility: vi
 	z-index: 3;
 }
 
+.donut-banner {
+  /* 배너가 absolute라도 OK */
+  --banner-shift-y: 0;
+  transform: translateY(var(--banner-shift-y));
+  will-change: transform; /* 스크롤 중에도 부드럽게 */
+}
+
+/* 730px 이하일 때 위로 10vh 올리기 */
+@media (max-width: 730px) {
+  .donut-banner { 
+    --banner-shift-y: -10vh; /* 기본 */
+  }
+  /* 모바일 안전 뷰포트 대응 (iOS 사파리 하단바 대응) */
+  @supports (height: 1svh) {
+    .donut-banner { --banner-shift-y: -10svh; }
+  }
+}
+
+
 /* 정적 이미지 3종: 동일 크기 규칙 */
 .donut-banner .donut-BG,
 .donut-banner .donut-back,
