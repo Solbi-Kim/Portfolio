@@ -1982,24 +1982,6 @@ body.donut-active #main:after { pointer-events: auto; opacity: 1; visibility: vi
 	z-index: 3;
 }
 
-.donut-banner {
-  /* 배너가 absolute라도 OK */
-  --banner-shift-y: 0;
-  transform: translateY(var(--banner-shift-y));
-  will-change: transform; /* 스크롤 중에도 부드럽게 */
-}
-
-/* 730px 이하일 때 위로 10vh 올리기 */
-@media (max-width: 730px) {
-  .donut-banner { 
-    --banner-shift-y: -10vh; /* 기본 */
-  }
-  /* 모바일 안전 뷰포트 대응 (iOS 사파리 하단바 대응) */
-  @supports (height: 1svh) {
-    .donut-banner { --banner-shift-y: -10svh; }
-  }
-}
-
 
 /* 정적 이미지 3종: 동일 크기 규칙 */
 .donut-banner .donut-BG,
@@ -2018,13 +2000,39 @@ body.donut-active #main:after { pointer-events: auto; opacity: 1; visibility: vi
 }
 
 @media (max-width: 730px) {
-.donut-banner .donut-BG,
-.donut-banner .donut-back,
-.donut-banner .donut-front,
-.donut-banner .donut-intro {
-    width: 100vw;     /* 작은 화면에선 꽉 채움 */
-    /* iOS 사파리 안전하게 가려면 아래 중 택1
-       width: 100svw;  또는  width: 100dvw; */
+  .donut-banner .donut-BG,
+  .donut-banner .donut-back,
+  .donut-banner .donut-front,
+  .donut-banner .donut-intro {
+    /* 크기 변경 (이전에 쓰던 100vw 유지) */
+    width: 100vw;
+
+    /* 중앙 정렬 유지 + 위로 10svh 올리기 */
+    transform: translate(-50%, -50%) translateY(-10svh);
+
+    /* 리사이즈 시 부드럽게 */
+    transition: transform .35s ease, width .35s ease;
+    will-change: transform, width;
+  }
+
+  /* svh 미지원 브라우저 폴백 */
+  @supports not (height: 1svh) {
+    .donut-banner .donut-BG,
+    .donut-banner .donut-back,
+    .donut-banner .donut-front,
+    .donut-banner .donut-intro {
+      transform: translate(-50%, -50%) translateY(-10vh);
+    }
+  }
+}
+
+/* 사용자 ‘모션 줄이기’ 설정 존중 (필요하면) */
+@media (prefers-reduced-motion: reduce) {
+  .donut-banner .donut-BG,
+  .donut-banner .donut-back,
+  .donut-banner .donut-front,
+  .donut-banner .donut-intro {
+    transition: none;
   }
 }
 
