@@ -247,6 +247,37 @@
     // console.log('PDF_URL →', PDF_URL);
 
     const container = document.getElementById('pdf-container');
+        // --- Double-tap 기본 줌 방지 (컨테이너 정의 이후에 붙이기) ---
+    (() => {
+      const host = document.getElementById('pdf-container');
+      if (!host) return;
+    
+      let lastTap = 0;
+    
+      // Stage(#pdf-stage)에서만 더블탭 방지
+      host.addEventListener('touchend', (e) => {
+        const stage = e.target.closest('#pdf-stage');
+        if (!stage) return;                 // PDF 스테이지 아닌 곳은 무시
+    
+        const now = Date.now();
+        if (now - lastTap < 300) {
+          e.preventDefault();               // iOS 더블탭 기본줌 차단
+        }
+        lastTap = now;
+      }, { passive: false });
+    
+      // iOS Safari 비표준 제스처도 같이 막기 (Stage에서만)
+      if ('ongesturestart' in window) {
+        ['gesturestart','gesturechange','gestureend'].forEach(ev => {
+          host.addEventListener(ev, (e) => {
+            const stage = e.target.closest('#pdf-stage');
+            if (!stage) return;
+            e.preventDefault();
+          }, { passive: false });
+        });
+      }
+    })();
+
 
     // 스케일 한계 (fit 모드에선 더 낮게 허용)
     const MIN_SCALE = 0.1;     // 수동 줌 최소
