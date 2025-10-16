@@ -49,6 +49,9 @@
       flex-direction: column;
       align-items: center; /* 가로 중앙 */
     }
+    /* 스테이지에만 제스처 위임: 페이지 전체 스크롤은 그대로 */
+    #pdf-stage { touch-action: none; }
+
     /* PDF 페이지 캔버스: 등장 애니메이션 포함 */
     canvas {
       display: block;
@@ -165,23 +168,41 @@
     }
   }
 
-  // 캡처 단계에서 4곳 모두 선점해서 누가 먼저 달려 있어도 우리가 먼저 받는다
-  [window, document, document.documentElement].forEach(t=>{
-    t && t.addEventListener('wheel', onWheel, { capture:true, passive:false });
-  });
-  function attachBody(){
-    if (document.body)
-      document.body.addEventListener('wheel', onWheel, { capture:true, passive:false });
-  }
-  if (document.body) attachBody();
-  else document.addEventListener('DOMContentLoaded', attachBody, { once:true });
+    // 캡처 단계에서 4곳 모두 선점해서 누가 먼저 달려 있어도 우리가 먼저 받는다
+    [window, document, document.documentElement].forEach(t=>{
+      t && t.addEventListener('wheel', onWheel, { capture:true, passive:false });
+    });
+    function attachBody(){
+      if (document.body)
+        document.body.addEventListener('wheel', onWheel, { capture:true, passive:false });
+    }
+    if (document.body) attachBody();
+    else document.addEventListener('DOMContentLoaded', attachBody, { once:true });
+  
+    // 키보드
+    window.addEventListener('keydown', onKey, { passive:false });
+  
+    // 간단 진단
+    window.__SE = { info(){ return { host: (host===ROOT?'ROOT':'EL'), vy, anim: !!raf }; } };
+  })();
 
-  // 키보드
-  window.addEventListener('keydown', onKey, { passive:false });
+      // iOS Safari 전용 비표준 제스처 이벤트: 기본 줌 막기
+    if ('ongesturestart' in window) {
+      ['gesturestart','gesturechange','gestureend'].forEach(ev => {
+        container.addEventListener(ev, e => e.preventDefault(), { passive:false });
+      });
+    }
+      // 모바일 더블탭 기본줌 무력화
+    let lastTap = 0;
+    container.addEventListener('touchend', (e) => {
+      const now = Date.now();
+      if (now - lastTap < 300) {
+        e.preventDefault(); // 더블탭 기본 줌 방지
+      }
+      lastTap = now;
+    }, { passive:false });
+    
 
-  // 간단 진단
-  window.__SE = { info(){ return { host: (host===ROOT?'ROOT':'EL'), vy, anim: !!raf }; } };
-})();
 </script>
 
 
@@ -417,15 +438,25 @@ container.addEventListener('wheel', (e) => {
   container.__wheelZoomT = setTimeout(() => commitRender(true), 160);
 }, { passive: false });
 
-// Ctrl+0 → 80vw 맞춤
+// 페이지 줌 단축키 무력화하고 우리 doZoom/fit 실행
 window.addEventListener('keydown', (e) => {
-  if (e.key === '0' && (e.ctrlKey || e.metaKey)) {
+  const meta = e.ctrlKey || e.metaKey;
+  if (!meta) return;
+
+  if (e.key === '0') {
     e.preventDefault();
     fitMode = true;
     scale = clampScale(computeScaleFit(), true);
     commitRender(false).then(() => window.scrollTo({ top: 0 }));
+    return;
+  }
+
+  if (e.key === '+' || e.key === '=' || e.key === '-') {
+    e.preventDefault();
+    doZoom(e.key === '-' ? -ZOOM_STEP : +ZOOM_STEP);
   }
 });
+
 
     
     // ====== 핀치줌(dblclick handler) ======
