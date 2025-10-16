@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <style>html { scroll-behavior: auto !important; }</style>
+  <style> html { scroll-behavior: auto !important; } </style>
   <meta charset="UTF-8" />
   <title>Info | shovideo</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -9,7 +9,9 @@
   <meta name="color-scheme" content="dark light">
   <link rel="icon" href="/favicon-light.ico" sizes="any" media="(prefers-color-scheme: light)">
   <link rel="icon" href="/favicon-dark.ico"  sizes="any" media="(prefers-color-scheme: dark)">
-  <link rel="icon" href="/favicon.ico" sizes="any"><style>
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  1
+  <style>
     :root {
       --header-h: 56px;
       --bg: #0f1115;
@@ -62,7 +64,21 @@
       opacity: 1;
       transform: translateY(0);
     }
+
+    /* 헤더 컨트롤 톤 맞추기 */
+    #zoomRange { accent-color: var(--brand, #00adef); }
+
+    /* 캔버스들을 담는 스테이지: 핀치/슬라이더 드래그 중 CSS 스케일 미리보기용 */
+    #pdf-stage {
+      transform-origin: 50% 0%;         /* 위쪽 중앙 기준이 자연스러움(세로 스크롤 레이아웃) */
+      transition: transform .2s ease;   /* UI 조작할 때 부드럽게 */
+      will-change: transform;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #pdf-stage { transition: none; }
+    }
   </style>
+  
 </head>
 <body>
   <!-- HARD WHEEL INTERCEPT: body 바로 아래 넣기 -->
@@ -172,6 +188,9 @@
   <header>
     <button onclick="history.back()">← Back</button>
     <span style="margin-left:8px; font-weight:600;">Video Information</span>
+    <input id="zoomRange" type="range" min="0.5" max="3" step="0.01" value="1"
+         style="width:180px; margin:0 8px;" aria-label="Zoom slider" />
+
     <button id="zoomOutBtn" aria-label="ZoomOut" style="margin-left:auto;">🔍–</button>
     <button id="zoomInBtn"  aria-label="ZoomIn">🔍+</button>
     <button id="fitBtn" aria-label="Fit to 80vw">⤢ Fit</button>
@@ -253,7 +272,7 @@
     }, { threshold: 0.1 });
 
     // ===== 렌더링 =====
-    async function renderPage(pageNum){
+    async function renderPage(pageNum, stage){
       const page = await pdfDoc.getPage(pageNum);
       const viewport = page.getViewport({ scale });
 
@@ -273,16 +292,22 @@
       };
 
       await page.render(renderContext).promise;
-      container.appendChild(canvas);
+      stage.appendChild(canvas);
       appearObserver.observe(canvas);
     }
 
     async function renderAll(){
+      // ✅ stage 래퍼를 만들어 캔버스들을 그 안에 넣음 (CSS transform 미리보기 용이)
       container.innerHTML = '';
+      const stage = document.createElement('div');
+      stage.id = 'pdf-stage';
+      container.appendChild(stage);
+
       for (let n = 1; n <= pdfDoc.numPages; n++){
-        await renderPage(n);
+        await renderPage(n, stage);
       }
     }
+
 
     // 스크롤 위치 비율 보존(줌 시)
     function rememberScrollRatio(){
@@ -304,6 +329,7 @@
         // 80vw 내부폭 기준으로 fit 스케일 계산
         scale = clampScale(computeScaleFit(), true);
         await renderAll();
+        syncUI();
       } catch (e) {
         console.error(e);
         container.textContent = 'PDF load failed 😢';
@@ -356,6 +382,143 @@
         renderAll().then(() => window.scrollTo({ top: 0 }));
       }
     });
+
+    // ====== 슬라이더 ======
+    const zoomRange = document.getElementById('zoomRange');
+    function syncUI() {
+      if (zoomRange) zoomRange.value = String(+scale.toFixed(2));
+    }
+    zoomRange?.addEventListener('input', async (e) => {
+      fitMode = false;
+      const ratio = rememberScrollRatio();
+      scale = clampScale(parseFloat(e.target.value), false);
+      // 슬라이더 드래그 중엔 미리보기만 CSS scale로
+      const stage = document.getElementById('pdf-stage');
+      if (stage) stage.style.transform = `scale(${scale})`;
+    });
+    zoomRange?.addEventListener('change', async () => {
+      // 드래그 끝났을 때 실제 해상도로 재렌더
+      const ratio = rememberScrollRatio();
+      await renderAll();
+      restoreScrollRatio(ratio);
+      syncUI();
+    });
+    
+    // 버튼도 UI 동기화
+    async function doZoom(delta){
+      fitMode = false;
+      const ratio = rememberScrollRatio();
+      const next = clampScale(+(scale + delta).toFixed(2), false);
+      if (Math.abs(next - scale) < 0.01) return;
+      scale = next;
+      // 미리보기
+      const stage = document.getElementById('pdf-stage');
+      if (stage) stage.style.transform = `scale(${scale})`;
+      // 커밋
+      await renderAll();
+      restoreScrollRatio(ratio);
+      syncUI();
+    }
+    zoomInBtn?.addEventListener('click',  () => doZoom(+ZOOM_STEP));
+    zoomOutBtn?.addEventListener('click', () => doZoom(-ZOOM_STEP));
+    fitBtn?.addEventListener('click', async () => {
+      fitMode = true;
+      scale = clampScale(computeScaleFit(), true);
+      await renderAll();
+      window.scrollTo({ top: 0 });
+      syncUI();
+    });
+    
+    // Ctrl + Wheel → 줌 (네가 전역 휠 인터셉트 써서, Ctrl일 때만 줌으로 전환)
+    container.addEventListener('wheel', async (e) => {
+      if (!e.ctrlKey && !e.metaKey) return;
+      e.preventDefault();
+      fitMode = false;
+      const delta = -Math.sign(e.deltaY) * 0.12; // 위로 스크롤 = 확대
+      const ratio = rememberScrollRatio();
+      scale = clampScale(scale * (1 + delta), false);
+      // 미리보기
+      const stage = document.getElementById('pdf-stage');
+      if (stage) stage.style.transform = `scale(${scale})`;
+      // 살짝 디바운스 커밋
+      clearTimeout(container.__wheelZoomT);
+      container.__wheelZoomT = setTimeout(async () => {
+        await renderAll();
+        restoreScrollRatio(ratio);
+        syncUI();
+      }, 160);
+    }, { passive: false });
+    
+    // ====== 핀치줌(두 손가락) ======
+    let pointers = new Map();
+    let pinchStartDist = 0, pinchStartScale = 1;
+    
+    function dist(a, b) {
+      const dx = a.x - b.x, dy = a.y - b.y;
+      return Math.hypot(dx, dy);
+    }
+    
+    container.addEventListener('pointerdown', (e) => {
+      container.setPointerCapture?.(e.pointerId);
+      pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (pointers.size === 2) {
+        const [p1, p2] = Array.from(pointers.values());
+        pinchStartDist = dist(p1, p2);
+        pinchStartScale = scale;
+      }
+    });
+    container.addEventListener('pointermove', (e) => {
+      if (!pointers.has(e.pointerId)) return;
+      pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (pointers.size === 2) {
+        // 라이브 미리보기 (CSS scale)
+        const [p1, p2] = Array.from(pointers.values());
+        const k = dist(p1, p2) / (pinchStartDist || 1);
+        const live = clampScale(pinchStartScale * k, false);
+        const stage = document.getElementById('pdf-stage');
+        if (stage) stage.style.transform = `scale(${live})`;
+        // scale 값은 pointerup에서 커밋
+      }
+    }, { passive: true });
+    ['pointerup','pointercancel','pointerleave'].forEach(type => {
+      container.addEventListener(type, async (e) => {
+        pointers.delete(e.pointerId);
+        if (pointers.size < 2 && pinchStartDist) {
+          // 커밋
+          const [p1, p2] = Array.from(pointers.values());
+          // 남은 포인터가 1개면 커밋 스킵(핀치 종료)
+          const stage = document.getElementById('pdf-stage');
+          if (stage) {
+            // stage의 현재 scale 읽어서 커밋
+            const m = getComputedStyle(stage).transform;
+            // matrix(a,b,c,d,tx,ty) → scaleX=a (2D 가정)
+            const mA = m === 'none' ? 1 : parseFloat(m.split('(')[1].split(',')[0]) || 1;
+            scale = clampScale(mA, false);
+            // 고해상도로 재렌더
+            const ratio = rememberScrollRatio();
+            await renderAll();
+            restoreScrollRatio(ratio);
+            syncUI();
+          }
+          pinchStartDist = 0;
+        }
+      });
+    });
+    
+    // 더블탭/더블클릭: 1x <-> 2x 토글
+    container.addEventListener('dblclick', async (e) => {
+      e.preventDefault();
+      fitMode = false;
+      const ratio = rememberScrollRatio();
+      scale = clampScale(scale < 2 ? 2 : computeScaleFit(), false);
+      const stage = document.getElementById('pdf-stage');
+      if (stage) stage.style.transform = `scale(${scale})`;
+      await renderAll();
+      restoreScrollRatio(ratio);
+      syncUI();
+    });
+
+    
   </script>
 
 
