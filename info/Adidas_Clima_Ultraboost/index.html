@@ -186,21 +186,6 @@
     window.__SE = { info(){ return { host: (host===ROOT?'ROOT':'EL'), vy, anim: !!raf }; } };
   })();
 
-      // iOS Safari 전용 비표준 제스처 이벤트: 기본 줌 막기
-    if ('ongesturestart' in window) {
-      ['gesturestart','gesturechange','gestureend'].forEach(ev => {
-        container.addEventListener(ev, e => e.preventDefault(), { passive:false });
-      });
-    }
-      // 모바일 더블탭 기본줌 무력화
-    let lastTap = 0;
-    container.addEventListener('touchend', (e) => {
-      const now = Date.now();
-      if (now - lastTap < 300) {
-        e.preventDefault(); // 더블탭 기본 줌 방지
-      }
-      lastTap = now;
-    }, { passive:false });
     
 
 </script>
