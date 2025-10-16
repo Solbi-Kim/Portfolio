@@ -347,109 +347,88 @@
     window.addEventListener('resize', onResize);
     new ResizeObserver(onResize).observe(container);
 
-    // ===== 컨트롤 =====
-    const zoomInBtn  = document.getElementById('zoomInBtn');
-    const zoomOutBtn = document.getElementById('zoomOutBtn');
-    const fitBtn     = document.getElementById('fitBtn');
+// ===== 컨트롤 (단일 정의) =====
+const zoomInBtn  = document.getElementById('zoomInBtn');
+const zoomOutBtn = document.getElementById('zoomOutBtn');
+const fitBtn     = document.getElementById('fitBtn');
+const zoomRange  = document.getElementById('zoomRange');
 
-    async function doZoom(delta){
-      fitMode = false; // 수동 모드
-      const ratio = rememberScrollRatio();
-      const next = clampScale(+(scale + delta).toFixed(2), false);
-      if (Math.abs(next - scale) < 0.01) return;
-      scale = next;
-      await renderAll();
-      restoreScrollRatio(ratio);
-    }
+function syncUI() {
+  if (zoomRange) zoomRange.value = String(+scale.toFixed(2));
+}
 
-    zoomInBtn?.addEventListener('click',  () => doZoom(+ZOOM_STEP));
-    zoomOutBtn?.addEventListener('click', () => doZoom(-ZOOM_STEP));
+// 공통 재렌더
+async function commitRender(keepScroll = true) {
+  const ratio = keepScroll ? rememberScrollRatio() : 0;
+  await renderAll();
+  if (keepScroll) restoreScrollRatio(ratio);
+  syncUI();
+}
 
-    // Fit to 80vw
-    fitBtn?.addEventListener('click', async () => {
-      fitMode = true;
-      scale = clampScale(computeScaleFit(), true);
-      await renderAll();
-      window.scrollTo({ top: 0 });
-    });
+// 버튼/키/휠에서 쓰는 단일 줌 함수 (중복 선언 금지)
+async function doZoom(delta) {
+  fitMode = false;
+  const next = clampScale(+(scale + delta).toFixed(2), false);
+  if (Math.abs(next - scale) < 0.01) return;
+  scale = next;
 
-    // Ctrl+0 → 80vw 기준 화면맞춤
-    window.addEventListener('keydown', (e) => {
-      if (e.key === '0' && (e.ctrlKey || e.metaKey)) {
-        e.preventDefault();
-        fitMode = true;
-        scale = clampScale(computeScaleFit(), true);
-        renderAll().then(() => window.scrollTo({ top: 0 }));
-      }
-    });
+  // 미리보기
+  const stage = document.getElementById('pdf-stage');
+  if (stage) stage.style.transform = `scale(${scale})`;
 
-    // ====== 슬라이더 ======
-    const zoomRange = document.getElementById('zoomRange');
-    function syncUI() {
-      if (zoomRange) zoomRange.value = String(+scale.toFixed(2));
-    }
-    zoomRange?.addEventListener('input', async (e) => {
-      fitMode = false;
-      const ratio = rememberScrollRatio();
-      scale = clampScale(parseFloat(e.target.value), false);
-      // 슬라이더 드래그 중엔 미리보기만 CSS scale로
-      const stage = document.getElementById('pdf-stage');
-      if (stage) stage.style.transform = `scale(${scale})`;
-    });
-    zoomRange?.addEventListener('change', async () => {
-      // 드래그 끝났을 때 실제 해상도로 재렌더
-      const ratio = rememberScrollRatio();
-      await renderAll();
-      restoreScrollRatio(ratio);
-      syncUI();
-    });
+  // 커밋(고해상도)
+  await commitRender(true);
+}
+
+// 버튼
+zoomInBtn?.addEventListener('click',  () => doZoom(+ZOOM_STEP));
+zoomOutBtn?.addEventListener('click', () => doZoom(-ZOOM_STEP));
+fitBtn?.addEventListener('click', async () => {
+  fitMode = true;
+  scale = clampScale(computeScaleFit(), true);
+  await commitRender(false);
+  window.scrollTo({ top: 0 });
+});
+
+// 슬라이더
+zoomRange?.addEventListener('input', (e) => {
+  fitMode = false;
+  scale = clampScale(parseFloat(e.target.value), false);
+  const stage = document.getElementById('pdf-stage');
+  if (stage) stage.style.transform = `scale(${scale})`;
+});
+zoomRange?.addEventListener('change', async () => {
+  await commitRender(true);
+});
+
+// Ctrl+Wheel → 줌
+container.addEventListener('wheel', (e) => {
+  if (!e.ctrlKey && !e.metaKey) return;
+  e.preventDefault();
+  fitMode = false;
+
+  const delta = -Math.sign(e.deltaY) * 0.12; // 위로 스크롤 = 확대
+  scale = clampScale(scale * (1 + delta), false);
+
+  const stage = document.getElementById('pdf-stage');
+  if (stage) stage.style.transform = `scale(${scale})`;
+
+  clearTimeout(container.__wheelZoomT);
+  container.__wheelZoomT = setTimeout(() => commitRender(true), 160);
+}, { passive: false });
+
+// Ctrl+0 → 80vw 맞춤
+window.addEventListener('keydown', (e) => {
+  if (e.key === '0' && (e.ctrlKey || e.metaKey)) {
+    e.preventDefault();
+    fitMode = true;
+    scale = clampScale(computeScaleFit(), true);
+    commitRender(false).then(() => window.scrollTo({ top: 0 }));
+  }
+});
+
     
-    // 버튼도 UI 동기화
-    async function doZoom(delta){
-      fitMode = false;
-      const ratio = rememberScrollRatio();
-      const next = clampScale(+(scale + delta).toFixed(2), false);
-      if (Math.abs(next - scale) < 0.01) return;
-      scale = next;
-      // 미리보기
-      const stage = document.getElementById('pdf-stage');
-      if (stage) stage.style.transform = `scale(${scale})`;
-      // 커밋
-      await renderAll();
-      restoreScrollRatio(ratio);
-      syncUI();
-    }
-    zoomInBtn?.addEventListener('click',  () => doZoom(+ZOOM_STEP));
-    zoomOutBtn?.addEventListener('click', () => doZoom(-ZOOM_STEP));
-    fitBtn?.addEventListener('click', async () => {
-      fitMode = true;
-      scale = clampScale(computeScaleFit(), true);
-      await renderAll();
-      window.scrollTo({ top: 0 });
-      syncUI();
-    });
-    
-    // Ctrl + Wheel → 줌 (네가 전역 휠 인터셉트 써서, Ctrl일 때만 줌으로 전환)
-    container.addEventListener('wheel', async (e) => {
-      if (!e.ctrlKey && !e.metaKey) return;
-      e.preventDefault();
-      fitMode = false;
-      const delta = -Math.sign(e.deltaY) * 0.12; // 위로 스크롤 = 확대
-      const ratio = rememberScrollRatio();
-      scale = clampScale(scale * (1 + delta), false);
-      // 미리보기
-      const stage = document.getElementById('pdf-stage');
-      if (stage) stage.style.transform = `scale(${scale})`;
-      // 살짝 디바운스 커밋
-      clearTimeout(container.__wheelZoomT);
-      container.__wheelZoomT = setTimeout(async () => {
-        await renderAll();
-        restoreScrollRatio(ratio);
-        syncUI();
-      }, 160);
-    }, { passive: false });
-    
-    // ====== 핀치줌(두 손가락) ======
+    // ====== 핀치줌(dblclick handler) ======
     let pointers = new Map();
     let pinchStartDist = 0, pinchStartScale = 1;
     
