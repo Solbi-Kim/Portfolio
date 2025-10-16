@@ -10,7 +10,6 @@
   <link rel="icon" href="/favicon-light.ico" sizes="any" media="(prefers-color-scheme: light)">
   <link rel="icon" href="/favicon-dark.ico"  sizes="any" media="(prefers-color-scheme: dark)">
   <link rel="icon" href="/favicon.ico" sizes="any">
-  1
   <style>
     :root {
       --header-h: 56px;
@@ -77,6 +76,9 @@
       transition: transform .2s ease;   /* UI 조작할 때 부드럽게 */
       will-change: transform;
     }
+    /* 커밋 시엔 전환 끄기(깜빡임 방지) */
+    #pdf-stage.no-anim { transition: none !important; }
+
     @media (prefers-reduced-motion: reduce) {
       #pdf-stage { transition: none; }
     }
@@ -85,7 +87,6 @@
 </head>
 <body>
   <!-- HARD WHEEL INTERCEPT: body 바로 아래 넣기 -->
-<!-- HARD WHEEL INTERCEPT (smart host): put this RIGHT under <body> -->
 <script>
 (function(){
   if (window.__ScrollEaseHard) return;
@@ -101,22 +102,20 @@
   const wheelCap  = 60;   // vy
   const stopEps   = 0.16;  // 이 값 올리면 더 빨리 끊김
 
-  // 이 노드가 실제로 스크롤 가능한가?
   function isScrollable(el, dy){
     if (!el || el === document || el === document.documentElement) return false;
     const cs = getComputedStyle(el);
     if (!(cs.overflowY === 'auto' || cs.overflowY === 'scroll')) return false;
     if (el.scrollHeight <= el.clientHeight + 1) return false;
-    if (dy > 0)  return el.scrollTop + el.clientHeight < el.scrollHeight; // 아래로 여유
-    if (dy < 0)  return el.scrollTop > 0;                                  // 위로 여유
+    if (dy > 0)  return el.scrollTop + el.clientHeight < el.scrollHeight;
+    if (dy < 0)  return el.scrollTop > 0;
     return true;
   }
-  // 휠이 들어온 위치에서 위로 올라가며 스크롤 주체 탐색
   function findHost(target, dy){
     for (let n = target; n; n = n.parentElement){
       if (isScrollable(n, dy)) return n;
     }
-    return ROOT; // 없으면 윈도우
+    return ROOT;
   }
 
   let host = ROOT, vy = 0, raf = 0;
@@ -138,16 +137,14 @@
 
   function onWheel(e){
     const raw = e.deltaY || 0; if (!raw) return;
-    // 실제 스크롤 가능한 가장 가까운 컨테이너를 선택
     host = findHost(e.target, raw) || ROOT;
-    e.preventDefault(); // 기본 스크롤 차단 (우리가 직접 움직임)
+    e.preventDefault();
     const d = clamp(raw, -wheelCap, wheelCap);
     vy += d * wheelBoost;
     if (!raf) raf = requestAnimationFrame(tick);
   }
 
   function onKey(e){
-    // 입력창 포커스면 통과
     const tag = (document.activeElement && document.activeElement.tagName || '').toLowerCase();
     if (tag === 'input' || tag === 'textarea' || e.defaultPrevented) return;
 
@@ -161,35 +158,27 @@
 
     if (add !== 0){
       e.preventDefault();
-      // 키보드는 윈도우 기준으로만 부드럽게
       host = ROOT;
       vy += add;
       if (!raf) raf = requestAnimationFrame(tick);
     }
   }
 
-    // 캡처 단계에서 4곳 모두 선점해서 누가 먼저 달려 있어도 우리가 먼저 받는다
-    [window, document, document.documentElement].forEach(t=>{
-      t && t.addEventListener('wheel', onWheel, { capture:true, passive:false });
-    });
-    function attachBody(){
-      if (document.body)
-        document.body.addEventListener('wheel', onWheel, { capture:true, passive:false });
-    }
-    if (document.body) attachBody();
-    else document.addEventListener('DOMContentLoaded', attachBody, { once:true });
-  
-    // 키보드
-    window.addEventListener('keydown', onKey, { passive:false });
-  
-    // 간단 진단
-    window.__SE = { info(){ return { host: (host===ROOT?'ROOT':'EL'), vy, anim: !!raf }; } };
-  })();
+  [window, document, document.documentElement].forEach(t=>{
+    t && t.addEventListener('wheel', onWheel, { capture:true, passive:false });
+  });
+  function attachBody(){
+    if (document.body)
+      document.body.addEventListener('wheel', onWheel, { capture:true, passive:false });
+  }
+  if (document.body) attachBody();
+  else document.addEventListener('DOMContentLoaded', attachBody, { once:true });
 
-    
+  window.addEventListener('keydown', onKey, { passive:false });
 
+  window.__SE = { info(){ return { host: (host===ROOT?'ROOT':'EL'), vy, anim: !!raf }; } };
+})();
 </script>
-
 
   <header>
     <button onclick="history.back()">← Back</button>
@@ -202,7 +191,7 @@
     <button id="fitBtn" aria-label="Fit to 80vw">⤢ Fit</button>
   </header>
 
-  <main id="pdf-container" >Loading PDF...</main>
+  <main id="pdf-container">Loading PDF...</main>
 
   <!-- Consolidated PDF.js logic -->
   <script type="module">
@@ -210,87 +199,70 @@
     pdfjsLib.GlobalWorkerOptions.workerSrc = './pdfjs/pdf.worker.mjs';
 
     // ===== 설정 =====
-    // 현재 서브 페이지의 "상위 폴더명"을 가져와 PDF 경로 자동 생성
     function __folderFromPath() {
-      // /info/Are_you_sure/  or  /info/Are_you_sure/index.html  모두 대응
-      let path = location.pathname.replace(/\/+$/, ''); // 끝 슬래시 제거
+      let path = location.pathname.replace(/\/+$/, '');
       const parts = path.split('/').filter(Boolean);
       if (!parts.length) return '';
-
       let last = parts[parts.length - 1];
-      // 마지막 조각이 index.html 같은 파일명이면 한 칸 위가 폴더명
       if (/\.html?$/i.test(last)) {
-          parts.pop(); // 파일명 제거
+          parts.pop();
           last = parts[parts.length - 1] || '';
       }
       return last;
     }
 
     const __FOLDER = __folderFromPath();
-    // 파일명이 한글/공백일 수도 있으니 인코딩해서 경로 구성
     const PDF_URL = `/assets/PDF/${encodeURIComponent(__FOLDER)}.pdf`;
-    // console.log('PDF_URL →', PDF_URL);
 
     const container = document.getElementById('pdf-container');
-        // --- Double-tap 기본 줌 방지 (컨테이너 정의 이후에 붙이기) ---
+
+    // --- Double-tap & gesture 기본 줌 방지 (Stage에서만) ---
     (() => {
-      const host = document.getElementById('pdf-container');
+      const host = container;
       if (!host) return;
-    
       let lastTap = 0;
-    
-      // Stage(#pdf-stage)에서만 더블탭 방지
       host.addEventListener('touchend', (e) => {
-        const stage = e.target.closest('#pdf-stage');
-        if (!stage) return;                 // PDF 스테이지 아닌 곳은 무시
-    
+        if (!e.target.closest('#pdf-stage')) return;
         const now = Date.now();
-        if (now - lastTap < 300) {
-          e.preventDefault();               // iOS 더블탭 기본줌 차단
-        }
+        if (now - lastTap < 300) e.preventDefault();
         lastTap = now;
-      }, { passive: false });
-    
-      // iOS Safari 비표준 제스처도 같이 막기 (Stage에서만)
+      }, { passive:false });
       if ('ongesturestart' in window) {
         ['gesturestart','gesturechange','gestureend'].forEach(ev => {
           host.addEventListener(ev, (e) => {
-            const stage = e.target.closest('#pdf-stage');
-            if (!stage) return;
+            if (!e.target.closest('#pdf-stage')) return;
             e.preventDefault();
-          }, { passive: false });
+          }, { passive:false });
         });
       }
     })();
 
-
-    // 스케일 한계 (fit 모드에선 더 낮게 허용)
-    const MIN_SCALE = 0.1;     // 수동 줌 최소
-    const MAX_SCALE = 3.0;     // 최대 줌
-    const DPR = Math.min(2, Math.max(1, window.devicePixelRatio || 1)); // 과한 뭉개짐 방지
+    // 스케일 한계 / 렌더 옵션
+    const MIN_SCALE = 0.1;
+    const MAX_SCALE = 3.0;
+    const DPR = Math.min(2, Math.max(1, window.devicePixelRatio || 1));
     const ZOOM_STEP = 0.1;
 
     let pdfDoc = null;
-    let basePageWidth = null;  // PDF 100% viewport width
+    let basePageWidth = null;
     let scale = 1;
-    let fitMode = true;        // true = 80vw 맞춤
+    let fitMode = true;
 
     // ===== 유틸 =====
-    const cssPx = (v) => `${Math.round(v * 100) / 100}px`; // 소수점 2자리
+    const cssPx = (v) => `${Math.round(v * 100) / 100}px`;
     const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 
     function getInnerWidth(el){
       const cs = getComputedStyle(el);
       const pad = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
-      // clientWidth는 패딩 포함 → 패딩 제외한 내부 컨텐츠 폭으로 변환
       return el.clientWidth - pad;
     }
     function clampScale(s, isFit = false){
-      const min = isFit ? 0.05 : MIN_SCALE; // fit 상태에선 더 작게 허용
+      const min = isFit ? 0.05 : MIN_SCALE;
       return clamp(s, min, MAX_SCALE);
     }
     function computeScaleFit(){
-      const w = getInnerWidth(container); // 80vw 내부폭
+      const w = getInnerWidth(container);
       if (!basePageWidth) return 1;
       return w / basePageWidth;
     }
@@ -298,7 +270,27 @@
       let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
     }
 
-    // ===== 캔버스 등장 애니메이션 옵저버 (공용) =====
+    // ===== 스테이지 헬퍼 =====
+    function getStage() {
+      let stage = document.getElementById('pdf-stage');
+      if (!stage) {
+        stage = document.createElement('div');
+        stage.id = 'pdf-stage';
+        container.appendChild(stage);
+      }
+      return stage;
+    }
+    function previewScale(s) {
+      getStage().style.transform = `scale(${s})`;
+    }
+
+    let commitT = 0;
+    function scheduleCommit(keepScroll = true, delay = 160) {
+      clearTimeout(commitT);
+      commitT = setTimeout(() => { commitRender(keepScroll); }, delay);
+    }
+
+    // ===== 캔버스 등장 애니메이션 옵저버 =====
     const appearObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting){
@@ -322,11 +314,8 @@
       canvas.style.width  = cssPx(viewport.width);
       canvas.style.height = cssPx(viewport.height);
 
-      const renderContext = {
-        canvasContext: ctx,
-        viewport,
-        transform: outScale !== 1 ? [outScale, 0, 0, outScale, 0, 0] : null
-      };
+      const renderContext = { canvasContext: ctx, viewport };
+      if (outScale !== 1) renderContext.transform = [outScale, 0, 0, outScale, 0, 0];
 
       await page.render(renderContext).promise;
       stage.appendChild(canvas);
@@ -334,17 +323,12 @@
     }
 
     async function renderAll(){
-      // ✅ stage 래퍼를 만들어 캔버스들을 그 안에 넣음 (CSS transform 미리보기 용이)
-      container.innerHTML = '';
-      const stage = document.createElement('div');
-      stage.id = 'pdf-stage';
-      container.appendChild(stage);
-
+      const stage = getStage();
+      stage.innerHTML = '';
       for (let n = 1; n <= pdfDoc.numPages; n++){
         await renderPage(n, stage);
       }
     }
-
 
     // 스크롤 위치 비율 보존(줌 시)
     function rememberScrollRatio(){
@@ -356,6 +340,24 @@
       window.scrollTo({ top: ratio * max, behavior: 'auto' });
     }
 
+    // 커밋 렌더 (깜빡임 방지)
+    async function commitRender(keepScroll = true) {
+      const stage = getStage();
+      stage.classList.add('no-anim');
+
+      const ratio = keepScroll ? rememberScrollRatio() : 0;
+
+      await renderAll();
+
+      await new Promise(requestAnimationFrame);
+      stage.style.transform = '';
+      if (keepScroll) restoreScrollRatio(ratio);
+
+      await new Promise(requestAnimationFrame);
+      stage.classList.remove('no-anim');
+      syncUI();
+    }
+
     // ===== 초기 로드 =====
     (async () => {
       try {
@@ -363,7 +365,6 @@
         const page1 = await pdfDoc.getPage(1);
         basePageWidth = page1.getViewport({ scale: 1 }).width;
 
-        // 80vw 내부폭 기준으로 fit 스케일 계산
         scale = clampScale(computeScaleFit(), true);
         await renderAll();
         syncUI();
@@ -384,106 +385,82 @@
     window.addEventListener('resize', onResize);
     new ResizeObserver(onResize).observe(container);
 
-// ===== 컨트롤 (단일 정의) =====
-const zoomInBtn  = document.getElementById('zoomInBtn');
-const zoomOutBtn = document.getElementById('zoomOutBtn');
-const fitBtn     = document.getElementById('fitBtn');
-const zoomRange  = document.getElementById('zoomRange');
+    // ===== 컨트롤 =====
+    const zoomInBtn  = document.getElementById('zoomInBtn');
+    const zoomOutBtn = document.getElementById('zoomOutBtn');
+    const fitBtn     = document.getElementById('fitBtn');
+    const zoomRange  = document.getElementById('zoomRange');
 
-function syncUI() {
-  if (zoomRange) zoomRange.value = String(+scale.toFixed(2));
-}
+    function syncUI() {
+      if (zoomRange) zoomRange.value = String(+scale.toFixed(2));
+    }
 
-// 공통 재렌더
-async function commitRender(keepScroll = true) {
-  const ratio = keepScroll ? rememberScrollRatio() : 0;
-  await renderAll();
-  if (keepScroll) restoreScrollRatio(ratio);
-  syncUI();
-}
+    async function doZoom(delta) {
+      fitMode = false;
+      const next = clampScale(+(scale + delta).toFixed(2), false);
+      if (Math.abs(next - scale) < 0.01) return;
+      scale = next;
+      previewScale(scale);
+      scheduleCommit(true, 160);
+    }
 
-// 버튼/키/휠에서 쓰는 단일 줌 함수 (중복 선언 금지)
-async function doZoom(delta) {
-  fitMode = false;
-  const next = clampScale(+(scale + delta).toFixed(2), false);
-  if (Math.abs(next - scale) < 0.01) return;
-  scale = next;
+    zoomInBtn?.addEventListener('click',  () => doZoom(+ZOOM_STEP));
+    zoomOutBtn?.addEventListener('click', () => doZoom(-ZOOM_STEP));
+    fitBtn?.addEventListener('click', () => {
+      fitMode = true;
+      scale = clampScale(computeScaleFit(), true);
+      previewScale(scale);
+      scheduleCommit(false, 0);
+      window.scrollTo({ top: 0 });
+    });
 
-  // 미리보기
-  const stage = document.getElementById('pdf-stage');
-  if (stage) stage.style.transform = `scale(${scale})`;
+    // 슬라이더
+    zoomRange?.addEventListener('input', (e) => {
+      fitMode = false;
+      scale = clampScale(parseFloat(e.target.value), false);
+      previewScale(scale);
+      scheduleCommit(true, 120);
+    });
+    zoomRange?.addEventListener('change', () => scheduleCommit(true, 0));
 
-  // 커밋(고해상도)
-  await commitRender(true);
-}
+    // Ctrl+Wheel → 줌
+    container.addEventListener('wheel', (e) => {
+      if (!e.ctrlKey && !e.metaKey) return;
+      e.preventDefault();
+      fitMode = false;
+      const delta = -Math.sign(e.deltaY) * 0.12;
+      scale = clampScale(scale * (1 + delta), false);
+      previewScale(scale);
+      scheduleCommit(true, 160);
+    }, { passive: false });
 
-// 버튼
-zoomInBtn?.addEventListener('click',  () => doZoom(+ZOOM_STEP));
-zoomOutBtn?.addEventListener('click', () => doZoom(-ZOOM_STEP));
-fitBtn?.addEventListener('click', async () => {
-  fitMode = true;
-  scale = clampScale(computeScaleFit(), true);
-  await commitRender(false);
-  window.scrollTo({ top: 0 });
-});
+    // 페이지 줌 단축키 무력화하고 우리 doZoom/fit 실행
+    window.addEventListener('keydown', (e) => {
+      const meta = e.ctrlKey || e.metaKey;
+      if (!meta) return;
 
-// 슬라이더
-zoomRange?.addEventListener('input', (e) => {
-  fitMode = false;
-  scale = clampScale(parseFloat(e.target.value), false);
-  const stage = document.getElementById('pdf-stage');
-  if (stage) stage.style.transform = `scale(${scale})`;
-});
-zoomRange?.addEventListener('change', async () => {
-  await commitRender(true);
-});
+      if (e.key === '0') {
+        e.preventDefault();
+        fitMode = true;
+        scale = clampScale(computeScaleFit(), true);
+        previewScale(scale);
+        scheduleCommit(false, 0);
+        window.scrollTo({ top: 0 });
+        return;
+      }
 
-// Ctrl+Wheel → 줌
-container.addEventListener('wheel', (e) => {
-  if (!e.ctrlKey && !e.metaKey) return;
-  e.preventDefault();
-  fitMode = false;
+      if (e.key === '+' || e.key === '=' || e.key === '-') {
+        e.preventDefault();
+        doZoom(e.key === '-' ? -ZOOM_STEP : +ZOOM_STEP);
+      }
+    });
 
-  const delta = -Math.sign(e.deltaY) * 0.12; // 위로 스크롤 = 확대
-  scale = clampScale(scale * (1 + delta), false);
-
-  const stage = document.getElementById('pdf-stage');
-  if (stage) stage.style.transform = `scale(${scale})`;
-
-  clearTimeout(container.__wheelZoomT);
-  container.__wheelZoomT = setTimeout(() => commitRender(true), 160);
-}, { passive: false });
-
-// 페이지 줌 단축키 무력화하고 우리 doZoom/fit 실행
-window.addEventListener('keydown', (e) => {
-  const meta = e.ctrlKey || e.metaKey;
-  if (!meta) return;
-
-  if (e.key === '0') {
-    e.preventDefault();
-    fitMode = true;
-    scale = clampScale(computeScaleFit(), true);
-    commitRender(false).then(() => window.scrollTo({ top: 0 }));
-    return;
-  }
-
-  if (e.key === '+' || e.key === '=' || e.key === '-') {
-    e.preventDefault();
-    doZoom(e.key === '-' ? -ZOOM_STEP : +ZOOM_STEP);
-  }
-});
-
-
-    
-    // ====== 핀치줌(dblclick handler) ======
+    // ====== 핀치줌 ======
     let pointers = new Map();
     let pinchStartDist = 0, pinchStartScale = 1;
-    
-    function dist(a, b) {
-      const dx = a.x - b.x, dy = a.y - b.y;
-      return Math.hypot(dx, dy);
-    }
-    
+
+    function dist(a, b) { const dx = a.x - b.x, dy = a.y - b.y; return Math.hypot(dx, dy); }
+
     container.addEventListener('pointerdown', (e) => {
       container.setPointerCapture?.(e.pointerId);
       pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
@@ -497,63 +474,39 @@ window.addEventListener('keydown', (e) => {
       if (!pointers.has(e.pointerId)) return;
       pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
       if (pointers.size === 2) {
-        // 라이브 미리보기 (CSS scale)
         const [p1, p2] = Array.from(pointers.values());
         const k = dist(p1, p2) / (pinchStartDist || 1);
         const live = clampScale(pinchStartScale * k, false);
-        const stage = document.getElementById('pdf-stage');
-        if (stage) stage.style.transform = `scale(${live})`;
-        // scale 값은 pointerup에서 커밋
+        previewScale(live);
       }
     }, { passive: true });
     ['pointerup','pointercancel','pointerleave'].forEach(type => {
-      container.addEventListener(type, async (e) => {
-        pointers.delete(e.pointerId);
+      container.addEventListener(type, () => {
+        pointers.delete(event.pointerId);
         if (pointers.size < 2 && pinchStartDist) {
-          // 커밋
-          const [p1, p2] = Array.from(pointers.values());
-          // 남은 포인터가 1개면 커밋 스킵(핀치 종료)
-          const stage = document.getElementById('pdf-stage');
-          if (stage) {
-            // stage의 현재 scale 읽어서 커밋
-            const m = getComputedStyle(stage).transform;
-            // matrix(a,b,c,d,tx,ty) → scaleX=a (2D 가정)
-            const mA = m === 'none' ? 1 : parseFloat(m.split('(')[1].split(',')[0]) || 1;
-            scale = clampScale(mA, false);
-            // 고해상도로 재렌더
-            const ratio = rememberScrollRatio();
-            await renderAll();
-            restoreScrollRatio(ratio);
-            syncUI();
-          }
+          // stage의 현재 matrix에서 scale 읽어와 커밋
+          const stage = getStage();
+          const m = getComputedStyle(stage).transform;
+          const mA = m === 'none' ? 1 : parseFloat(m.split('(')[1].split(',')[0]) || 1;
+          scale = clampScale(mA, false);
+          scheduleCommit(true, 0);
           pinchStartDist = 0;
         }
       });
     });
-    
+
     // 더블탭/더블클릭: 1x <-> 2x 토글
-    container.addEventListener('dblclick', async (e) => {
+    container.addEventListener('dblclick', (e) => {
       e.preventDefault();
       fitMode = false;
-      const ratio = rememberScrollRatio();
       scale = clampScale(scale < 2 ? 2 : computeScaleFit(), false);
-      const stage = document.getElementById('pdf-stage');
-      if (stage) stage.style.transform = `scale(${scale})`;
-      await renderAll();
-      restoreScrollRatio(ratio);
-      syncUI();
+      previewScale(scale);
+      scheduleCommit(true, 0);
     });
-
-    
   </script>
 
-
-
-
-
-
-<!-- Smooth scroll (window) external + inline fallback with diag -->
-<script src="/assets/js/scroll-ease.standalone.js" defer></script>
+  <!-- Smooth scroll (window) external + inline fallback with diag -->
+  <script src="/assets/js/scroll-ease.standalone.js" defer></script>
 
 </body>
 </html>
