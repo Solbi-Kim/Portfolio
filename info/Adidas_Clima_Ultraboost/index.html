@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>Info | shovideo (HQ Zoom + Pan + FitMargin + CenterZoom)</title>
+  <title>Info | shovideo (HQ Zoom + Pan Bounce + FitMargin + CenterZoom)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="color-scheme" content="dark light">
   <style>
@@ -12,10 +12,13 @@
       --panel: #1b1f2a;
       --text: #e9eef5;
       --muted: #9aa4b2;
-      /* CSS-only preview transform state */
       --zoom: 1;
       --tx: 0px;
       --ty: 0px;
+      --zr-track: rgba(255,255,255,.22);
+      --zr-track-hover: rgba(255,255,255,.32);
+      --zr-thumb: #e9eef5;
+      --zr-thumb-press: #ffffff;
     }
     html, body {
       height: 100%;
@@ -24,230 +27,122 @@
       color: var(--text);
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       overflow-x: hidden;
-
-      position: sticky;
-      top: 0;
-      z-index: 10000;     /* 기존 1000 → 충분히 크게 */
-      isolation: isolate;
     }
-    header { display:flex; align-items:center; gap:8px; }
+    header{
+      position: sticky; top: 0; z-index: 10000; isolation: isolate;
+      display:flex; align-items:center; gap:8px;
+      background:#111622; border-bottom:1px solid rgba(255,255,255,0.12);
+      height: var(--header-h); padding: 0 12px;
+    }
     header .spacer { flex: 1; }
     .zoom-ctrl { display:flex; align-items:center; gap:10px; margin-left:auto; }
-    header button {
+    header button, .icon-btn {
       background:var(--panel); color:var(--text);
       border:none; padding:6px 12px; border-radius:8px; cursor:pointer;
-    }
-
-
-    
-    #pdf-container {
-      width: 80vw;
-      margin: 0 auto;
-      padding: 16px;
-      min-height: calc(100vh - var(--header-h));
-      box-sizing: border-box;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      overflow: visible;
-    }
-    /* Stage: preview via CSS translate + scale */
-    #pdf-stage {
-      transform-origin: 0 0; /* left-top makes pan math simple */
-      transform:
-        translate(var(--tx), var(--ty))
-        scale(var(--zoom));
-      transition: transform .15s ease;
-      will-change: transform;
-      touch-action: none; /* we handle pinch/pan */
-    }
-    #pdf-container,
-    #pdf-stage{
-      position: relative;
-      z-index: 0;
-    }
-    /* Canvas appearance animation (initial only) */
-    canvas {
-      display: block;
-      margin: 0 0 16px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.35);
-      background: #fff;
-      border-radius: 6px;
-      opacity: 0;
-      transform: translateY(40px);
-      transition: opacity .6s ease, transform .6s ease;
-    }
-    canvas.show {
-      opacity: 1;
-      transform: translateY(0);
-    }
-    /* Disable appear animation during HQ re-render */
-    #pdf-stage.no-anim canvas {
-      opacity: 1 !important;
-      transform: none !important;
-      transition: none !important;
-    }
-
-    /* ==== icon buttons (monochrome SVG) ====================================== */
-    .icon-btn{
-      background: var(--panel);
-      color: var(--text);              /* 아이콘 색 (단색) */
-      border: none;
-      padding: 6px 10px;
-      border-radius: 8px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
+      display:inline-flex; align-items:center; justify-content:center; gap:6px;
       transition: transform .06s ease, background .15s ease, opacity .15s ease;
     }
     .icon-btn:hover { background: #202636; }
     .icon-btn:active { transform: translateY(1px) scale(.98); }
     .icon-btn:disabled { opacity: .5; pointer-events: none; }
+    .zoom-label { min-width: 48px; text-align: right; font-variant-numeric: tabular-nums; opacity: .9; }
 
-    
-    /* ==== Zoom range: tall rounded-rect thumb ================================= */
-    :root{
-      --zr-track: rgba(255,255,255,.22);
-      --zr-track-hover: rgba(255,255,255,.32);
-      --zr-thumb: #e9eef5;           /* 핸들 색 (밝은 회색/백) */
-      --zr-thumb-press: #ffffff;
+    #pdf-container {
+      width: 80vw; margin: 0 auto; padding: 16px;
+      min-height: calc(100vh - var(--header-h));
+      box-sizing: border-box; display: flex; flex-direction: column; align-items: center;
+      overflow: visible; position: relative; z-index: 0;
     }
-    
-    /* 슬라이더 기본 */
-    #zoomRange {
-      -webkit-appearance: none; appearance: none;
-      width: 200px; height: 28px; background: transparent; cursor: pointer;
+    #pdf-stage {
+      position: relative; z-index: 0;
+      transform-origin: 0 0;
+      transform: translate(var(--tx), var(--ty)) scale(var(--zoom));
+      transition: transform .15s ease;
+      will-change: transform;
+      touch-action: none;
     }
-    
-    /* 트랙 */
-    #zoomRange::-webkit-slider-runnable-track {
-      height: 6px; background: rgba(255,255,255,.22); border-radius: 999px;
-      transition: background .2s ease;
+    canvas {
+      display: block; margin: 0 0 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+      background: #fff; border-radius: 6px; opacity: 0; transform: translateY(40px);
+      transition: opacity .6s ease, transform .6s ease;
     }
-    #zoomRange:hover::-webkit-slider-runnable-track { background: rgba(255,255,255,.32); }
-    #zoomRange::-moz-range-track {
-      height: 6px; background: rgba(255,255,255,.22); border-radius: 999px;
-    }
-    #zoomRange:hover::-moz-range-track { background: rgba(255,255,255,.32); }
-    
-    /* 핸들: 얇은 세로 둥근사각형 */
+    canvas.show { opacity: 1; transform: translateY(0); }
+    #pdf-stage.no-anim canvas { opacity: 1 !important; transform: none !important; transition: none !important; }
+
+    #zoomRange { -webkit-appearance: none; appearance: none; width: 200px; height: 28px; background: transparent; cursor: pointer; }
+    #zoomRange::-webkit-slider-runnable-track { height: 6px; background: var(--zr-track); border-radius: 999px; transition: background .2s ease; }
+    #zoomRange:hover::-webkit-slider-runnable-track { background: var(--zr-track-hover); }
+    #zoomRange::-moz-range-track { height: 6px; background: var(--zr-track); border-radius: 999px; }
+    #zoomRange:hover::-moz-range-track { background: var(--zr-track-hover); }
     #zoomRange::-webkit-slider-thumb {
       -webkit-appearance: none; appearance: none;
-      width: 10px;           /* ← 가로 */
-      height: 24px;
-      margin-top: -9px;      /* (24-6)/2 보정 */
-      background: #e9eef5;
-      border-radius: 10px;
+      width: 10px; height: 24px; margin-top: -9px;
+      background: var(--zr-thumb); border-radius: 10px;
       box-shadow: 0 1px 2px rgba(0,0,0,.35);
       transition: transform .08s ease, background .15s ease, box-shadow .15s ease;
     }
-    #zoomRange:active::-webkit-slider-thumb { transform: scale(0.96); background:#fff; }
-    
+    #zoomRange:active::-webkit-slider-thumb { transform: scale(0.96); background: var(--zr-thumb-press); }
     #zoomRange::-moz-range-thumb {
-      width: 10px; height: 24px; background: #e9eef5; border: none; border-radius: 10px;
+      width: 10px; height: 24px; background: var(--zr-thumb); border: none; border-radius: 10px;
       box-shadow: 0 1px 2px rgba(0,0,0,.35);
       transition: transform .08s ease, background .15s ease, box-shadow .15s ease;
     }
-    #zoomRange:active::-moz-range-thumb { transform: scale(0.96); background:#fff; }
-    
-    /* 포커스 링(키보드 접근성) */
-    #zoomRange:focus-visible {
-      outline: 2px solid rgba(0,173,239,.65);
-      outline-offset: 2px;
-      border-radius: 10px;
-    }
-
+    #zoomRange:active::-moz-range-thumb { transform: scale(0.96); background: var(--zr-thumb-press); }
+    #zoomRange:focus-visible { outline: 2px solid rgba(0,173,239,.65); outline-offset: 2px; border-radius: 10px; }
   </style>
 </head>
 <body>
 
-<!-- Inline smooth scroll (hard wheel intercept) -->
 <script>
 (function(){
   if (window.__ScrollEaseHard) return;
   window.__ScrollEaseHard = true;
   const ROOT = document.scrollingElement || document.documentElement;
   const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
-  const friction  = 0.85;
-  const wheelBoost= 0.12;
-  const maxSpeed  = 10;
-  const wheelCap  = 60;
-  const stopEps   = 0.16;
+  const friction  = 0.85, wheelBoost=0.12, maxSpeed=10, wheelCap=60, stopEps=0.16;
   function isScrollable(el, dy){
     if (!el || el === document || el === document.documentElement) return false;
     const cs = getComputedStyle(el);
     if (!(cs.overflowY === 'auto' || cs.overflowY === 'scroll')) return false;
     if (el.scrollHeight <= el.clientHeight + 1) return false;
-    if (dy > 0)  return el.scrollTop + el.clientHeight < el.scrollHeight;
-    if (dy < 0)  return el.scrollTop > 0;
+    if (dy>0) return el.scrollTop + el.clientHeight < el.scrollHeight;
+    if (dy<0) return el.scrollTop > 0;
     return true;
   }
-  function findHost(target, dy){
-    for (let n = target; n; n = n.parentElement){
-      if (isScrollable(n, dy)) return n;
-    }
-    return ROOT;
-  }
-  let host = ROOT, vy = 0, raf = 0;
-  const max = (el) => el === ROOT
-    ? Math.max(0, ROOT.scrollHeight - innerHeight)
-    : Math.max(0, el.scrollHeight - el.clientHeight);
-  function tick(){
-    if (Math.abs(vy) > stopEps){
-      vy *= friction;
-      const step = clamp(vy, -maxSpeed, maxSpeed);
-      const next = clamp(Math.round(host.scrollTop + step), 0, max(host));
-      if (next !== host.scrollTop) host.scrollTop = next;
-      raf = requestAnimationFrame(tick);
-    } else {
-      vy = 0; raf = 0;
-    }
-  }
-  function onWheel(e){
-    const raw = e.deltaY || 0; if (!raw) return;
-    host = findHost(e.target, raw) || ROOT;
-    e.preventDefault();
-    const d = clamp(raw, -wheelCap, wheelCap);
-    vy += d * wheelBoost;
-    if (!raf) raf = requestAnimationFrame(tick);
-  }
-  [window, document, document.documentElement].forEach(t=>{
-    t && t.addEventListener('wheel', onWheel, { capture:true, passive:false });
-  });
-  function attachBody(){
-    if (document.body)
-      document.body.addEventListener('wheel', onWheel, { capture:true, passive:false });
-  }
-  if (document.body) attachBody();
-  else document.addEventListener('DOMContentLoaded', attachBody, { once:true });
+  function findHost(target, dy){ for (let n=target; n; n=n.parentElement){ if (isScrollable(n,dy)) return n; } return ROOT; }
+  let host=ROOT, vy=0, raf=0;
+  const max=(el)=> el===ROOT ? Math.max(0,ROOT.scrollHeight-innerHeight) : Math.max(0,el.scrollHeight-el.clientHeight);
+  function tick(){ if(Math.abs(vy)>stopEps){ vy*=friction; const step=clamp(vy,-maxSpeed,maxSpeed);
+    const next=clamp(Math.round(host.scrollTop+step),0,max(host)); if(next!==host.scrollTop) host.scrollTop=next; raf=requestAnimationFrame(tick);} else { vy=0; raf=0; } }
+  function onWheel(e){ const raw=e.deltaY||0; if(!raw) return; host=findHost(e.target,raw)||ROOT; e.preventDefault();
+    const d=Math.min(wheelCap,Math.max(-wheelCap,raw)); vy+=d*wheelBoost; if(!raf) raf=requestAnimationFrame(tick); }
+  [window,document,document.documentElement].forEach(t=>t&&t.addEventListener('wheel',onWheel,{capture:true,passive:false}));
+  (document.body?document.body:document).addEventListener('wheel',onWheel,{capture:true,passive:false});
 })();
 </script>
 
 <header>
   <button onclick="history.back()">← Back</button>
   <span style="margin-left:8px; font-weight:600;">Video Information</span>
-
-  <div class="spacer"></div> <!-- 왼쪽/오른쪽 구분용 공간 -->
-
+  <div class="spacer"></div>
   <div class="zoom-ctrl">
     <span id="zoomLabel" class="zoom-label">100%</span>
-    <input id="zoomRange" type="range" min="0.5" max="3" step="0.01" value="1"
-           style="width:180px; margin:0 8px;" aria-label="Zoom slider" />
-  
-    <button id="zoomOutBtn" aria-label="Zoom out" class="icon-btn" title="Zoom out">
-      <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
-        <path fill="currentColor" d="M10 2a8 8 0 1 1 0 16 8 8 0 0 1 0-16Zm0 2a6 6 0 1 0 0 12 6 6 0 0 0 0-12Zm-3 5h6v2H7V9Zm9.586 6.172 4.121 4.121-1.414 1.415-4.122-4.122 1.415-1.414Z"/>
+    <input id="zoomRange" type="range" min="0.5" max="3" step="0.01" value="1" aria-label="Zoom slider" />
+    <button id="zoomOutBtn" class="icon-btn" aria-label="Zoom out" title="Zoom out">
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+        <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="6"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/>
+        </g>
       </svg>
     </button>
-    
-    <button id="zoomInBtn" aria-label="Zoom in" class="icon-btn" title="Zoom in">
-      <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
-        <path fill="currentColor" d="M10 2a8 8 0 1 1 0 16 8 8 0 0 1 0-16Zm0 2a6 6 0 1 0 0 12 6 6 0 0 0 0-12Zm-1 5h2v2h2v2h-2v2h-2v-2H7v-2h2V9Zm7.586 8.172 4.121 4.121-1.414 1.415-4.122-4.122 1.415-1.414Z"/>
+    <button id="zoomInBtn" class="icon-btn" aria-label="Zoom in" title="Zoom in">
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+        <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="6"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/>
+        </g>
       </svg>
     </button>
-
-    <button id="fitBtn" aria-label="Fit to viewport with margin">⤢ Fit</button>
+    <button id="fitBtn" class="icon-btn" aria-label="Fit to viewport with margin" title="Fit">⤢</button>
   </div>
 </header>
 
@@ -257,7 +152,6 @@
   import * as pdfjsLib from './pdfjs/pdf.mjs';
   pdfjsLib.GlobalWorkerOptions.workerSrc = './pdfjs/pdf.worker.mjs';
 
-  // ---- path helpers ----
   function __folderFromPath() {
     let path = location.pathname.replace(/\/+$/, '');
     const parts = path.split('/').filter(Boolean);
@@ -271,349 +165,280 @@
 
   const container = document.getElementById('pdf-container');
 
-  // ---- render basic (fit to viewport with margins) ----
   const DPR = Math.min(2, Math.max(1, window.devicePixelRatio || 1));
-  let pdfDoc = null;
-  let basePageWidth = null;
-  let basePageHeight = null;
-  let fitScale = 1; // computed fit scale
-
-  // preview state
-  let zoom = 1;                // CSS zoom (== --zoom)
-  let pan = { x: 0, y: 0 };    // CSS pan  (== --tx/--ty)
-
-  // HQ commit settings
-  const HQ_ZOOM_THRESHOLD = 1.2;   // only commit HQ if zoom is big enough
-  const HQ_DEBOUNCE_MS = 220;
-  let hqTimer = 0;
-
-  // initial render flag → appear animation only then
-  let initialRendered = false;
+  let pdfDoc=null, basePageWidth=null, basePageHeight=null, fitScale=1;
+  let zoom=1, pan={x:0,y:0};
+  const HQ_ZOOM_THRESHOLD=1.2, HQ_DEBOUNCE_MS=220;
+  let hqTimer=0, initialRendered=false;
 
   function cssPx(v){ return `${Math.round(v*100)/100}px`; }
-
-  // Apply CSS variables for transform
-  function applyTransformCSS() {
+  function applyTransformCSS(){
     document.documentElement.style.setProperty('--zoom', String(zoom));
     document.documentElement.style.setProperty('--tx', pan.x + 'px');
     document.documentElement.style.setProperty('--ty', pan.y + 'px');
   }
 
-  // Appearing animation observer (used only on initial render)
-  const appearObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting){
-        entry.target.classList.add('show');
-        appearObserver.unobserve(entry.target);
-      }
+  const appearObserver=new IntersectionObserver((entries)=>{
+    entries.forEach(entry=>{
+      if(entry.isIntersecting){ entry.target.classList.add('show'); appearObserver.unobserve(entry.target); }
     });
-  }, { threshold: 0.1 });
+  },{threshold:0.1});
 
-  async function renderPage(pageNum, stage, scale=1, hq=false) {
-    const page = await pdfDoc.getPage(pageNum);
-    const viewport = page.getViewport({ scale });
-
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-
-    // scaleFactor: higher when doing HQ commit, capped to avoid memory blowups
+  async function renderPage(pageNum, stage, scale=1, hq=false){
+    const page=await pdfDoc.getPage(pageNum);
+    const viewport=page.getViewport({ scale });
+    const canvas=document.createElement('canvas');
+    const ctx=canvas.getContext('2d');
     const scaleFactor = hq ? Math.min(2.5, DPR * Math.max(1, zoom)) : DPR;
-
-    canvas.width  = Math.floor(viewport.width  * scaleFactor);
-    canvas.height = Math.floor(viewport.height * scaleFactor);
+    canvas.width = Math.floor(viewport.width * scaleFactor);
+    canvas.height= Math.floor(viewport.height* scaleFactor);
     canvas.style.width  = cssPx(viewport.width);
     canvas.style.height = cssPx(viewport.height);
-
-    const renderContext = { canvasContext: ctx, viewport };
-    if (scaleFactor !== 1) renderContext.transform = [scaleFactor, 0, 0, scaleFactor, 0, 0];
-
-    await page.render(renderContext).promise;
+    const rc={ canvasContext:ctx, viewport };
+    if (scaleFactor!==1) rc.transform=[scaleFactor,0,0,scaleFactor,0,0];
+    await page.render(rc).promise;
     stage.appendChild(canvas);
-
-    // appear animation only on the very first render
-    if (!initialRendered) appearObserver.observe(canvas);
-    else {
-      canvas.classList.add('show'); // ensure visible without transition
-    }
+    if(!initialRendered) appearObserver.observe(canvas); else canvas.classList.add('show');
   }
-
-  function getStage() {
-    let stage = document.getElementById('pdf-stage');
-    if (!stage) {
-      stage = document.createElement('div');
-      stage.id = 'pdf-stage';
-      container.innerHTML = '';
-      container.appendChild(stage);
-    }
+  function getStage(){
+    let stage=document.getElementById('pdf-stage');
+    if(!stage){ stage=document.createElement('div'); stage.id='pdf-stage'; container.innerHTML=''; container.appendChild(stage); }
     return stage;
   }
-
-  async function renderAll(scale=fitScale, hq=false) {
-    const stage = getStage();
-    if (hq) stage.classList.add('no-anim'); else stage.classList.remove('no-anim');
-    stage.innerHTML = '';
-    for (let n=1; n<=pdfDoc.numPages; n++) {
-      await renderPage(n, stage, scale, hq);
-    }
+  async function renderAll(scale=fitScale, hq=false){
+    const stage=getStage();
+    if(hq) stage.classList.add('no-anim'); else stage.classList.remove('no-anim');
+    stage.innerHTML='';
+    for(let n=1;n<=pdfDoc.numPages;n++){ await renderPage(n, stage, scale, hq); }
   }
 
-  // Compute fit scale with viewport margins (leave breathing room)
-  function computeFitScaleWithMargin() {
-    const header = document.querySelector('header');
-    const headerH = header ? header.clientHeight : 56;
-    const marginVH = Math.max(24, Math.round(window.innerHeight * 0.06)); // ~6vh or >=24px
-    const marginVW = Math.max(24, Math.round(window.innerWidth  * 0.06)); // ~6vw or >=24px
-
-    const availW = Math.min(container.clientWidth, window.innerWidth - marginVW * 2);
-    const availH = Math.max(0, window.innerHeight - headerH - marginVH * 2);
-
-    const scaleByW = availW / basePageWidth;
-    const scaleByH = availH / basePageHeight;
-    return Math.max(0.05, Math.min(scaleByW, scaleByH));
+  function computeFitScaleWithMargin(){
+    const header=document.querySelector('header');
+    const headerH=header?header.clientHeight:56;
+    const marginVH=Math.max(24, Math.round(window.innerHeight*0.06));
+    const marginVW=Math.max(24, Math.round(window.innerWidth *0.06));
+    const availW=Math.min(container.clientWidth, window.innerWidth - marginVW*2);
+    const availH=Math.max(0, window.innerHeight - headerH - marginVH*2);
+    const sW=availW/basePageWidth, sH=availH/basePageHeight;
+    return Math.max(0.05, Math.min(sW, sH));
   }
-
 
   // ===== Controls =====
   const zoomRange = document.getElementById('zoomRange');
   const zoomInBtn = document.getElementById('zoomInBtn');
   const zoomOutBtn = document.getElementById('zoomOutBtn');
-  const fitBtn = document.getElementById('fitBtn');
+  const fitBtn     = document.getElementById('fitBtn');
   const zoomLabel = document.getElementById('zoomLabel');
+  function centerOfContainer(){ const r=container.getBoundingClientRect(); return {x:r.left+r.width/2,y:r.top+r.height/2}; }
+  function syncUI(){ if(zoomRange) zoomRange.value=String(+(zoom).toFixed(2)); if(zoomLabel) zoomLabel.textContent=Math.round(zoom*100)+'%'; }
 
-  function centerOfContainer() {
-    const rect = container.getBoundingClientRect();
-    return { x: rect.left + rect.width/2, y: rect.top + rect.height/2 };
+  // ===== Pan/Zoom bounds & settle animation =====
+  let __baseStageW = 0, __baseStageH = 0; // stage size at zoom=1
+  function viewSize(){
+    const header=document.querySelector('header');
+    const headerH=header?header.clientHeight:56;
+    const vW=container.clientWidth;
+    const vH=Math.max(0, window.innerHeight - headerH);
+    return { vW, vH };
+  }
+  function contentSize(){ return { cW: __baseStageW * zoom, cH: __baseStageH * zoom }; }
+  function panBounds(){
+    const { vW, vH }=viewSize();
+    const { cW, cH }=contentSize();
+    let minX, maxX, minY, maxY;
+    if(cW <= vW){ minX = maxX = Math.round((vW - cW)/2); } else { minX = Math.round(vW - cW); maxX = 0; }
+    if(cH <= vH){ minY = maxY = Math.round((vH - cH)/2); } else { minY = Math.round(vH - cH); maxY = 0; }
+    return { minX, maxX, minY, maxY };
+  }
+  function clamp(v,a,b){ return Math.min(b, Math.max(a, v)); }
+  function clampPanInstant(){
+    const {minX,maxX,minY,maxY}=panBounds();
+    const nx=clamp(pan.x,minX,maxX), ny=clamp(pan.y,minY,maxY);
+    if(nx!==pan.x || ny!==pan.y){ pan.x=nx; pan.y=ny; applyTransformCSS(); }
+  }
+  let __panAnimId=0;
+  function animatePanTo(tx,ty,ms=320){
+    cancelAnimationFrame(__panAnimId);
+    const sx=pan.x, sy=pan.y, ts=performance.now();
+    const ease=t=>1-Math.pow(1-t,3);
+    const step=(now)=>{
+      const p=Math.min(1,(now-ts)/ms), k=ease(p);
+      pan.x=Math.round(sx+(tx-sx)*k);
+      pan.y=Math.round(sy+(ty-sy)*k);
+      applyTransformCSS();
+      if(p<1) __panAnimId=requestAnimationFrame(step);
+    };
+    __panAnimId=requestAnimationFrame(step);
+  }
+  function settlePan(){
+    const {minX,maxX,minY,maxY}=panBounds();
+    const tx=clamp(pan.x,minX,maxX), ty=clamp(pan.y,minY,maxY);
+    if(tx!==pan.x || ty!==pan.y) animatePanTo(tx,ty,320);
   }
 
- function syncUI() {
-   if (zoomRange) zoomRange.value = String(+(zoom).toFixed(2));
-   if (zoomLabel) zoomLabel.textContent = Math.round(zoom * 100) + '%';
- }
+  function zoomAt(newZoom, clientX, clientY){
+    const stage=getStage();
+    const rect=stage.getBoundingClientRect();
+    newZoom=Math.max(0.5, Math.min(3, newZoom));
+    const u=(clientX - rect.left - pan.x) / zoom;
+    const v=(clientY - rect.top  - pan.y) / zoom;
+    zoom=newZoom;
+    pan.x = clientX - rect.left - u * zoom;
+    pan.y = clientY - rect.top  - v * zoom;
+    applyTransformCSS();
+    scheduleHQCommit();
+    settlePan();
+  }
 
-  zoomRange.addEventListener('input', e => {
-    const { x, y } = centerOfContainer();
-    zoomAt(parseFloat(e.target.value), x, y);
-    syncUI();
-  });
-  zoomInBtn.addEventListener('click', () => {
-    const { x, y } = centerOfContainer();
-    zoomAt(zoom + 0.1, x, y);
-    syncUI();
-  });
-  zoomOutBtn.addEventListener('click', () => {
-    const { x, y } = centerOfContainer();
-    zoomAt(zoom - 0.1, x, y);
-    syncUI();
-  });
-  fitBtn.addEventListener('click', async () => {
-    await fitToViewport(true); // force HQ so it’s crisp
-    syncUI();
-  });
+  // Events
+  zoomRange.addEventListener('input', e=>{ const {x,y}=centerOfContainer(); zoomAt(parseFloat(e.target.value), x, y); syncUI(); });
+  zoomInBtn.addEventListener('click', ()=>{ const {x,y}=centerOfContainer(); zoomAt(zoom+0.1, x, y); syncUI(); });
+  zoomOutBtn.addEventListener('click',()=>{ const {x,y}=centerOfContainer(); zoomAt(zoom-0.1, x, y); syncUI(); });
+  fitBtn.addEventListener('click', async ()=>{ await fitToViewport(true); syncUI(); });
 
-  // prevent browser page zoom for our shortcuts
-  window.addEventListener('keydown', (e) => {
-    const meta = e.ctrlKey || e.metaKey;
-    if (!meta) return;
-    if (e.key === '0') {
-      e.preventDefault();
-      fitToViewport(true);
-      syncUI();
-    }
-    if (e.key === '+' || e.key === '=' || e.key === '-') {
-      e.preventDefault();
-      const { x, y } = centerOfContainer();
-      zoomAt(zoom + (e.key === '-' ? -0.1 : +0.1), x, y);
-      syncUI();
-    }
+  window.addEventListener('keydown', (e)=>{
+    const meta=e.ctrlKey||e.metaKey; if(!meta) return;
+    if(e.key==='0'){ e.preventDefault(); fitToViewport(true); syncUI(); }
+    if(e.key==='+'||e.key==='='||e.key==='-'){ e.preventDefault(); const {x,y}=centerOfContainer(); zoomAt(zoom + (e.key==='-'?-0.1:+0.1), x, y); syncUI(); }
   });
-
-  // Ctrl/⌘ + wheel → center on pointer
-  container.addEventListener('wheel', (e) => {
-    if (!e.ctrlKey && !e.metaKey) return;
+  container.addEventListener('wheel', (e)=>{
+    if(!e.ctrlKey && !e.metaKey) return;
     e.preventDefault();
-    const factor = 1 + (-Math.sign(e.deltaY) * 0.12);
+    const factor=1 + (-Math.sign(e.deltaY)*0.12);
     zoomAt(zoom * factor, e.clientX, e.clientY);
     syncUI();
-  }, { passive: false });
+  }, {passive:false});
 
-  // ===== Pinch zoom (two pointers) & Pan (single finger) =====
-  const pointers = new Map();
-  let pinchStartDist = 0, pinchStartZoom = 1;
-  let pinchCenter = { x: 0, y: 0 };
-  let isPanning = false;
-  let panStart = null;
-
+  const pointers=new Map();
+  let pinchStartDist=0, pinchStartZoom=1, pinchCenter={x:0,y:0};
+  let isPanning=false, panStart=null;
   function dist(a,b){ const dx=a.x-b.x, dy=a.y-b.y; return Math.hypot(dx,dy); }
-  function mid(a,b){ return { x: (a.x+b.x)/2, y: (a.y+b.y)/2 }; }
+  function mid(a,b){ return {x:(a.x+b.x)/2, y:(a.y+b.y)/2}; }
 
-  container.addEventListener('pointerdown', (e) => {
+  container.addEventListener('pointerdown', (e)=>{
     container.setPointerCapture?.(e.pointerId);
-    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    if (pointers.size === 2) {
-      const [p1, p2] = Array.from(pointers.values());
-      pinchStartDist = dist(p1,p2);
-      pinchStartZoom = zoom;
-      pinchCenter = mid(p1,p2);
-      isPanning = false;
-    } else if (pointers.size === 1) {
-      panStart = { x: e.clientX - pan.x, y: e.clientY - pan.y };
-      isPanning = true;
+    pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    if(pointers.size===2){
+      const [p1,p2]=Array.from(pointers.values());
+      pinchStartDist=dist(p1,p2); pinchStartZoom=zoom; pinchCenter=mid(p1,p2); isPanning=false;
+    } else if (pointers.size===1){
+      panStart={x:e.clientX - pan.x, y:e.clientY - pan.y}; isPanning=true;
     }
   });
-
-  // ===== Pinch zoom (two pointers) & Pan (single finger) =====
-  container.addEventListener('pointermove', (e) => {
-    if (!pointers.has(e.pointerId)) return;
-    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-  
-    if (pointers.size === 2) {
-      // pinch around midpoint
-      const [p1, p2] = Array.from(pointers.values());
-      const k = dist(p1, p2) / (pinchStartDist || 1);
-      const targetZoom = Math.max(0.5, Math.min(3, pinchStartZoom * k));
-  
-      // ✅ 중점 좌표 그대로 넘김 → X/Y 모두 정확히 고정
-      zoomAt(targetZoom, pinchCenter.x, pinchCenter.y);
+  container.addEventListener('pointermove', (e)=>{
+    if(!pointers.has(e.pointerId)) return;
+    pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    if(pointers.size===2){
+      const [p1,p2]=Array.from(pointers.values());
+      const k=dist(p1,p2)/(pinchStartDist||1);
+      const target=Math.max(0.5, Math.min(3, pinchStartZoom*k));
+      zoomAt(target, pinchCenter.x, pinchCenter.y);
       syncUI();
-    } else if (pointers.size === 1 && isPanning) {
+    } else if (pointers.size===1 && isPanning){
       pan.x = e.clientX - panStart.x;
       pan.y = e.clientY - panStart.y;
       applyTransformCSS();
       scheduleHQCommit();
       e.preventDefault();
     }
-  }, { passive: false });
-
-
-  ['pointerup','pointercancel','pointerleave'].forEach(t => {
-    container.addEventListener(t, (e) => {
+  },{passive:false});
+  ['pointerup','pointercancel','pointerleave'].forEach(type=>{
+    container.addEventListener(type,(e)=>{
       pointers.delete(e.pointerId);
-      if (pointers.size < 2) { pinchStartDist = 0; }
-      if (pointers.size === 0) { isPanning = false; }
+      if(pointers.size<2){ pinchStartDist=0; }
+      if(pointers.size===0){ isPanning=false; settlePan(); }
     });
   });
 
-  // Double tap / double click: toggle fit <-> 2x zoom at tap point
   (function(){
-    let lastTap = 0;
-    container.addEventListener('dblclick', async (e) => {
+    let lastTap=0;
+    container.addEventListener('dblclick', async (e)=>{
       e.preventDefault();
-      const nearFit = Math.abs(zoom - 1) < 0.02;
-      if (!nearFit) {
-        await fitToViewport(true);
-      } else {
-        zoomAt(2, e.clientX, e.clientY);
-      }
+      const nearFit=Math.abs(zoom-1)<0.02;
+      if(!nearFit){ await fitToViewport(true); }
+      else { zoomAt(2, e.clientX, e.clientY); }
       syncUI();
     });
-    // iOS double-tap zoom block inside stage only
-    container.addEventListener('touchend', (e) => {
-      if (!e.target.closest('#pdf-stage')) return;
-      const now = Date.now();
-      if (now - lastTap < 300) e.preventDefault();
-      lastTap = now;
-    }, { passive:false });
-    if ('ongesturestart' in window) {
-      ['gesturestart','gesturechange','gestureend'].forEach(ev => {
-        container.addEventListener(ev, (e) => {
-          if (!e.target.closest('#pdf-stage')) return;
-          e.preventDefault();
-        }, { passive:false });
+    container.addEventListener('touchend',(e)=>{
+      if(!e.target.closest('#pdf-stage')) return;
+      const now=Date.now(); if(now-lastTap<300) e.preventDefault(); lastTap=now;
+    },{passive:false});
+    if('ongesturestart' in window){
+      ['gesturestart','gesturechange','gestureend'].forEach(ev=>{
+        container.addEventListener(ev,(e)=>{
+          if(!e.target.closest('#pdf-stage')) return; e.preventDefault();
+        },{passive:false});
       });
     }
   })();
 
-  // Refit on resize (re-render only when fit size changes)
-  const onResize = (() => {
-    let t;
-    return () => {
+  const onResize=(()=>{
+    let t; return ()=>{
       clearTimeout(t);
-      t = setTimeout(async () => {
-        if (!pdfDoc) return;
-        const nextFit = computeFitScaleWithMargin();
-        if (Math.abs(nextFit - fitScale) < 0.02) return;
-        fitScale = nextFit;
-        await renderAll(fitScale, /*hq*/ false);
+      t=setTimeout(async()=>{
+        if(!pdfDoc) return;
+        const next=computeFitScaleWithMargin();
+        if(Math.abs(next-fitScale)<0.02) return;
+        fitScale=next;
+        await renderAll(fitScale,false);
         applyTransformCSS();
-      }, 200);
+        clampPanInstant();
+      },200);
     };
   })();
   window.addEventListener('resize', onResize);
   new ResizeObserver(onResize).observe(container);
 
-    // Fit action: recompute fitScale, reset zoom/pan, HQ commit
-  async function fitToViewport(forceHQ=false) {
-    fitScale = computeFitScaleWithMargin();
-    zoom = 1;
-    pan = { x: 0, y: 0 };
-    applyTransformCSS();
-    initialRendered = true;
-    syncUI();
-    if (forceHQ) {
-      await doHQCommit(true); // force
-    }
+  async function fitToViewport(forceHQ=false){
+    fitScale=computeFitScaleWithMargin();
+    zoom=1; pan={x:0,y:0}; applyTransformCSS();
+    initialRendered=true; syncUI();
+    if(forceHQ) await doHQCommit(true);
+    clampPanInstant();
   }
 
-  (async () => {
-    try {
-      pdfDoc = await pdfjsLib.getDocument(PDF_URL).promise;
-      const page1 = await pdfDoc.getPage(1);
-      const vp1 = page1.getViewport({ scale: 1 });
-      basePageWidth = vp1.width;
-      basePageHeight = vp1.height;
-
-      fitScale = computeFitScaleWithMargin();
-      await renderAll(fitScale, /*hq*/ false);
-      zoom = 1; pan = {x:0, y:0};
-      applyTransformCSS(); // initial transform
-
-      initialRendered = true; // appear animation only for first render
-    } catch (e) {
-      console.error(e);
-      container.textContent = 'PDF load failed 😢';
-    }
-  })();
-
-// ===== Zoom-around-point helper (REPLACE THIS FUNCTION) =====
-function zoomAt(newZoom, clientX, clientY) {
-  const stage = getStage();
-  const rect = stage.getBoundingClientRect();
-
-  // 제한
-  newZoom = Math.max(0.5, Math.min(3, newZoom));
-
-  // (clientX, clientY) 지점의 콘텐츠 좌표(u, v) 계산
-  const u = (clientX - rect.left - pan.x) / zoom;
-  const v = (clientY - rect.top  - pan.y) / zoom;
-
-  // 새 줌에서 해당 점이 같은 화면 좌표에 남도록 pan 보정
-  zoom  = newZoom;
-  pan.x = clientX - rect.left - u * zoom;
-  pan.y = clientY - rect.top  - v * zoom;
-
-  applyTransformCSS();
-  scheduleHQCommit();
-}
-
-
-  // ===== Zoom preview + HQ commit =====
-  function scheduleHQCommit(force=false) {
-    clearTimeout(hqTimer);
-    if (!force && zoom < HQ_ZOOM_THRESHOLD) return; // skip HQ if small zoom
-    hqTimer = setTimeout(() => doHQCommit(), HQ_DEBOUNCE_MS);
-  }
-
-  async function doHQCommit(force=false) {
-    const commitScale = fitScale * zoom;
-    const stage = getStage();
-    const oldScroll = { x: window.scrollX, y: window.scrollY };
+  async function doHQCommit(force=false){
+    const commitScale=fitScale*zoom;
+    const stage=getStage();
+    const oldScroll={x:window.scrollX,y:window.scrollY};
     stage.classList.add('no-anim');
-    await renderAll(commitScale, /*hq*/ true);
+    await renderAll(commitScale,true);
     applyTransformCSS();
     window.scrollTo(oldScroll.x, oldScroll.y);
     stage.classList.remove('no-anim');
   }
+  function scheduleHQCommit(force=false){
+    clearTimeout(hqTimer);
+    if(!force && zoom < HQ_ZOOM_THRESHOLD) return;
+    hqTimer=setTimeout(()=>doHQCommit(), HQ_DEBOUNCE_MS);
+  }
+
+  (async()=>{
+    try{
+      pdfDoc=await pdfjsLib.getDocument(PDF_URL).promise;
+      const page1=await pdfDoc.getPage(1);
+      const vp1=page1.getViewport({ scale: 1 });
+      basePageWidth = vp1.width; basePageHeight = vp1.height;
+
+      fitScale=computeFitScaleWithMargin();
+      await renderAll(fitScale,false);
+      zoom=1; pan={x:0,y:0}; applyTransformCSS();
+
+      // measure stage size at zoom=1 for bounds math
+      const rect0 = getStage().getBoundingClientRect();
+      __baseStageW = rect0.width;
+      __baseStageH = rect0.height;
+
+      initialRendered=true;
+      syncUI();
+    }catch(e){
+      console.error(e);
+      container.textContent='PDF load failed 😢';
+    }
+  })();
 </script>
+
+<script src="/assets/js/scroll-ease.standalone.js" defer></script>
 
 </body>
 </html>
