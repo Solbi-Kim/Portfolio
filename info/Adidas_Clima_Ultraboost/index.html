@@ -362,78 +362,6 @@
     return Math.max(0.05, Math.min(scaleByW, scaleByH));
   }
 
-  // Fit action: recompute fitScale, reset zoom/pan, HQ commit
-  async function fitToViewport(forceHQ=false) {
-    fitScale = computeFitScaleWithMargin();
-    zoom = 1;
-    pan = { x: 0, y: 0 };
-    applyTransformCSS();
-    if (forceHQ) {
-      await doHQCommit(true); // force
-    }
-  }
-
-  (async () => {
-    try {
-      pdfDoc = await pdfjsLib.getDocument(PDF_URL).promise;
-      const page1 = await pdfDoc.getPage(1);
-      const vp1 = page1.getViewport({ scale: 1 });
-      basePageWidth = vp1.width;
-      basePageHeight = vp1.height;
-
-      fitScale = computeFitScaleWithMargin();
-      await renderAll(fitScale, /*hq*/ false);
-      zoom = 1; pan = {x:0, y:0};
-      applyTransformCSS(); // initial transform
-
-      initialRendered = true; // appear animation only for first render
-    } catch (e) {
-      console.error(e);
-      container.textContent = 'PDF load failed 😢';
-    }
-  })();
-  initialRendered = true;
-  syncUI();
-
-// ===== Zoom-around-point helper (REPLACE THIS FUNCTION) =====
-function zoomAt(newZoom, clientX, clientY) {
-  const stage = getStage();
-  const rect = stage.getBoundingClientRect();
-
-  // 제한
-  newZoom = Math.max(0.5, Math.min(3, newZoom));
-
-  // (clientX, clientY) 지점의 콘텐츠 좌표(u, v) 계산
-  const u = (clientX - rect.left - pan.x) / zoom;
-  const v = (clientY - rect.top  - pan.y) / zoom;
-
-  // 새 줌에서 해당 점이 같은 화면 좌표에 남도록 pan 보정
-  zoom  = newZoom;
-  pan.x = clientX - rect.left - u * zoom;
-  pan.y = clientY - rect.top  - v * zoom;
-
-  applyTransformCSS();
-  scheduleHQCommit();
-}
-
-
-  // ===== Zoom preview + HQ commit =====
-  function scheduleHQCommit(force=false) {
-    clearTimeout(hqTimer);
-    if (!force && zoom < HQ_ZOOM_THRESHOLD) return; // skip HQ if small zoom
-    hqTimer = setTimeout(() => doHQCommit(), HQ_DEBOUNCE_MS);
-  }
-
-  async function doHQCommit(force=false) {
-    const commitScale = fitScale * zoom;
-    const stage = getStage();
-    const oldScroll = { x: window.scrollX, y: window.scrollY };
-    stage.classList.add('no-anim');
-    await renderAll(commitScale, /*hq*/ true);
-    applyTransformCSS();
-    window.scrollTo(oldScroll.x, oldScroll.y);
-    stage.classList.remove('no-anim');
-  }
 
   // ===== Controls =====
   const zoomRange = document.getElementById('zoomRange');
@@ -602,6 +530,79 @@ function zoomAt(newZoom, clientX, clientY) {
   })();
   window.addEventListener('resize', onResize);
   new ResizeObserver(onResize).observe(container);
+
+    // Fit action: recompute fitScale, reset zoom/pan, HQ commit
+  async function fitToViewport(forceHQ=false) {
+    fitScale = computeFitScaleWithMargin();
+    zoom = 1;
+    pan = { x: 0, y: 0 };
+    applyTransformCSS();
+    initialRendered = true;
+    syncUI();
+    if (forceHQ) {
+      await doHQCommit(true); // force
+    }
+  }
+
+  (async () => {
+    try {
+      pdfDoc = await pdfjsLib.getDocument(PDF_URL).promise;
+      const page1 = await pdfDoc.getPage(1);
+      const vp1 = page1.getViewport({ scale: 1 });
+      basePageWidth = vp1.width;
+      basePageHeight = vp1.height;
+
+      fitScale = computeFitScaleWithMargin();
+      await renderAll(fitScale, /*hq*/ false);
+      zoom = 1; pan = {x:0, y:0};
+      applyTransformCSS(); // initial transform
+
+      initialRendered = true; // appear animation only for first render
+    } catch (e) {
+      console.error(e);
+      container.textContent = 'PDF load failed 😢';
+    }
+  })();
+
+// ===== Zoom-around-point helper (REPLACE THIS FUNCTION) =====
+function zoomAt(newZoom, clientX, clientY) {
+  const stage = getStage();
+  const rect = stage.getBoundingClientRect();
+
+  // 제한
+  newZoom = Math.max(0.5, Math.min(3, newZoom));
+
+  // (clientX, clientY) 지점의 콘텐츠 좌표(u, v) 계산
+  const u = (clientX - rect.left - pan.x) / zoom;
+  const v = (clientY - rect.top  - pan.y) / zoom;
+
+  // 새 줌에서 해당 점이 같은 화면 좌표에 남도록 pan 보정
+  zoom  = newZoom;
+  pan.x = clientX - rect.left - u * zoom;
+  pan.y = clientY - rect.top  - v * zoom;
+
+  applyTransformCSS();
+  scheduleHQCommit();
+}
+
+
+  // ===== Zoom preview + HQ commit =====
+  function scheduleHQCommit(force=false) {
+    clearTimeout(hqTimer);
+    if (!force && zoom < HQ_ZOOM_THRESHOLD) return; // skip HQ if small zoom
+    hqTimer = setTimeout(() => doHQCommit(), HQ_DEBOUNCE_MS);
+  }
+
+  async function doHQCommit(force=false) {
+    const commitScale = fitScale * zoom;
+    const stage = getStage();
+    const oldScroll = { x: window.scrollX, y: window.scrollY };
+    stage.classList.add('no-anim');
+    await renderAll(commitScale, /*hq*/ true);
+    applyTransformCSS();
+    window.scrollTo(oldScroll.x, oldScroll.y);
+    stage.classList.remove('no-anim');
+  }
 </script>
 
 </body>
