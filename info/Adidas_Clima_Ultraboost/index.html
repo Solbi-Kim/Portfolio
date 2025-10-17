@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>Info | shovideo (Drag = real scrollbars)</title>
+  <title>Info | shovideo (Drag scrolls dedicated viewport)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="color-scheme" content="dark light">
   <style>
@@ -22,7 +22,7 @@
     }
     html, body { height: 100%; margin: 0; background: var(--bg); color: var(--text);
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      overflow-x: hidden; }
+      overflow: hidden; /* 스크롤은 전용 뷰포트에서만 */ }
     header{
       position: sticky; top: 0; z-index: 10000; isolation: isolate;
       display:flex; align-items:center; gap:8px;
@@ -41,25 +41,35 @@
     .icon-btn:disabled { opacity: .5; pointer-events: none; }
     .zoom-label { min-width: 48px; text-align: right; font-variant-numeric: tabular-nums; opacity: .9; }
 
+    /* 레이아웃 컨테이너 (스크롤 없음) */
     #pdf-container {
       width: 80vw; margin: 0 auto; padding: 16px;
-      min-height: calc(100vh - var(--header-h));
       box-sizing: border-box; display: flex; flex-direction: column; align-items: center;
-      overflow: visible; position: relative; z-index: 0;
+      position: relative; z-index: 0;
+    }
+    /* 실제 스크롤은 여기서만 발생 */
+    #pdf-viewport {
+      width: 100%; height: calc(100vh - var(--header-h) - 32px); /* 32px = container padding*2 */
+      overflow: auto; overscroll-behavior: contain;
+      position: relative;
+      border-radius: 8px;
+      /* 시각적 힌트 */
+      background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01));
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.06);
       cursor: grab;
       user-select: none;
-      -webkit-user-drag: none;
       -webkit-user-select: none;
-      -ms-user-select: none;
+      -webkit-user-drag: none;
     }
-    #pdf-container.dragging { cursor: grabbing; }
+    #pdf-viewport.dragging { cursor: grabbing; }
+
     #pdf-stage {
       position: relative; z-index: 0;
       transform-origin: 0 0;
       transform: scale(var(--zoom)) translate(var(--tx), var(--ty)); /* scale → translate */
       transition: transform .12s ease; will-change: transform; touch-action: none;
     }
-    canvas { display:block; margin:0 0 16px; box-shadow:0 2px 8px rgba(0,0,0,.35);
+    canvas { display:block; margin:0 0 16px; box-shadow:0 2px 8px rgba(0,0,0,0.35);
       background:#fff; border-radius:6px; opacity:0; transform:translateY(40px);
       transition: opacity .6s ease, transform .6s ease; }
     canvas.show{ opacity:1; transform:translateY(0); }
@@ -114,10 +124,14 @@
   </div>
 </header>
 
-<main id="pdf-container">Loading PDF…</main>
+<main id="pdf-container">
+  <div id="pdf-viewport">
+    <div id="pdf-stage"></div>
+  </div>
+</main>
 
 <script type="module">
-  // Lightweight loader (local first → CDN fallback)
+  // PDF.js loader (local → CDN)
   const PDF_CDN = 'https://unpkg.com/pdfjs-dist@4.8.69/build';
   async function getPdfjs() {
     try { const mod = await import('./pdfjs/pdf.mjs'); return { pdfjsLib: mod, workerSrc: './pdfjs/pdf.worker.mjs' }; }
@@ -136,6 +150,9 @@
   const PDF_URL = `/assets/PDF/${encodeURIComponent(__FOLDER)}.pdf`;
 
   const container = document.getElementById('pdf-container');
+  const viewport  = document.getElementById('pdf-viewport');
+  const stage     = document.getElementById('pdf-stage');
+
   const zoomRange = document.getElementById('zoomRange');
   const zoomInBtn = document.getElementById('zoomInBtn');
   const zoomOutBtn = document.getElementById('zoomOutBtn');
@@ -155,39 +172,33 @@
     document.documentElement.style.setProperty('--ty', pan.y + 'px');
   }
   function clampZoom(z){ return Math.min(3, Math.max(0.5, z)); }
-  function centerOfContainer(){ const r=container.getBoundingClientRect(); return {x:r.left+r.width/2,y:r.top+r.height/2}; }
+  function centerOfViewport(){ const r=viewport.getBoundingClientRect(); return {x:r.left+r.width/2,y:r.top+r.height/2}; }
 
   // First-render fade-in only
   const appearObserver=new IntersectionObserver((entries)=>{
     entries.forEach(entry=>{ if(entry.isIntersecting){ entry.target.classList.add('show'); appearObserver.unobserve(entry.target); } });
   },{threshold:0.1});
 
-  async function renderPage(pageNum, stage, scale=1, hq=false){
+  async function renderPage(pageNum, scale=1, hq=false){
     const page=await pdfDoc.getPage(pageNum);
-    const viewport=page.getViewport({ scale });
+    const viewportPdf=page.getViewport({ scale });
     const canvas=document.createElement('canvas');
     const ctx=canvas.getContext('2d');
     const scaleFactor = hq ? Math.min(2.5, DPR * Math.max(1, zoom)) : DPR;
-    canvas.width = Math.floor(viewport.width * scaleFactor);
-    canvas.height= Math.floor(viewport.height* scaleFactor);
-    canvas.style.width  = cssPx(viewport.width);
-    canvas.style.height = cssPx(viewport.height);
-    const rc={ canvasContext:ctx, viewport };
+    canvas.width = Math.floor(viewportPdf.width * scaleFactor);
+    canvas.height= Math.floor(viewportPdf.height* scaleFactor);
+    canvas.style.width  = cssPx(viewportPdf.width);
+    canvas.style.height = cssPx(viewportPdf.height);
+    const rc={ canvasContext:ctx, viewport: viewportPdf };
     if (scaleFactor!==1) rc.transform=[scaleFactor,0,0,scaleFactor,0,0];
     await page.render(rc).promise;
     stage.appendChild(canvas);
     if(!initialRendered) appearObserver.observe(canvas); else canvas.classList.add('show');
   }
-  function getStage(){
-    let stage=document.getElementById('pdf-stage');
-    if(!stage){ stage=document.createElement('div'); stage.id='pdf-stage'; container.innerHTML=''; container.appendChild(stage); }
-    return stage;
-  }
   async function renderAll(scale=fitScale, hq=false){
-    const stage=getStage();
     if(hq) stage.classList.add('no-anim'); else stage.classList.remove('no-anim');
     stage.innerHTML='';
-    for(let n=1;n<=pdfDoc.numPages;n++){ await renderPage(n, stage, scale, hq); }
+    for(let n=1;n<=pdfDoc.numPages;n++){ await renderPage(n, scale, hq); }
   }
 
   function computeFitScaleWithMargin(){
@@ -207,10 +218,8 @@
   }
 
   function zoomAt(newZoom, clientX, clientY){
-    const stage=getStage();
     const rect=stage.getBoundingClientRect();
     newZoom=clampZoom(newZoom);
-    // keep point (clientX, clientY) stationary
     const u=(clientX - rect.left - pan.x) / zoom;
     const v=(clientY - rect.top  - pan.y) / zoom;
     zoom=newZoom;
@@ -224,12 +233,11 @@
     if (zoom < HQ_ZOOM_THRESHOLD) return;
     clearTimeout(hqTimer);
     const commitScale=fitScale*zoom;
-    const stage=getStage();
-    const oldScroll={x:window.scrollX,y:window.scrollY};
+    const old = { x: viewport.scrollLeft, y: viewport.scrollTop };
     stage.classList.add('no-anim');
     await renderAll(commitScale,true);
     applyTransformCSS();
-    window.scrollTo(oldScroll.x, oldScroll.y);
+    viewport.scrollTo(old.x, old.y);
     stage.classList.remove('no-anim');
   }
   function scheduleHQCommit(){
@@ -237,81 +245,78 @@
     hqTimer=setTimeout(()=>doHQCommit(), HQ_DEBOUNCE_MS);
   }
 
-  // Drag = real scrollbars (both axes)
+  // Drag = real scrollbars (both axes) on the dedicated viewport
   (function setupDragScroll(){
     let dragging=false, lastX=0, lastY=0;
-    container.addEventListener('pointerdown', e=>{
+    viewport.addEventListener('pointerdown', e=>{
       if (e.button!==0) return;
       dragging=true; lastX=e.clientX; lastY=e.clientY;
-      container.classList.add('dragging');
-      container.setPointerCapture?.(e.pointerId);
+      viewport.classList.add('dragging');
+      viewport.setPointerCapture?.(e.pointerId);
       e.preventDefault();
     });
-    container.addEventListener('pointermove', e=>{
+    viewport.addEventListener('pointermove', e=>{
       if(!dragging) return;
       const dx=e.clientX-lastX, dy=e.clientY-lastY;
-      // move scrollbars opposite to finger/mouse movement (trackpad-like)
-      window.scrollBy({ left: -dx, top: -dy, behavior: 'auto' });
+      viewport.scrollBy({ left: -dx, top: -dy, behavior: 'auto' });
       lastX=e.clientX; lastY=e.clientY;
       e.preventDefault();
     }, {passive:false});
     ['pointerup','pointercancel','pointerleave'].forEach(type=>{
-      container.addEventListener(type, e=>{
-        dragging=false; container.classList.remove('dragging');
+      viewport.addEventListener(type, e=>{
+        dragging=false; viewport.classList.remove('dragging');
       });
     });
   })();
 
-  // Wheel zoom (Ctrl/Cmd + wheel) — center on pointer
-  container.addEventListener('wheel', (e)=>{
+  // Wheel zoom (Ctrl/Cmd + wheel) — pointer-centered
+  viewport.addEventListener('wheel', (e)=>{
     if (!e.ctrlKey && !e.metaKey) return;
     e.preventDefault();
-    const factor = Math.exp(-e.deltaY * 0.0015); // smooth exponential
+    const factor = Math.exp(-e.deltaY * 0.0015);
     const target = clampZoom(zoom * factor);
     zoomAt(target, e.clientX, e.clientY);
     syncUI();
   }, {passive:false});
 
-  // Keyboard zoom (Ctrl/Cmd + '+'/'-'/'0')
+  // Keyboard zoom (Ctrl/Cmd + +/-/0)
   window.addEventListener('keydown', (e)=>{
     const meta = e.ctrlKey || e.metaKey;
     if (!meta) return;
     if (e.key === '0'){ e.preventDefault(); fitToViewport(true); syncUI(); return; }
     if (e.key === '+' || e.key === '=' || e.key === '-'){
       e.preventDefault();
-      const center = { x: window.innerWidth/2, y: window.innerHeight/2 };
+      const center = centerOfViewport();
       const step = e.key === '-' ? 1/1.1 : 1.1;
       zoomAt(clampZoom(zoom * step), center.x, center.y);
       syncUI();
     }
   });
 
-  // Slider zoom — center on container
+  // Slider zoom — center on viewport
   zoomRange?.addEventListener('input', (e)=>{
-    const center = centerOfContainer();
+    const center = centerOfViewport();
     zoomAt(parseFloat(e.target.value), center.x, center.y);
     syncUI();
   });
-
   // Buttons
   zoomInBtn?.addEventListener('click', ()=>{
-    const center = centerOfContainer();
-    zoomAt(clampZoom(zoom*1.1), center.x, center.y);
-    syncUI();
+    const center = centerOfViewport();
+    zoomAt(clampZoom(zoom*1.1), center.x, center.y); syncUI();
   });
   zoomOutBtn?.addEventListener('click', ()=>{
-    const center = centerOfContainer();
-    zoomAt(clampZoom(zoom/1.1), center.x, center.y);
-    syncUI();
+    const center = centerOfViewport();
+    zoomAt(clampZoom(zoom/1.1), center.x, center.y); syncUI();
   });
   fitBtn?.addEventListener('click', ()=>{ fitToViewport(true); syncUI(); });
 
   async function fitToViewport(forceHQ=false){
     fitScale=computeFitScaleWithMargin();
-    // Fit 상태: 내부 zoom 1, pan 0 — 렌더 스케일로 맞춤
     zoom=1; pan={x:0,y:0}; applyTransformCSS();
     if (!initialRendered) initialRendered=true;
     await renderAll(fitScale,false);
+    // 중앙 정렬처럼 보이도록 스크롤 최상단으로
+    viewport.scrollTo({ left: 0, top: 0, behavior: 'auto' });
   }
 
   // Init
@@ -319,18 +324,13 @@
     try{
       const { pdfjsLib, workerSrc } = await getPdfjs();
       pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
-
-      pdfDoc=await pdfjsLib.getDocument(PDF_URL).promise;
+      const doc = await pdfjsLib.getDocument(PDF_URL).promise;
+      pdfDoc = doc;
       const page1=await pdfDoc.getPage(1);
       const vp1=page1.getViewport({ scale: 1 });
       basePageWidth = vp1.width; basePageHeight = vp1.height;
 
       await fitToViewport(false);
-      // Base stage size for bounds (if later needed)
-      const rect0=getStage().getBoundingClientRect();
-      // __baseStageW/H are not used for drag-scroll-only flow; keep measured if needed
-      // const __baseStageW = rect0.width; const __baseStageH = rect0.height;
-
       initialRendered=true;
       syncUI();
     }catch(e){
@@ -339,9 +339,6 @@
     }
   })();
 </script>
-
-<!-- Smooth scroll (optional) -->
-<script src="/assets/js/scroll-ease.standalone.js" defer></script>
 
 </body>
 </html>
