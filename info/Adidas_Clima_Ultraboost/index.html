@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>Info | shovideo (Simple Zoom)</title>
+  <title>Info | shovideo (Simple Zoom + Easing + Appear)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="color-scheme" content="dark light">
   <style>
@@ -51,17 +51,87 @@
       will-change: transform;
       touch-action: none; /* we'll handle pinch */
     }
+    /* Canvas appearance animation */
     canvas {
       display: block;
       margin: 0 0 16px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.35);
       background: #fff;
       border-radius: 6px;
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity .6s ease, transform .6s ease;
+    }
+    canvas.show {
+      opacity: 1;
+      transform: translateY(0);
     }
     #zoomRange { accent-color: #00adef; }
   </style>
 </head>
 <body>
+
+<!-- Inline smooth scroll (hard wheel intercept) -->
+<script>
+(function(){
+  if (window.__ScrollEaseHard) return;
+  window.__ScrollEaseHard = true;
+  const ROOT = document.scrollingElement || document.documentElement;
+  const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+  const friction  = 0.85;
+  const wheelBoost= 0.12;
+  const maxSpeed  = 10;
+  const wheelCap  = 60;
+  const stopEps   = 0.16;
+  function isScrollable(el, dy){
+    if (!el || el === document || el === document.documentElement) return false;
+    const cs = getComputedStyle(el);
+    if (!(cs.overflowY === 'auto' || cs.overflowY === 'scroll')) return false;
+    if (el.scrollHeight <= el.clientHeight + 1) return false;
+    if (dy > 0)  return el.scrollTop + el.clientHeight < el.scrollHeight;
+    if (dy < 0)  return el.scrollTop > 0;
+    return true;
+  }
+  function findHost(target, dy){
+    for (let n = target; n; n = n.parentElement){
+      if (isScrollable(n, dy)) return n;
+    }
+    return ROOT;
+  }
+  let host = ROOT, vy = 0, raf = 0;
+  const max = (el) => el === ROOT
+    ? Math.max(0, ROOT.scrollHeight - innerHeight)
+    : Math.max(0, el.scrollHeight - el.clientHeight);
+  function tick(){
+    if (Math.abs(vy) > stopEps){
+      vy *= friction;
+      const step = clamp(vy, -maxSpeed, maxSpeed);
+      const next = clamp(Math.round(host.scrollTop + step), 0, max(host));
+      if (next !== host.scrollTop) host.scrollTop = next;
+      raf = requestAnimationFrame(tick);
+    } else {
+      vy = 0; raf = 0;
+    }
+  }
+  function onWheel(e){
+    const raw = e.deltaY || 0; if (!raw) return;
+    host = findHost(e.target, raw) || ROOT;
+    e.preventDefault();
+    const d = clamp(raw, -wheelCap, wheelCap);
+    vy += d * wheelBoost;
+    if (!raf) raf = requestAnimationFrame(tick);
+  }
+  [window, document, document.documentElement].forEach(t=>{
+    t && t.addEventListener('wheel', onWheel, { capture:true, passive:false });
+  });
+  function attachBody(){
+    if (document.body)
+      document.body.addEventListener('wheel', onWheel, { capture:true, passive:false });
+  }
+  if (document.body) attachBody();
+  else document.addEventListener('DOMContentLoaded', attachBody, { once:true });
+})();
+</script>
 
 <header>
   <button onclick="history.back()">← Back</button>
@@ -101,6 +171,16 @@
 
   function cssPx(v){ return `${Math.round(v*100)/100}px`; }
 
+  // Appearing animation observer
+  const appearObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting){
+        entry.target.classList.add('show');
+        appearObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
+
   async function renderPage(pageNum, stage, scale=1) {
     const page = await pdfDoc.getPage(pageNum);
     const viewport = page.getViewport({ scale });
@@ -115,6 +195,7 @@
     if (outScale !== 1) renderContext.transform = [outScale, 0, 0, outScale, 0, 0];
     await page.render(renderContext).promise;
     stage.appendChild(canvas);
+    appearObserver.observe(canvas);
   }
 
   async function renderAll(scale=fitScale) {
@@ -254,7 +335,10 @@
       clearTimeout(t);
       t = setTimeout(async () => {
         if (!pdfDoc) return;
-        const nextFit = computeFitScale();
+        const cs = getComputedStyle(container);
+        const pad = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
+        const innerW = container.clientWidth - pad;
+        const nextFit = innerW / basePageWidth;
         if (Math.abs(nextFit - fitScale) < 0.02) return;
         fitScale = nextFit;
         await renderAll(fitScale);
