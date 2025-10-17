@@ -1,15 +1,10 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <style> html { scroll-behavior: auto !important; } </style>
   <meta charset="UTF-8" />
-  <title>Info | shovideo</title>
+  <title>Info | shovideo (Simple Zoom)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  
   <meta name="color-scheme" content="dark light">
-  <link rel="icon" href="/favicon-light.ico" sizes="any" media="(prefers-color-scheme: light)">
-  <link rel="icon" href="/favicon-dark.ico"  sizes="any" media="(prefers-color-scheme: dark)">
-  <link rel="icon" href="/favicon.ico" sizes="any">
   <style>
     :root {
       --header-h: 56px;
@@ -17,14 +12,15 @@
       --panel: #1b1f2a;
       --text: #e9eef5;
       --muted: #9aa4b2;
+      --zoom: 1; /* CSS-only zoom factor */
     }
     html, body {
       height: 100%;
       margin: 0;
       background: var(--bg);
       color: var(--text);
-      font-family: sans-serif;
-      overflow-x: hidden; /* 1px 가로 스크롤 방지 */
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      overflow-x: hidden;
     }
     header {
       position: sticky; top:0; z-index:1000;
@@ -37,7 +33,6 @@
       background:var(--panel); color:var(--text);
       border:none; padding:6px 12px; border-radius:8px; cursor:pointer;
     }
-    /* 컨테이너: 80vw 기준, 내부 중앙 정렬 */
     #pdf-container {
       width: 80vw;
       margin: 0 auto;
@@ -46,467 +41,230 @@
       box-sizing: border-box;
       display: flex;
       flex-direction: column;
-      align-items: center; /* 가로 중앙 */
+      align-items: center;
     }
-    /* 스테이지에만 제스처 위임: 페이지 전체 스크롤은 그대로 */
-    #pdf-stage { touch-action: none; }
-
-    /* PDF 페이지 캔버스: 등장 애니메이션 포함 */
+    /* Stage: CSS-only zoom */
+    #pdf-stage {
+      transform-origin: 50% 0%;
+      transform: scale(var(--zoom));
+      transition: transform .15s ease;
+      will-change: transform;
+      touch-action: none; /* we'll handle pinch */
+    }
     canvas {
       display: block;
-      margin: 0 0 16px; /* 좌우 auto 제거 (플렉스에서 중앙정렬) */
+      margin: 0 0 16px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.35);
       background: #fff;
       border-radius: 6px;
-      opacity: 0;
-      transform: translateY(40px);
-      transition: opacity .6s ease, transform .6s ease;
     }
-    canvas.show {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    /* 헤더 컨트롤 톤 맞추기 */
-    #zoomRange { accent-color: var(--brand, #00adef); }
-
-    /* 캔버스들을 담는 스테이지: 핀치/슬라이더 드래그 중 CSS 스케일 미리보기용 */
-    #pdf-stage {
-      transform-origin: 50% 0%;         /* 위쪽 중앙 기준이 자연스러움(세로 스크롤 레이아웃) */
-      transition: transform .2s ease;   /* UI 조작할 때 부드럽게 */
-      will-change: transform;
-    }
-    /* 커밋 시엔 전환 끄기(깜빡임 방지) */
-    #pdf-stage.no-anim { transition: none !important; }
-
-    @media (prefers-reduced-motion: reduce) {
-      #pdf-stage { transition: none; }
-    }
+    #zoomRange { accent-color: #00adef; }
   </style>
-  
 </head>
 <body>
-  <!-- HARD WHEEL INTERCEPT: body 바로 아래 넣기 -->
-<script>
-(function(){
-  if (window.__ScrollEaseHard) return;
-  window.__ScrollEaseHard = true;
 
-  const ROOT = document.scrollingElement || document.documentElement;
-  const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
-
-  // 느낌 조절: 덜 미끄럽게 하려면 friction↓, wheelBoost↓, maxSpeed↓
-  const friction  = 0.85;  // 0.86~0.92 (낮을수록 빨리 멈춤)
-  const wheelBoost= 0.12;  // 0.18~0.30 (틱당 이동량)
-  const maxSpeed  = 10;    // 12~18   (프레임당 이동 상한)
-  const wheelCap  = 60;   // vy
-  const stopEps   = 0.16;  // 이 값 올리면 더 빨리 끊김
-
-  function isScrollable(el, dy){
-    if (!el || el === document || el === document.documentElement) return false;
-    const cs = getComputedStyle(el);
-    if (!(cs.overflowY === 'auto' || cs.overflowY === 'scroll')) return false;
-    if (el.scrollHeight <= el.clientHeight + 1) return false;
-    if (dy > 0)  return el.scrollTop + el.clientHeight < el.scrollHeight;
-    if (dy < 0)  return el.scrollTop > 0;
-    return true;
-  }
-  function findHost(target, dy){
-    for (let n = target; n; n = n.parentElement){
-      if (isScrollable(n, dy)) return n;
-    }
-    return ROOT;
-  }
-
-  let host = ROOT, vy = 0, raf = 0;
-  const max = (el) => el === ROOT
-    ? Math.max(0, ROOT.scrollHeight - innerHeight)
-    : Math.max(0, el.scrollHeight - el.clientHeight);
-
-  function tick(){
-    if (Math.abs(vy) > stopEps){
-      vy *= friction;
-      const step = clamp(vy, -maxSpeed, maxSpeed);
-      const next = clamp(Math.round(host.scrollTop + step), 0, max(host));
-      if (next !== host.scrollTop) host.scrollTop = next;
-      raf = requestAnimationFrame(tick);
-    } else {
-      vy = 0; raf = 0;
-    }
-  }
-
-  function onWheel(e){
-    const raw = e.deltaY || 0; if (!raw) return;
-    host = findHost(e.target, raw) || ROOT;
-    e.preventDefault();
-    const d = clamp(raw, -wheelCap, wheelCap);
-    vy += d * wheelBoost;
-    if (!raf) raf = requestAnimationFrame(tick);
-  }
-
-  function onKey(e){
-    const tag = (document.activeElement && document.activeElement.tagName || '').toLowerCase();
-    if (tag === 'input' || tag === 'textarea' || e.defaultPrevented) return;
-
-    let add = 0, h = innerHeight;
-    if (e.key === 'ArrowDown') add = +56;
-    else if (e.key === 'ArrowUp') add = -56;
-    else if (e.key === 'PageDown' || (e.key === ' ' && !e.shiftKey)) add =  h * 0.9;
-    else if (e.key === 'PageUp'   || (e.key === ' ' &&  e.shiftKey)) add = -h * 0.9;
-    else if (e.key === 'Home')    { host = ROOT; ROOT.scrollTop = 0; return; }
-    else if (e.key === 'End')     { host = ROOT; ROOT.scrollTop = max(ROOT); return; }
-
-    if (add !== 0){
-      e.preventDefault();
-      host = ROOT;
-      vy += add;
-      if (!raf) raf = requestAnimationFrame(tick);
-    }
-  }
-
-  [window, document, document.documentElement].forEach(t=>{
-    t && t.addEventListener('wheel', onWheel, { capture:true, passive:false });
-  });
-  function attachBody(){
-    if (document.body)
-      document.body.addEventListener('wheel', onWheel, { capture:true, passive:false });
-  }
-  if (document.body) attachBody();
-  else document.addEventListener('DOMContentLoaded', attachBody, { once:true });
-
-  window.addEventListener('keydown', onKey, { passive:false });
-
-  window.__SE = { info(){ return { host: (host===ROOT?'ROOT':'EL'), vy, anim: !!raf }; } };
-})();
-</script>
-
-  <header>
-    <button onclick="history.back()">← Back</button>
-    <span style="margin-left:8px; font-weight:600;">Video Information</span>
-    <input id="zoomRange" type="range" min="0.5" max="3" step="0.01" value="1"
+<header>
+  <button onclick="history.back()">← Back</button>
+  <span style="margin-left:8px; font-weight:600;">Video Information</span>
+  <input id="zoomRange" type="range" min="0.5" max="3" step="0.01" value="1"
          style="width:180px; margin:0 8px;" aria-label="Zoom slider" />
+  <button id="zoomOutBtn" aria-label="ZoomOut" style="margin-left:auto;">🔍–</button>
+  <button id="zoomInBtn"  aria-label="ZoomIn">🔍+</button>
+  <button id="fitBtn" aria-label="Fit to 80vw">⤢ Fit</button>
+</header>
 
-    <button id="zoomOutBtn" aria-label="ZoomOut" style="margin-left:auto;">🔍–</button>
-    <button id="zoomInBtn"  aria-label="ZoomIn">🔍+</button>
-    <button id="fitBtn" aria-label="Fit to 80vw">⤢ Fit</button>
-  </header>
+<main id="pdf-container">Loading PDF…</main>
 
-  <main id="pdf-container">Loading PDF...</main>
+<script type="module">
+  import * as pdfjsLib from './pdfjs/pdf.mjs';
+  pdfjsLib.GlobalWorkerOptions.workerSrc = './pdfjs/pdf.worker.mjs';
 
-  <!-- Consolidated PDF.js logic -->
-  <script type="module">
-    import * as pdfjsLib from './pdfjs/pdf.mjs';
-    pdfjsLib.GlobalWorkerOptions.workerSrc = './pdfjs/pdf.worker.mjs';
+  // ---- path helpers ----
+  function __folderFromPath() {
+    let path = location.pathname.replace(/\/+$/, '');
+    const parts = path.split('/').filter(Boolean);
+    if (!parts.length) return '';
+    let last = parts[parts.length - 1];
+    if (/\.html?$/i.test(last)) { parts.pop(); last = parts[parts.length - 1] || ''; }
+    return last;
+  }
+  const __FOLDER = __folderFromPath();
+  const PDF_URL = `/assets/PDF/${encodeURIComponent(__FOLDER)}.pdf`;
 
-    // ===== 설정 =====
-    function __folderFromPath() {
-      let path = location.pathname.replace(/\/+$/, '');
-      const parts = path.split('/').filter(Boolean);
-      if (!parts.length) return '';
-      let last = parts[parts.length - 1];
-      if (/\.html?$/i.test(last)) {
-          parts.pop();
-          last = parts[parts.length - 1] || '';
-      }
-      return last;
+  const container = document.getElementById('pdf-container');
+
+  // ---- render basic (fit to 80vw once) ----
+  const DPR = Math.min(2, Math.max(1, window.devicePixelRatio || 1));
+  let pdfDoc = null;
+  let basePageWidth = null;
+  let fitScale = 1; // computed fit scale for 80vw
+
+  function cssPx(v){ return `${Math.round(v*100)/100}px`; }
+
+  async function renderPage(pageNum, stage, scale=1) {
+    const page = await pdfDoc.getPage(pageNum);
+    const viewport = page.getViewport({ scale });
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const outScale = DPR;
+    canvas.width  = Math.floor(viewport.width  * outScale);
+    canvas.height = Math.floor(viewport.height * outScale);
+    canvas.style.width  = cssPx(viewport.width);
+    canvas.style.height = cssPx(viewport.height);
+    const renderContext = { canvasContext: ctx, viewport };
+    if (outScale !== 1) renderContext.transform = [outScale, 0, 0, outScale, 0, 0];
+    await page.render(renderContext).promise;
+    stage.appendChild(canvas);
+  }
+
+  async function renderAll(scale=fitScale) {
+    const stage = getStage();
+    stage.innerHTML = '';
+    for (let n=1; n<=pdfDoc.numPages; n++) {
+      await renderPage(n, stage, scale);
     }
+  }
 
-    const __FOLDER = __folderFromPath();
-    const PDF_URL = `/assets/PDF/${encodeURIComponent(__FOLDER)}.pdf`;
-
-    const container = document.getElementById('pdf-container');
-
-    // --- Double-tap & gesture 기본 줌 방지 (Stage에서만) ---
-    (() => {
-      const host = container;
-      if (!host) return;
-      let lastTap = 0;
-      host.addEventListener('touchend', (e) => {
-        if (!e.target.closest('#pdf-stage')) return;
-        const now = Date.now();
-        if (now - lastTap < 300) e.preventDefault();
-        lastTap = now;
-      }, { passive:false });
-      if ('ongesturestart' in window) {
-        ['gesturestart','gesturechange','gestureend'].forEach(ev => {
-          host.addEventListener(ev, (e) => {
-            if (!e.target.closest('#pdf-stage')) return;
-            e.preventDefault();
-          }, { passive:false });
-        });
-      }
-    })();
-
-    // 스케일 한계 / 렌더 옵션
-    const MIN_SCALE = 0.1;
-    const MAX_SCALE = 3.0;
-    const DPR = Math.min(2, Math.max(1, window.devicePixelRatio || 1));
-    const ZOOM_STEP = 0.1;
-
-    let pdfDoc = null;
-    let basePageWidth = null;
-    let scale = 1;
-    let fitMode = true;
-
-    // ===== 유틸 =====
-    const cssPx = (v) => `${Math.round(v * 100) / 100}px`;
-    const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
-
-    function getInnerWidth(el){
-      const cs = getComputedStyle(el);
-      const pad = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
-      return el.clientWidth - pad;
+  function getStage() {
+    let stage = document.getElementById('pdf-stage');
+    if (!stage) {
+      stage = document.createElement('div');
+      stage.id = 'pdf-stage';
+      container.innerHTML = '';
+      container.appendChild(stage);
     }
-    function clampScale(s, isFit = false){
-      const min = isFit ? 0.05 : MIN_SCALE;
-      return clamp(s, min, MAX_SCALE);
+    return stage;
+  }
+
+  function computeFitScale() {
+    // fit to 80vw container width
+    const cs = getComputedStyle(container);
+    const pad = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
+    const innerW = container.clientWidth - pad;
+    if (!basePageWidth) return 1;
+    return innerW / basePageWidth;
+  }
+
+  (async () => {
+    try {
+      pdfDoc = await pdfjsLib.getDocument(PDF_URL).promise;
+      const page1 = await pdfDoc.getPage(1);
+      basePageWidth = page1.getViewport({ scale: 1 }).width;
+      fitScale = computeFitScale();
+      await renderAll(fitScale);
+      setZoom(1); // CSS zoom 1 == fitScale
+    } catch (e) {
+      console.error(e);
+      container.textContent = 'PDF load failed 😢';
     }
-    function computeScaleFit(){
-      const w = getInnerWidth(container);
-      if (!basePageWidth) return 1;
-      return w / basePageWidth;
-    }
-    function debounce(fn, ms = 150){
-      let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
-    }
+  })();
 
-    // ===== 스테이지 헬퍼 =====
-    function getStage() {
-      let stage = document.getElementById('pdf-stage');
-      if (!stage) {
-        stage = document.createElement('div');
-        stage.id = 'pdf-stage';
-        container.appendChild(stage);
-      }
-      return stage;
-    }
-    function previewScale(s) {
-      getStage().style.transform = `scale(${s})`;
-    }
+  // ---- simple CSS-only zoom ----
+  const zoomRange = document.getElementById('zoomRange');
+  const zoomInBtn = document.getElementById('zoomInBtn');
+  const zoomOutBtn = document.getElementById('zoomOutBtn');
+  const fitBtn = document.getElementById('fitBtn');
 
-    let commitT = 0;
-    function scheduleCommit(keepScroll = true, delay = 160) {
-      clearTimeout(commitT);
-      commitT = setTimeout(() => { commitRender(keepScroll); }, delay);
-    }
+  function setZoom(z){
+    z = Math.max(0.5, Math.min(3, z));
+    document.documentElement.style.setProperty('--zoom', z);
+    zoomRange.value = String(z);
+  }
 
-    // ===== 캔버스 등장 애니메이션 옵저버 =====
-    const appearObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting){
-          entry.target.classList.add('show');
-          appearObserver.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.1 });
+  zoomRange.addEventListener('input', e => setZoom(parseFloat(e.target.value)));
+  zoomInBtn.addEventListener('click', () => setZoom(parseFloat(zoomRange.value) + 0.1));
+  zoomOutBtn.addEventListener('click', () => setZoom(parseFloat(zoomRange.value) - 0.1));
+  fitBtn.addEventListener('click', () => setZoom(1));
 
-    // ===== 렌더링 =====
-    async function renderPage(pageNum, stage){
-      const page = await pdfDoc.getPage(pageNum);
-      const viewport = page.getViewport({ scale });
-
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-
-      const outScale = DPR;
-      canvas.width  = Math.floor(viewport.width  * outScale);
-      canvas.height = Math.floor(viewport.height * outScale);
-      canvas.style.width  = cssPx(viewport.width);
-      canvas.style.height = cssPx(viewport.height);
-
-      const renderContext = { canvasContext: ctx, viewport };
-      if (outScale !== 1) renderContext.transform = [outScale, 0, 0, outScale, 0, 0];
-
-      await page.render(renderContext).promise;
-      stage.appendChild(canvas);
-      appearObserver.observe(canvas);
-    }
-
-    async function renderAll(){
-      const stage = getStage();
-      stage.innerHTML = '';
-      for (let n = 1; n <= pdfDoc.numPages; n++){
-        await renderPage(n, stage);
-      }
-    }
-
-    // 스크롤 위치 비율 보존(줌 시)
-    function rememberScrollRatio(){
-      const max = Math.max(1, document.body.scrollHeight - window.innerHeight);
-      return window.scrollY / max;
-    }
-    function restoreScrollRatio(ratio){
-      const max = Math.max(1, document.body.scrollHeight - window.innerHeight);
-      window.scrollTo({ top: ratio * max, behavior: 'auto' });
-    }
-
-    // 커밋 렌더 (깜빡임 방지)
-    async function commitRender(keepScroll = true) {
-      const stage = getStage();
-      stage.classList.add('no-anim');
-
-      const ratio = keepScroll ? rememberScrollRatio() : 0;
-
-      await renderAll();
-
-      await new Promise(requestAnimationFrame);
-      stage.style.transform = '';
-      if (keepScroll) restoreScrollRatio(ratio);
-
-      await new Promise(requestAnimationFrame);
-      stage.classList.remove('no-anim');
-      syncUI();
-    }
-
-    // ===== 초기 로드 =====
-    (async () => {
-      try {
-        pdfDoc = await pdfjsLib.getDocument(PDF_URL).promise;
-        const page1 = await pdfDoc.getPage(1);
-        basePageWidth = page1.getViewport({ scale: 1 }).width;
-
-        scale = clampScale(computeScaleFit(), true);
-        await renderAll();
-        syncUI();
-      } catch (e) {
-        console.error(e);
-        container.textContent = 'PDF load failed 😢';
-      }
-    })();
-
-    // ===== 리사이즈(오직 fit 모드에서만 자동 재계산) =====
-    const onResize = debounce(async () => {
-      if (!pdfDoc || !basePageWidth || !fitMode) return;
-      const nextFit = clampScale(computeScaleFit(), true);
-      if (Math.abs(nextFit - scale) < 0.02) return;
-      scale = nextFit;
-      await renderAll();
-    }, 200);
-    window.addEventListener('resize', onResize);
-    new ResizeObserver(onResize).observe(container);
-
-    // ===== 컨트롤 =====
-    const zoomInBtn  = document.getElementById('zoomInBtn');
-    const zoomOutBtn = document.getElementById('zoomOutBtn');
-    const fitBtn     = document.getElementById('fitBtn');
-    const zoomRange  = document.getElementById('zoomRange');
-
-    function syncUI() {
-      if (zoomRange) zoomRange.value = String(+scale.toFixed(2));
-    }
-
-    async function doZoom(delta) {
-      fitMode = false;
-      const next = clampScale(+(scale + delta).toFixed(2), false);
-      if (Math.abs(next - scale) < 0.01) return;
-      scale = next;
-      previewScale(scale);
-      scheduleCommit(true, 160);
-    }
-
-    zoomInBtn?.addEventListener('click',  () => doZoom(+ZOOM_STEP));
-    zoomOutBtn?.addEventListener('click', () => doZoom(-ZOOM_STEP));
-    fitBtn?.addEventListener('click', () => {
-      fitMode = true;
-      scale = clampScale(computeScaleFit(), true);
-      previewScale(scale);
-      scheduleCommit(false, 0);
-      window.scrollTo({ top: 0 });
-    });
-
-    // 슬라이더
-    zoomRange?.addEventListener('input', (e) => {
-      fitMode = false;
-      scale = clampScale(parseFloat(e.target.value), false);
-      previewScale(scale);
-      scheduleCommit(true, 120);
-    });
-    zoomRange?.addEventListener('change', () => scheduleCommit(true, 0));
-
-    // Ctrl+Wheel → 줌
-    container.addEventListener('wheel', (e) => {
-      if (!e.ctrlKey && !e.metaKey) return;
+  // prevent browser page zoom for our shortcuts
+  window.addEventListener('keydown', (e) => {
+    const meta = e.ctrlKey || e.metaKey;
+    if (!meta) return;
+    if (e.key === '0') { e.preventDefault(); setZoom(1); }
+    if (e.key === '+' || e.key === '=' || e.key === '-') {
       e.preventDefault();
-      fitMode = false;
-      const delta = -Math.sign(e.deltaY) * 0.12;
-      scale = clampScale(scale * (1 + delta), false);
-      previewScale(scale);
-      scheduleCommit(true, 160);
-    }, { passive: false });
+      setZoom(parseFloat(zoomRange.value) + (e.key === '-' ? -0.1 : +0.1));
+    }
+  });
 
-    // 페이지 줌 단축키 무력화하고 우리 doZoom/fit 실행
-    window.addEventListener('keydown', (e) => {
-      const meta = e.ctrlKey || e.metaKey;
-      if (!meta) return;
+  // Ctrl/⌘ + wheel → CSS zoom only (no re-render)
+  container.addEventListener('wheel', (e) => {
+    if (!e.ctrlKey && !e.metaKey) return;
+    e.preventDefault();
+    const current = parseFloat(zoomRange.value);
+    const next = current * (1 + (-Math.sign(e.deltaY) * 0.12));
+    setZoom(next);
+  }, { passive: false });
 
-      if (e.key === '0') {
-        e.preventDefault();
-        fitMode = true;
-        scale = clampScale(computeScaleFit(), true);
-        previewScale(scale);
-        scheduleCommit(false, 0);
-        window.scrollTo({ top: 0 });
-        return;
-      }
+  // Pinch (two pointer) → CSS zoom only
+  const pointers = new Map();
+  let pinchStartDist = 0, pinchStartZoom = 1;
+  function dist(a,b){ const dx=a.x-b.x, dy=a.y-b.y; return Math.hypot(dx,dy); }
 
-      if (e.key === '+' || e.key === '=' || e.key === '-') {
-        e.preventDefault();
-        doZoom(e.key === '-' ? -ZOOM_STEP : +ZOOM_STEP);
+  container.addEventListener('pointerdown', (e) => {
+    container.setPointerCapture?.(e.pointerId);
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pointers.size === 2) {
+      const [p1, p2] = Array.from(pointers.values());
+      pinchStartDist = dist(p1,p2);
+      pinchStartZoom = parseFloat(zoomRange.value);
+    }
+  });
+  container.addEventListener('pointermove', (e) => {
+    if (!pointers.has(e.pointerId)) return;
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pointers.size === 2) {
+      const [p1, p2] = Array.from(pointers.values());
+      const k = dist(p1,p2) / (pinchStartDist || 1);
+      setZoom(pinchStartZoom * k);
+    }
+  }, { passive: true });
+  ['pointerup','pointercancel','pointerleave'].forEach(t => {
+    container.addEventListener(t, (e) => {
+      pointers.delete(e.pointerId);
+      if (pointers.size < 2) {
+        pinchStartDist = 0;
       }
     });
+  });
 
-    // ====== 핀치줌 ======
-    let pointers = new Map();
-    let pinchStartDist = 0, pinchStartScale = 1;
-
-    function dist(a, b) { const dx = a.x - b.x, dy = a.y - b.y; return Math.hypot(dx, dy); }
-
-    container.addEventListener('pointerdown', (e) => {
-      container.setPointerCapture?.(e.pointerId);
-      pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-      if (pointers.size === 2) {
-        const [p1, p2] = Array.from(pointers.values());
-        pinchStartDist = dist(p1, p2);
-        pinchStartScale = scale;
-      }
-    });
-    container.addEventListener('pointermove', (e) => {
-      if (!pointers.has(e.pointerId)) return;
-      pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-      if (pointers.size === 2) {
-        const [p1, p2] = Array.from(pointers.values());
-        const k = dist(p1, p2) / (pinchStartDist || 1);
-        const live = clampScale(pinchStartScale * k, false);
-        previewScale(live);
-      }
-    }, { passive: true });
-    ['pointerup','pointercancel','pointerleave'].forEach(type => {
-      container.addEventListener(type, () => {
-        pointers.delete(event.pointerId);
-        if (pointers.size < 2 && pinchStartDist) {
-          // stage의 현재 matrix에서 scale 읽어와 커밋
-          const stage = getStage();
-          const m = getComputedStyle(stage).transform;
-          const mA = m === 'none' ? 1 : parseFloat(m.split('(')[1].split(',')[0]) || 1;
-          scale = clampScale(mA, false);
-          scheduleCommit(true, 0);
-          pinchStartDist = 0;
-        }
+  // block iOS double-tap zoom inside stage only
+  (function(){
+    let lastTap = 0;
+    container.addEventListener('touchend', (e) => {
+      if (!e.target.closest('#pdf-stage')) return;
+      const now = Date.now();
+      if (now - lastTap < 300) e.preventDefault();
+      lastTap = now;
+    }, { passive:false });
+    if ('ongesturestart' in window) {
+      ['gesturestart','gesturechange','gestureend'].forEach(ev => {
+        container.addEventListener(ev, (e) => {
+          if (!e.target.closest('#pdf-stage')) return;
+          e.preventDefault();
+        }, { passive:false });
       });
-    });
+    }
+  })();
 
-    // 더블탭/더블클릭: 1x <-> 2x 토글
-    container.addEventListener('dblclick', (e) => {
-      e.preventDefault();
-      fitMode = false;
-      scale = clampScale(scale < 2 ? 2 : computeScaleFit(), false);
-      previewScale(scale);
-      scheduleCommit(true, 0);
-    });
-  </script>
-
-  <!-- Smooth scroll (window) external + inline fallback with diag -->
-  <script src="/assets/js/scroll-ease.standalone.js" defer></script>
+  // Refit on resize (re-render only when fit width changes)
+  const onResize = (() => {
+    let t;
+    return () => {
+      clearTimeout(t);
+      t = setTimeout(async () => {
+        if (!pdfDoc) return;
+        const nextFit = computeFitScale();
+        if (Math.abs(nextFit - fitScale) < 0.02) return;
+        fitScale = nextFit;
+        await renderAll(fitScale);
+        setZoom(parseFloat(zoomRange.value));
+      }, 200);
+    };
+  })();
+  window.addEventListener('resize', onResize);
+  new ResizeObserver(onResize).observe(container);
+</script>
 
 </body>
 </html>
