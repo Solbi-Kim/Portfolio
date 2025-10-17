@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>Info | shovideo (HQ Zoom + Pan Bounce + FitMargin + CenterZoom)</title>
+  <title>Info | shovideo (HQ Zoom + Pan Bounce + FitMargin + CenterZoom + Scroll Handoff)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="color-scheme" content="dark light">
   <style>
@@ -276,6 +276,25 @@
     if(tx!==pan.x || ty!==pan.y) animatePanTo(tx,ty,320);
   }
 
+  // ✅ 스크롤 핸드오프: 내부 팬 한계 넘긴 잔여 이동량을 window.scrollBy로 위임
+  function panWithScrollHandoff(dx, dy) {
+    const { minX, maxX, minY, maxY } = panBounds();
+    const tryX = pan.x + dx;
+    const tryY = pan.y + dy;
+
+    const clampedX = clamp(tryX, minX, maxX);
+    const clampedY = clamp(tryY, minY, maxY);
+
+    const leftoverX = tryX - clampedX;
+    const leftoverY = tryY - clampedY;
+
+    pan.x = clampedX;
+    pan.y = clampedY;
+    applyTransformCSS();
+
+    if (leftoverY !== 0) window.scrollBy(0, leftoverY); // 부호 그대로
+  }
+
   function zoomAt(newZoom, clientX, clientY){
     const stage=getStage();
     const rect=stage.getBoundingClientRect();
@@ -290,41 +309,28 @@
     settlePan();
   }
 
-  // Events
-  zoomRange.addEventListener('input', e=>{ const {x,y}=centerOfContainer(); zoomAt(parseFloat(e.target.value), x, y); syncUI(); });
-  zoomInBtn.addEventListener('click', ()=>{ const {x,y}=centerOfContainer(); zoomAt(zoom+0.1, x, y); syncUI(); });
-  zoomOutBtn.addEventListener('click',()=>{ const {x,y}=centerOfContainer(); zoomAt(zoom-0.1, x, y); syncUI(); });
-  fitBtn.addEventListener('click', async ()=>{ await fitToViewport(true); syncUI(); });
-
-  window.addEventListener('keydown', (e)=>{
-    const meta=e.ctrlKey||e.metaKey; if(!meta) return;
-    if(e.key==='0'){ e.preventDefault(); fitToViewport(true); syncUI(); }
-    if(e.key==='+'||e.key==='='||e.key==='-'){ e.preventDefault(); const {x,y}=centerOfContainer(); zoomAt(zoom + (e.key==='-'?-0.1:+0.1), x, y); syncUI(); }
-  });
-  container.addEventListener('wheel', (e)=>{
-    if(!e.ctrlKey && !e.metaKey) return;
-    e.preventDefault();
-    const factor=1 + (-Math.sign(e.deltaY)*0.12);
-    zoomAt(zoom * factor, e.clientX, e.clientY);
-    syncUI();
-  }, {passive:false});
-
+  // ===== 포인터 제스처 =====
   const pointers=new Map();
   let pinchStartDist=0, pinchStartZoom=1, pinchCenter={x:0,y:0};
-  let isPanning=false, panStart=null;
+  let isPanning=false;
+  let lastPt = null;
+
   function dist(a,b){ const dx=a.x-b.x, dy=a.y-b.y; return Math.hypot(dx,dy); }
   function mid(a,b){ return {x:(a.x+b.x)/2, y:(a.y+b.y)/2}; }
 
   container.addEventListener('pointerdown', (e)=>{
     container.setPointerCapture?.(e.pointerId);
     pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    lastPt = { x: e.clientX, y: e.clientY };
     if(pointers.size===2){
       const [p1,p2]=Array.from(pointers.values());
-      pinchStartDist=dist(p1,p2); pinchStartZoom=zoom; pinchCenter=mid(p1,p2); isPanning=false;
+      pinchStartDist=dist(p1,p2); pinchStartZoom=zoom; pinchCenter=mid(p1,p2);
+      isPanning=false; lastPt = null;
     } else if (pointers.size===1){
-      panStart={x:e.clientX - pan.x, y:e.clientY - pan.y}; isPanning=true;
+      isPanning=true;
     }
   });
+
   container.addEventListener('pointermove', (e)=>{
     if(!pointers.has(e.pointerId)) return;
     pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
@@ -333,18 +339,23 @@
       const k=dist(p1,p2)/(pinchStartDist||1);
       const target=Math.max(0.5, Math.min(3, pinchStartZoom*k));
       zoomAt(target, pinchCenter.x, pinchCenter.y);
+      lastPt = null;
       syncUI();
     } else if (pointers.size===1 && isPanning){
-      pan.x = e.clientX - panStart.x;
-      pan.y = e.clientY - panStart.y;
-      applyTransformCSS();
-      scheduleHQCommit();
+      if (lastPt){
+        const dx = e.clientX - lastPt.x;
+        const dy = e.clientY - lastPt.y;
+        panWithScrollHandoff(dx, dy);
+      }
+      lastPt = { x: e.clientX, y: e.clientY };
       e.preventDefault();
     }
   },{passive:false});
+
   ['pointerup','pointercancel','pointerleave'].forEach(type=>{
     container.addEventListener(type,(e)=>{
       pointers.delete(e.pointerId);
+      lastPt = null;
       if(pointers.size<2){ pinchStartDist=0; }
       if(pointers.size===0){ isPanning=false; settlePan(); }
     });
@@ -424,7 +435,6 @@
       await renderAll(fitScale,false);
       zoom=1; pan={x:0,y:0}; applyTransformCSS();
 
-      // measure stage size at zoom=1 for bounds math
       const rect0 = getStage().getBoundingClientRect();
       __baseStageW = rect0.width;
       __baseStageH = rect0.height;
