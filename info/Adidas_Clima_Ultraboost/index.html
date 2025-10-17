@@ -22,6 +22,8 @@
     }
     html, body { height: 100%; margin: 0; background: var(--bg); color: var(--text);
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      /* ✅ 윈도우 꽉 채우기 */
+      min-height: 100vh; min-height: 100svh; min-height: 100dvh;
       overflow: hidden; /* 스크롤은 전용 뷰포트에서만 */ }
     header{
       position: sticky; top: 0; z-index: 10000; isolation: isolate;
@@ -46,10 +48,16 @@
       width: 80vw; margin: 0 auto; padding: 16px;
       box-sizing: border-box; display: flex; flex-direction: column; align-items: center;
       position: relative; z-index: 0;
+      /* ✅ 바디가 항상 창을 꽉 채워 보이도록 */
+      min-height: calc(100dvh - var(--header-h));
     }
     /* 실제 스크롤은 여기서만 발생 */
     #pdf-viewport {
-      width: 100%; height: calc(100vh - var(--header-h) - 32px); /* 32px = container padding*2 */
+      width: 100%;
+      /* ✅ iOS 주소창 변화 대응: dvh/svh 폴백 순서 */
+      height: calc(100vh - var(--header-h) - 32px);
+      height: calc(100svh - var(--header-h) - 32px);
+      height: calc(100dvh - var(--header-h) - 32px);
       overflow: auto; overscroll-behavior: contain;
       position: relative;
       border-radius: 8px;
