@@ -392,6 +392,8 @@
       container.textContent = 'PDF load failed 😢';
     }
   })();
+  initialRendered = true;
+  syncUI();
 
 // ===== Zoom-around-point helper (REPLACE THIS FUNCTION) =====
 function zoomAt(newZoom, clientX, clientY) {
@@ -438,13 +440,17 @@ function zoomAt(newZoom, clientX, clientY) {
   const zoomInBtn = document.getElementById('zoomInBtn');
   const zoomOutBtn = document.getElementById('zoomOutBtn');
   const fitBtn = document.getElementById('fitBtn');
+  const zoomLabel = document.getElementById('zoomLabel');
 
   function centerOfContainer() {
     const rect = container.getBoundingClientRect();
     return { x: rect.left + rect.width/2, y: rect.top + rect.height/2 };
   }
 
-  function syncUI() { zoomRange.value = String(zoom); }
+ function syncUI() {
+   if (zoomRange) zoomRange.value = String(+(zoom).toFixed(2));
+   if (zoomLabel) zoomLabel.textContent = Math.round(zoom * 100) + '%';
+ }
 
   zoomRange.addEventListener('input', e => {
     const { x, y } = centerOfContainer();
