@@ -56,7 +56,7 @@
     #pdf-stage {
       position: relative; z-index: 0;
       transform-origin: 0 0;
-      transform: translate(var(--tx), var(--ty)) scale(var(--zoom));
+      transform: scale(var(--zoom)) translate(var(--tx), var(--ty));
       transition: transform .15s ease;
       will-change: transform;
       touch-action: none;
