@@ -78,7 +78,97 @@
       transform: none !important;
       transition: none !important;
     }
-    #zoomRange { accent-color: #00adef; }
+
+    /* ==== icon buttons (monochrome SVG) ====================================== */
+    .icon-btn{
+      background: var(--panel);
+      color: var(--text);              /* 아이콘 색 (단색) */
+      border: none;
+      padding: 6px 10px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: transform .06s ease, background .15s ease, opacity .15s ease;
+    }
+    .icon-btn:hover { background: #202636; }
+    .icon-btn:active { transform: translateY(1px) scale(.98); }
+    .icon-btn:disabled { opacity: .5; pointer-events: none; }
+
+    
+        /* ==== Zoom range: tall rounded-rect thumb ================================= */
+    :root{
+      --zr-track: rgba(255,255,255,.22);
+      --zr-track-hover: rgba(255,255,255,.32);
+      --zr-thumb: #e9eef5;           /* 핸들 색 (밝은 회색/백) */
+      --zr-thumb-press: #ffffff;
+    }
+    
+    #zoomRange {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 180px;
+      height: 28px;                  /* 트랙 높이(클릭/터치 영역) */
+      background: transparent;
+      cursor: pointer;
+      margin: 0 8px;
+    }
+    
+    /* 트랙 */
+    #zoomRange::-webkit-slider-runnable-track {
+      height: 6px;
+      background: var(--zr-track);
+      border-radius: 999px;
+      transition: background .2s ease;
+    }
+    #zoomRange:hover::-webkit-slider-runnable-track { background: var(--zr-track-hover); }
+    
+    #zoomRange::-moz-range-track {
+      height: 6px;
+      background: var(--zr-track);
+      border-radius: 999px;
+    }
+    #zoomRange:hover::-moz-range-track { background: var(--zr-track-hover); }
+    
+    /* 핸들: 세로로 긴 둥근 사각형(= 알약 모양) */
+    #zoomRange::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;                 /* 손잡이 너비 */
+      height: 24px;                /* 손잡이 높이 (세로로 길게) */
+      margin-top: -9px;            /* 트랙 중앙정렬 보정 (24/2 - 6/2) */
+      background: var(--zr-thumb);
+      border-radius: 10px;         /* 둥글게 */
+      box-shadow: 0 1px 2px rgba(0,0,0,.35);
+      transition: transform .08s ease, background .15s ease, box-shadow .15s ease;
+    }
+    #zoomRange:active::-webkit-slider-thumb {
+      transform: scale(0.96);
+      background: var(--zr-thumb-press);
+    }
+    
+    #zoomRange::-moz-range-thumb {
+      width: 14px;
+      height: 24px;
+      background: var(--zr-thumb);
+      border: none;
+      border-radius: 10px;
+      box-shadow: 0 1px 2px rgba(0,0,0,.35);
+      transition: transform .08s ease, background .15s ease, box-shadow .15s ease;
+    }
+    #zoomRange:active::-moz-range-thumb {
+      transform: scale(0.96);
+      background: var(--zr-thumb-press);
+    }
+    
+    /* 포커스 링(키보드 접근성) */
+    #zoomRange:focus-visible {
+      outline: 2px solid rgba(0,173,239,.65);
+      outline-offset: 2px;
+      border-radius: 10px;
+    }
+
   </style>
 </head>
 <body>
@@ -150,8 +240,19 @@
   <span style="margin-left:8px; font-weight:600;">Video Information</span>
   <input id="zoomRange" type="range" min="0.5" max="3" step="0.01" value="1"
          style="width:180px; margin:0 8px;" aria-label="Zoom slider" />
-  <button id="zoomOutBtn" aria-label="ZoomOut" style="margin-left:auto;">🔍–</button>
-  <button id="zoomInBtn"  aria-label="ZoomIn">🔍+</button>
+  
+  <button id="zoomOutBtn" aria-label="Zoom out" style="margin-left:auto;" class="icon-btn" title="Zoom out">
+    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+      <path fill="currentColor" d="M10 2a8 8 0 1 1 0 16 8 8 0 0 1 0-16Zm0 2a6 6 0 1 0 0 12 6 6 0 0 0 0-12Zm-3 5h6v2H7V9Zm9.586 6.172 4.121 4.121-1.414 1.415-4.122-4.122 1.415-1.414Z"/>
+    </svg>
+  </button>
+  
+  <button id="zoomInBtn" aria-label="Zoom in" class="icon-btn" title="Zoom in">
+    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+      <path fill="currentColor" d="M10 2a8 8 0 1 1 0 16 8 8 0 0 1 0-16Zm0 2a6 6 0 1 0 0 12 6 6 0 0 0 0-12Zm-1 5h2v2h2v2h-2v2h-2v-2H7v-2h2V9Zm7.586 8.172 4.121 4.121-1.414 1.415-4.122-4.122 1.415-1.414Z"/>
+    </svg>
+  </button>
+
   <button id="fitBtn" aria-label="Fit to viewport with margin">⤢ Fit</button>
 </header>
 
