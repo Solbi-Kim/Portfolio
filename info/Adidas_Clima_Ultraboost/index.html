@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>Info | shovideo (HQ Zoom + Pan + Easing)</title>
+  <title>Info | shovideo (HQ Zoom + Pan + FitMargin + CenterZoom)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="color-scheme" content="dark light">
   <style>
@@ -45,7 +45,6 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      /* allow horizontal scroll if panned out of view */
       overflow: visible;
     }
     /* Stage: preview via CSS translate + scale */
@@ -58,7 +57,7 @@
       will-change: transform;
       touch-action: none; /* we handle pinch/pan */
     }
-    /* Canvas appearance animation */
+    /* Canvas appearance animation (initial only) */
     canvas {
       display: block;
       margin: 0 0 16px;
@@ -72,6 +71,12 @@
     canvas.show {
       opacity: 1;
       transform: translateY(0);
+    }
+    /* Disable appear animation during HQ re-render */
+    #pdf-stage.no-anim canvas {
+      opacity: 1 !important;
+      transform: none !important;
+      transition: none !important;
     }
     #zoomRange { accent-color: #00adef; }
   </style>
@@ -147,7 +152,7 @@
          style="width:180px; margin:0 8px;" aria-label="Zoom slider" />
   <button id="zoomOutBtn" aria-label="ZoomOut" style="margin-left:auto;">🔍–</button>
   <button id="zoomInBtn"  aria-label="ZoomIn">🔍+</button>
-  <button id="fitBtn" aria-label="Fit to 80vw">⤢ Fit</button>
+  <button id="fitBtn" aria-label="Fit to viewport with margin">⤢ Fit</button>
 </header>
 
 <main id="pdf-container">Loading PDF…</main>
@@ -170,11 +175,12 @@
 
   const container = document.getElementById('pdf-container');
 
-  // ---- render basic (fit to 80vw once) ----
+  // ---- render basic (fit to viewport with margins) ----
   const DPR = Math.min(2, Math.max(1, window.devicePixelRatio || 1));
   let pdfDoc = null;
   let basePageWidth = null;
-  let fitScale = 1; // computed fit scale for 80vw
+  let basePageHeight = null;
+  let fitScale = 1; // computed fit scale
 
   // preview state
   let zoom = 1;                // CSS zoom (== --zoom)
@@ -185,6 +191,9 @@
   const HQ_DEBOUNCE_MS = 220;
   let hqTimer = 0;
 
+  // initial render flag → appear animation only then
+  let initialRendered = false;
+
   function cssPx(v){ return `${Math.round(v*100)/100}px`; }
 
   // Apply CSS variables for transform
@@ -194,7 +203,7 @@
     document.documentElement.style.setProperty('--ty', pan.y + 'px');
   }
 
-  // Appearing animation observer
+  // Appearing animation observer (used only on initial render)
   const appearObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting){
@@ -224,7 +233,12 @@
 
     await page.render(renderContext).promise;
     stage.appendChild(canvas);
-    appearObserver.observe(canvas);
+
+    // appear animation only on the very first render
+    if (!initialRendered) appearObserver.observe(canvas);
+    else {
+      canvas.classList.add('show'); // ensure visible without transition
+    }
   }
 
   function getStage() {
@@ -240,57 +254,87 @@
 
   async function renderAll(scale=fitScale, hq=false) {
     const stage = getStage();
+    if (hq) stage.classList.add('no-anim'); else stage.classList.remove('no-anim');
     stage.innerHTML = '';
     for (let n=1; n<=pdfDoc.numPages; n++) {
       await renderPage(n, stage, scale, hq);
     }
   }
 
-  function computeFitScale() {
-    // fit to 80vw container width
-    const cs = getComputedStyle(container);
-    const pad = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
-    const innerW = container.clientWidth - pad;
-    if (!basePageWidth) return 1;
-    return innerW / basePageWidth;
+  // Compute fit scale with viewport margins (leave breathing room)
+  function computeFitScaleWithMargin() {
+    const header = document.querySelector('header');
+    const headerH = header ? header.clientHeight : 56;
+    const marginVH = Math.max(24, Math.round(window.innerHeight * 0.06)); // ~6vh or >=24px
+    const marginVW = Math.max(24, Math.round(window.innerWidth  * 0.06)); // ~6vw or >=24px
+
+    const availW = Math.min(container.clientWidth, window.innerWidth - marginVW * 2);
+    const availH = Math.max(0, window.innerHeight - headerH - marginVH * 2);
+
+    const scaleByW = availW / basePageWidth;
+    const scaleByH = availH / basePageHeight;
+    return Math.max(0.05, Math.min(scaleByW, scaleByH));
+  }
+
+  // Fit action: recompute fitScale, reset zoom/pan, HQ commit
+  async function fitToViewport(forceHQ=false) {
+    fitScale = computeFitScaleWithMargin();
+    zoom = 1;
+    pan = { x: 0, y: 0 };
+    applyTransformCSS();
+    if (forceHQ) {
+      await doHQCommit(true); // force
+    }
   }
 
   (async () => {
     try {
       pdfDoc = await pdfjsLib.getDocument(PDF_URL).promise;
       const page1 = await pdfDoc.getPage(1);
-      basePageWidth = page1.getViewport({ scale: 1 }).width;
-      fitScale = computeFitScale();
+      const vp1 = page1.getViewport({ scale: 1 });
+      basePageWidth = vp1.width;
+      basePageHeight = vp1.height;
+
+      fitScale = computeFitScaleWithMargin();
       await renderAll(fitScale, /*hq*/ false);
       zoom = 1; pan = {x:0, y:0};
       applyTransformCSS(); // initial transform
+
+      initialRendered = true; // appear animation only for first render
     } catch (e) {
       console.error(e);
       container.textContent = 'PDF load failed 😢';
     }
   })();
 
-  // ===== Zoom preview + HQ commit =====
-  function setZoomPreview(next) {
-    zoom = Math.max(0.5, Math.min(3, next));
+  // ===== Zoom-around-point helper =====
+  function zoomAt(newZoom, clientX, clientY) {
+    newZoom = Math.max(0.5, Math.min(3, newZoom));
+    const ratio = newZoom / zoom;
+    // keep the point (clientX, clientY) stationary on screen
+    pan.x = clientX - (clientX - pan.x) * ratio;
+    pan.y = clientY - (clientY - pan.y) * ratio;
+    zoom = newZoom;
     applyTransformCSS();
     scheduleHQCommit();
   }
 
-  function scheduleHQCommit() {
+  // ===== Zoom preview + HQ commit =====
+  function scheduleHQCommit(force=false) {
     clearTimeout(hqTimer);
-    if (zoom < HQ_ZOOM_THRESHOLD) return; // skip HQ if zoom is small
-    hqTimer = setTimeout(doHQCommit, HQ_DEBOUNCE_MS);
+    if (!force && zoom < HQ_ZOOM_THRESHOLD) return; // skip HQ if small zoom
+    hqTimer = setTimeout(() => doHQCommit(), HQ_DEBOUNCE_MS);
   }
 
-  async function doHQCommit() {
+  async function doHQCommit(force=false) {
     const commitScale = fitScale * zoom;
     const stage = getStage();
     const oldScroll = { x: window.scrollX, y: window.scrollY };
+    stage.classList.add('no-anim');
     await renderAll(commitScale, /*hq*/ true);
-    // maintain CSS transform (preview) even after re-render
     applyTransformCSS();
     window.scrollTo(oldScroll.x, oldScroll.y);
+    stage.classList.remove('no-anim');
   }
 
   // ===== Controls =====
@@ -299,41 +343,68 @@
   const zoomOutBtn = document.getElementById('zoomOutBtn');
   const fitBtn = document.getElementById('fitBtn');
 
+  function centerOfContainer() {
+    const rect = container.getBoundingClientRect();
+    return { x: rect.left + rect.width/2, y: rect.top + rect.height/2 };
+  }
+
   function syncUI() { zoomRange.value = String(zoom); }
 
-  zoomRange.addEventListener('input', e => { setZoomPreview(parseFloat(e.target.value)); syncUI(); });
-  zoomInBtn.addEventListener('click', () => { setZoomPreview(zoom + 0.1); syncUI(); });
-  zoomOutBtn.addEventListener('click', () => { setZoomPreview(zoom - 0.1); syncUI(); });
-  fitBtn.addEventListener('click', () => { setZoomPreview(1); pan = {x:0, y:0}; applyTransformCSS(); syncUI(); });
+  zoomRange.addEventListener('input', e => {
+    const { x, y } = centerOfContainer();
+    zoomAt(parseFloat(e.target.value), x, y);
+    syncUI();
+  });
+  zoomInBtn.addEventListener('click', () => {
+    const { x, y } = centerOfContainer();
+    zoomAt(zoom + 0.1, x, y);
+    syncUI();
+  });
+  zoomOutBtn.addEventListener('click', () => {
+    const { x, y } = centerOfContainer();
+    zoomAt(zoom - 0.1, x, y);
+    syncUI();
+  });
+  fitBtn.addEventListener('click', async () => {
+    await fitToViewport(true); // force HQ so it’s crisp
+    syncUI();
+  });
 
   // prevent browser page zoom for our shortcuts
   window.addEventListener('keydown', (e) => {
     const meta = e.ctrlKey || e.metaKey;
     if (!meta) return;
-    if (e.key === '0') { e.preventDefault(); setZoomPreview(1); pan={x:0,y:0}; applyTransformCSS(); syncUI(); }
+    if (e.key === '0') {
+      e.preventDefault();
+      fitToViewport(true);
+      syncUI();
+    }
     if (e.key === '+' || e.key === '=' || e.key === '-') {
       e.preventDefault();
-      setZoomPreview(zoom + (e.key === '-' ? -0.1 : +0.1));
+      const { x, y } = centerOfContainer();
+      zoomAt(zoom + (e.key === '-' ? -0.1 : +0.1), x, y);
       syncUI();
     }
   });
 
-  // Ctrl/⌘ + wheel → CSS zoom
+  // Ctrl/⌘ + wheel → center on pointer
   container.addEventListener('wheel', (e) => {
     if (!e.ctrlKey && !e.metaKey) return;
     e.preventDefault();
-    const next = zoom * (1 + (-Math.sign(e.deltaY) * 0.12));
-    setZoomPreview(next);
+    const factor = 1 + (-Math.sign(e.deltaY) * 0.12);
+    zoomAt(zoom * factor, e.clientX, e.clientY);
     syncUI();
   }, { passive: false });
 
   // ===== Pinch zoom (two pointers) & Pan (single finger) =====
   const pointers = new Map();
   let pinchStartDist = 0, pinchStartZoom = 1;
+  let pinchCenter = { x: 0, y: 0 };
   let isPanning = false;
   let panStart = null;
 
   function dist(a,b){ const dx=a.x-b.x, dy=a.y-b.y; return Math.hypot(dx,dy); }
+  function mid(a,b){ return { x: (a.x+b.x)/2, y: (a.y+b.y)/2 }; }
 
   container.addEventListener('pointerdown', (e) => {
     container.setPointerCapture?.(e.pointerId);
@@ -342,6 +413,7 @@
       const [p1, p2] = Array.from(pointers.values());
       pinchStartDist = dist(p1,p2);
       pinchStartZoom = zoom;
+      pinchCenter = mid(p1,p2);
       isPanning = false;
     } else if (pointers.size === 1) {
       panStart = { x: e.clientX - pan.x, y: e.clientY - pan.y };
@@ -354,10 +426,16 @@
     pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
 
     if (pointers.size === 2) {
-      // pinch
+      // pinch around midpoint
       const [p1, p2] = Array.from(pointers.values());
       const k = dist(p1,p2) / (pinchStartDist || 1);
-      setZoomPreview(pinchStartZoom * k);
+      const targetZoom = Math.max(0.5, Math.min(3, pinchStartZoom * k));
+      const ratio = targetZoom / zoom;
+      pan.x = pinchCenter.x - (pinchCenter.x - pan.x) * ratio;
+      pan.y = pinchCenter.y - (pinchCenter.y - pan.y) * ratio;
+      zoom = targetZoom;
+      applyTransformCSS();
+      scheduleHQCommit();
       syncUI();
     } else if (pointers.size === 1 && isPanning) {
       // pan
@@ -377,9 +455,20 @@
     });
   });
 
-  // block iOS double-tap zoom inside stage only
+  // Double tap / double click: toggle fit <-> 2x zoom at tap point
   (function(){
     let lastTap = 0;
+    container.addEventListener('dblclick', async (e) => {
+      e.preventDefault();
+      const nearFit = Math.abs(zoom - 1) < 0.02;
+      if (!nearFit) {
+        await fitToViewport(true);
+      } else {
+        zoomAt(2, e.clientX, e.clientY);
+      }
+      syncUI();
+    });
+    // iOS double-tap zoom block inside stage only
     container.addEventListener('touchend', (e) => {
       if (!e.target.closest('#pdf-stage')) return;
       const now = Date.now();
@@ -396,28 +485,17 @@
     }
   })();
 
-  // Double click to reset pan
-  container.addEventListener('dblclick', (e) => {
-    e.preventDefault();
-    pan = { x: 0, y: 0 };
-    applyTransformCSS();
-  });
-
-  // Refit on resize (re-render only when fit width changes)
+  // Refit on resize (re-render only when fit size changes)
   const onResize = (() => {
     let t;
     return () => {
       clearTimeout(t);
       t = setTimeout(async () => {
         if (!pdfDoc) return;
-        const cs = getComputedStyle(container);
-        const pad = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
-        const innerW = container.clientWidth - pad;
-        const nextFit = innerW / basePageWidth;
+        const nextFit = computeFitScaleWithMargin();
         if (Math.abs(nextFit - fitScale) < 0.02) return;
         fitScale = nextFit;
         await renderAll(fitScale, /*hq*/ false);
-        // keep current preview transform
         applyTransformCSS();
       }, 200);
     };
