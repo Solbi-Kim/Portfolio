@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>Info | shovideo (Simple Zoom + Easing + Appear)</title>
+  <title>Info | shovideo (HQ Zoom + Pan + Easing)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="color-scheme" content="dark light">
   <style>
@@ -12,7 +12,10 @@
       --panel: #1b1f2a;
       --text: #e9eef5;
       --muted: #9aa4b2;
-      --zoom: 1; /* CSS-only zoom factor */
+      /* CSS-only preview transform state */
+      --zoom: 1;
+      --tx: 0px;
+      --ty: 0px;
     }
     html, body {
       height: 100%;
@@ -42,14 +45,18 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      /* allow horizontal scroll if panned out of view */
+      overflow: visible;
     }
-    /* Stage: CSS-only zoom */
+    /* Stage: preview via CSS translate + scale */
     #pdf-stage {
-      transform-origin: 50% 0%;
-      transform: scale(var(--zoom));
+      transform-origin: 0 0; /* left-top makes pan math simple */
+      transform:
+        translate(var(--tx), var(--ty))
+        scale(var(--zoom));
       transition: transform .15s ease;
       will-change: transform;
-      touch-action: none; /* we'll handle pinch */
+      touch-action: none; /* we handle pinch/pan */
     }
     /* Canvas appearance animation */
     canvas {
@@ -169,7 +176,23 @@
   let basePageWidth = null;
   let fitScale = 1; // computed fit scale for 80vw
 
+  // preview state
+  let zoom = 1;                // CSS zoom (== --zoom)
+  let pan = { x: 0, y: 0 };    // CSS pan  (== --tx/--ty)
+
+  // HQ commit settings
+  const HQ_ZOOM_THRESHOLD = 1.2;   // only commit HQ if zoom is big enough
+  const HQ_DEBOUNCE_MS = 220;
+  let hqTimer = 0;
+
   function cssPx(v){ return `${Math.round(v*100)/100}px`; }
+
+  // Apply CSS variables for transform
+  function applyTransformCSS() {
+    document.documentElement.style.setProperty('--zoom', String(zoom));
+    document.documentElement.style.setProperty('--tx', pan.x + 'px');
+    document.documentElement.style.setProperty('--ty', pan.y + 'px');
+  }
 
   // Appearing animation observer
   const appearObserver = new IntersectionObserver((entries) => {
@@ -181,29 +204,27 @@
     });
   }, { threshold: 0.1 });
 
-  async function renderPage(pageNum, stage, scale=1) {
+  async function renderPage(pageNum, stage, scale=1, hq=false) {
     const page = await pdfDoc.getPage(pageNum);
     const viewport = page.getViewport({ scale });
+
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-    const outScale = DPR;
-    canvas.width  = Math.floor(viewport.width  * outScale);
-    canvas.height = Math.floor(viewport.height * outScale);
+
+    // scaleFactor: higher when doing HQ commit, capped to avoid memory blowups
+    const scaleFactor = hq ? Math.min(2.5, DPR * Math.max(1, zoom)) : DPR;
+
+    canvas.width  = Math.floor(viewport.width  * scaleFactor);
+    canvas.height = Math.floor(viewport.height * scaleFactor);
     canvas.style.width  = cssPx(viewport.width);
     canvas.style.height = cssPx(viewport.height);
+
     const renderContext = { canvasContext: ctx, viewport };
-    if (outScale !== 1) renderContext.transform = [outScale, 0, 0, outScale, 0, 0];
+    if (scaleFactor !== 1) renderContext.transform = [scaleFactor, 0, 0, scaleFactor, 0, 0];
+
     await page.render(renderContext).promise;
     stage.appendChild(canvas);
     appearObserver.observe(canvas);
-  }
-
-  async function renderAll(scale=fitScale) {
-    const stage = getStage();
-    stage.innerHTML = '';
-    for (let n=1; n<=pdfDoc.numPages; n++) {
-      await renderPage(n, stage, scale);
-    }
   }
 
   function getStage() {
@@ -215,6 +236,14 @@
       container.appendChild(stage);
     }
     return stage;
+  }
+
+  async function renderAll(scale=fitScale, hq=false) {
+    const stage = getStage();
+    stage.innerHTML = '';
+    for (let n=1; n<=pdfDoc.numPages; n++) {
+      await renderPage(n, stage, scale, hq);
+    }
   }
 
   function computeFitScale() {
@@ -232,54 +261,78 @@
       const page1 = await pdfDoc.getPage(1);
       basePageWidth = page1.getViewport({ scale: 1 }).width;
       fitScale = computeFitScale();
-      await renderAll(fitScale);
-      setZoom(1); // CSS zoom 1 == fitScale
+      await renderAll(fitScale, /*hq*/ false);
+      zoom = 1; pan = {x:0, y:0};
+      applyTransformCSS(); // initial transform
     } catch (e) {
       console.error(e);
       container.textContent = 'PDF load failed 😢';
     }
   })();
 
-  // ---- simple CSS-only zoom ----
+  // ===== Zoom preview + HQ commit =====
+  function setZoomPreview(next) {
+    zoom = Math.max(0.5, Math.min(3, next));
+    applyTransformCSS();
+    scheduleHQCommit();
+  }
+
+  function scheduleHQCommit() {
+    clearTimeout(hqTimer);
+    if (zoom < HQ_ZOOM_THRESHOLD) return; // skip HQ if zoom is small
+    hqTimer = setTimeout(doHQCommit, HQ_DEBOUNCE_MS);
+  }
+
+  async function doHQCommit() {
+    const commitScale = fitScale * zoom;
+    const stage = getStage();
+    const oldScroll = { x: window.scrollX, y: window.scrollY };
+    await renderAll(commitScale, /*hq*/ true);
+    // maintain CSS transform (preview) even after re-render
+    applyTransformCSS();
+    window.scrollTo(oldScroll.x, oldScroll.y);
+  }
+
+  // ===== Controls =====
   const zoomRange = document.getElementById('zoomRange');
   const zoomInBtn = document.getElementById('zoomInBtn');
   const zoomOutBtn = document.getElementById('zoomOutBtn');
   const fitBtn = document.getElementById('fitBtn');
 
-  function setZoom(z){
-    z = Math.max(0.5, Math.min(3, z));
-    document.documentElement.style.setProperty('--zoom', z);
-    zoomRange.value = String(z);
-  }
+  function syncUI() { zoomRange.value = String(zoom); }
 
-  zoomRange.addEventListener('input', e => setZoom(parseFloat(e.target.value)));
-  zoomInBtn.addEventListener('click', () => setZoom(parseFloat(zoomRange.value) + 0.1));
-  zoomOutBtn.addEventListener('click', () => setZoom(parseFloat(zoomRange.value) - 0.1));
-  fitBtn.addEventListener('click', () => setZoom(1));
+  zoomRange.addEventListener('input', e => { setZoomPreview(parseFloat(e.target.value)); syncUI(); });
+  zoomInBtn.addEventListener('click', () => { setZoomPreview(zoom + 0.1); syncUI(); });
+  zoomOutBtn.addEventListener('click', () => { setZoomPreview(zoom - 0.1); syncUI(); });
+  fitBtn.addEventListener('click', () => { setZoomPreview(1); pan = {x:0, y:0}; applyTransformCSS(); syncUI(); });
 
   // prevent browser page zoom for our shortcuts
   window.addEventListener('keydown', (e) => {
     const meta = e.ctrlKey || e.metaKey;
     if (!meta) return;
-    if (e.key === '0') { e.preventDefault(); setZoom(1); }
+    if (e.key === '0') { e.preventDefault(); setZoomPreview(1); pan={x:0,y:0}; applyTransformCSS(); syncUI(); }
     if (e.key === '+' || e.key === '=' || e.key === '-') {
       e.preventDefault();
-      setZoom(parseFloat(zoomRange.value) + (e.key === '-' ? -0.1 : +0.1));
+      setZoomPreview(zoom + (e.key === '-' ? -0.1 : +0.1));
+      syncUI();
     }
   });
 
-  // Ctrl/⌘ + wheel → CSS zoom only (no re-render)
+  // Ctrl/⌘ + wheel → CSS zoom
   container.addEventListener('wheel', (e) => {
     if (!e.ctrlKey && !e.metaKey) return;
     e.preventDefault();
-    const current = parseFloat(zoomRange.value);
-    const next = current * (1 + (-Math.sign(e.deltaY) * 0.12));
-    setZoom(next);
+    const next = zoom * (1 + (-Math.sign(e.deltaY) * 0.12));
+    setZoomPreview(next);
+    syncUI();
   }, { passive: false });
 
-  // Pinch (two pointer) → CSS zoom only
+  // ===== Pinch zoom (two pointers) & Pan (single finger) =====
   const pointers = new Map();
   let pinchStartDist = 0, pinchStartZoom = 1;
+  let isPanning = false;
+  let panStart = null;
+
   function dist(a,b){ const dx=a.x-b.x, dy=a.y-b.y; return Math.hypot(dx,dy); }
 
   container.addEventListener('pointerdown', (e) => {
@@ -288,24 +341,39 @@
     if (pointers.size === 2) {
       const [p1, p2] = Array.from(pointers.values());
       pinchStartDist = dist(p1,p2);
-      pinchStartZoom = parseFloat(zoomRange.value);
+      pinchStartZoom = zoom;
+      isPanning = false;
+    } else if (pointers.size === 1) {
+      panStart = { x: e.clientX - pan.x, y: e.clientY - pan.y };
+      isPanning = true;
     }
   });
+
   container.addEventListener('pointermove', (e) => {
     if (!pointers.has(e.pointerId)) return;
     pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
     if (pointers.size === 2) {
+      // pinch
       const [p1, p2] = Array.from(pointers.values());
       const k = dist(p1,p2) / (pinchStartDist || 1);
-      setZoom(pinchStartZoom * k);
+      setZoomPreview(pinchStartZoom * k);
+      syncUI();
+    } else if (pointers.size === 1 && isPanning) {
+      // pan
+      pan.x = e.clientX - panStart.x;
+      pan.y = e.clientY - panStart.y;
+      applyTransformCSS();
+      scheduleHQCommit();
+      e.preventDefault();
     }
-  }, { passive: true });
+  }, { passive: false });
+
   ['pointerup','pointercancel','pointerleave'].forEach(t => {
     container.addEventListener(t, (e) => {
       pointers.delete(e.pointerId);
-      if (pointers.size < 2) {
-        pinchStartDist = 0;
-      }
+      if (pointers.size < 2) { pinchStartDist = 0; }
+      if (pointers.size === 0) { isPanning = false; }
     });
   });
 
@@ -328,6 +396,13 @@
     }
   })();
 
+  // Double click to reset pan
+  container.addEventListener('dblclick', (e) => {
+    e.preventDefault();
+    pan = { x: 0, y: 0 };
+    applyTransformCSS();
+  });
+
   // Refit on resize (re-render only when fit width changes)
   const onResize = (() => {
     let t;
@@ -341,8 +416,9 @@
         const nextFit = innerW / basePageWidth;
         if (Math.abs(nextFit - fitScale) < 0.02) return;
         fitScale = nextFit;
-        await renderAll(fitScale);
-        setZoom(parseFloat(zoomRange.value));
+        await renderAll(fitScale, /*hq*/ false);
+        // keep current preview transform
+        applyTransformCSS();
       }, 200);
     };
   })();
