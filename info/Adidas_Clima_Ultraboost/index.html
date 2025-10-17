@@ -25,17 +25,16 @@
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       overflow-x: hidden;
     }
-    header {
-      position: sticky; top:0; z-index:1000;
-      height: var(--header-h);
-      display:flex; align-items:center; gap:8px;
-      padding:0 12px; background:#111622;
-      border-bottom:1px solid rgba(255,255,255,0.1);
-    }
+    header { display:flex; align-items:center; gap:8px; }
+    header .spacer { flex: 1; }
+    .zoom-ctrl { display:flex; align-items:center; gap:10px; margin-left:auto; }
     header button {
       background:var(--panel); color:var(--text);
       border:none; padding:6px 12px; border-radius:8px; cursor:pointer;
     }
+
+
+    
     #pdf-container {
       width: 80vw;
       margin: 0 auto;
@@ -97,7 +96,7 @@
     .icon-btn:disabled { opacity: .5; pointer-events: none; }
 
     
-        /* ==== Zoom range: tall rounded-rect thumb ================================= */
+    /* ==== Zoom range: tall rounded-rect thumb ================================= */
     :root{
       --zr-track: rgba(255,255,255,.22);
       --zr-track-hover: rgba(255,255,255,.32);
@@ -105,62 +104,42 @@
       --zr-thumb-press: #ffffff;
     }
     
+    /* 슬라이더 기본 */
     #zoomRange {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 180px;
-      height: 28px;                  /* 트랙 높이(클릭/터치 영역) */
-      background: transparent;
-      cursor: pointer;
-      margin: 0 8px;
+      -webkit-appearance: none; appearance: none;
+      width: 200px; height: 28px; background: transparent; cursor: pointer;
     }
     
     /* 트랙 */
     #zoomRange::-webkit-slider-runnable-track {
-      height: 6px;
-      background: var(--zr-track);
-      border-radius: 999px;
+      height: 6px; background: rgba(255,255,255,.22); border-radius: 999px;
       transition: background .2s ease;
     }
-    #zoomRange:hover::-webkit-slider-runnable-track { background: var(--zr-track-hover); }
-    
+    #zoomRange:hover::-webkit-slider-runnable-track { background: rgba(255,255,255,.32); }
     #zoomRange::-moz-range-track {
-      height: 6px;
-      background: var(--zr-track);
-      border-radius: 999px;
+      height: 6px; background: rgba(255,255,255,.22); border-radius: 999px;
     }
-    #zoomRange:hover::-moz-range-track { background: var(--zr-track-hover); }
+    #zoomRange:hover::-moz-range-track { background: rgba(255,255,255,.32); }
     
-    /* 핸들: 세로로 긴 둥근 사각형(= 알약 모양) */
+    /* 핸들: 얇은 세로 둥근사각형 */
     #zoomRange::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 14px;                 /* 손잡이 너비 */
-      height: 24px;                /* 손잡이 높이 (세로로 길게) */
-      margin-top: -9px;            /* 트랙 중앙정렬 보정 (24/2 - 6/2) */
-      background: var(--zr-thumb);
-      border-radius: 10px;         /* 둥글게 */
-      box-shadow: 0 1px 2px rgba(0,0,0,.35);
-      transition: transform .08s ease, background .15s ease, box-shadow .15s ease;
-    }
-    #zoomRange:active::-webkit-slider-thumb {
-      transform: scale(0.96);
-      background: var(--zr-thumb-press);
-    }
-    
-    #zoomRange::-moz-range-thumb {
-      width: 14px;
+      -webkit-appearance: none; appearance: none;
+      width: 10px;           /* ← 가로 */
       height: 24px;
-      background: var(--zr-thumb);
-      border: none;
+      margin-top: -9px;      /* (24-6)/2 보정 */
+      background: #e9eef5;
       border-radius: 10px;
       box-shadow: 0 1px 2px rgba(0,0,0,.35);
       transition: transform .08s ease, background .15s ease, box-shadow .15s ease;
     }
-    #zoomRange:active::-moz-range-thumb {
-      transform: scale(0.96);
-      background: var(--zr-thumb-press);
+    #zoomRange:active::-webkit-slider-thumb { transform: scale(0.96); background:#fff; }
+    
+    #zoomRange::-moz-range-thumb {
+      width: 10px; height: 24px; background: #e9eef5; border: none; border-radius: 10px;
+      box-shadow: 0 1px 2px rgba(0,0,0,.35);
+      transition: transform .08s ease, background .15s ease, box-shadow .15s ease;
     }
+    #zoomRange:active::-moz-range-thumb { transform: scale(0.96); background:#fff; }
     
     /* 포커스 링(키보드 접근성) */
     #zoomRange:focus-visible {
@@ -238,22 +217,28 @@
 <header>
   <button onclick="history.back()">← Back</button>
   <span style="margin-left:8px; font-weight:600;">Video Information</span>
-  <input id="zoomRange" type="range" min="0.5" max="3" step="0.01" value="1"
-         style="width:180px; margin:0 8px;" aria-label="Zoom slider" />
-  
-  <button id="zoomOutBtn" aria-label="Zoom out" style="margin-left:auto;" class="icon-btn" title="Zoom out">
-    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-      <path fill="currentColor" d="M10 2a8 8 0 1 1 0 16 8 8 0 0 1 0-16Zm0 2a6 6 0 1 0 0 12 6 6 0 0 0 0-12Zm-3 5h6v2H7V9Zm9.586 6.172 4.121 4.121-1.414 1.415-4.122-4.122 1.415-1.414Z"/>
-    </svg>
-  </button>
-  
-  <button id="zoomInBtn" aria-label="Zoom in" class="icon-btn" title="Zoom in">
-    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-      <path fill="currentColor" d="M10 2a8 8 0 1 1 0 16 8 8 0 0 1 0-16Zm0 2a6 6 0 1 0 0 12 6 6 0 0 0 0-12Zm-1 5h2v2h2v2h-2v2h-2v-2H7v-2h2V9Zm7.586 8.172 4.121 4.121-1.414 1.415-4.122-4.122 1.415-1.414Z"/>
-    </svg>
-  </button>
 
-  <button id="fitBtn" aria-label="Fit to viewport with margin">⤢ Fit</button>
+  <div class="spacer"></div> <!-- 왼쪽/오른쪽 구분용 공간 -->
+
+  <div class="zoom-ctrl">
+    <span id="zoomLabel" class="zoom-label">100%</span>
+    <input id="zoomRange" type="range" min="0.5" max="3" step="0.01" value="1"
+           style="width:180px; margin:0 8px;" aria-label="Zoom slider" />
+  
+    <button id="zoomOutBtn" aria-label="Zoom out" class="icon-btn" title="Zoom out">
+      <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+        <path fill="currentColor" d="M10 2a8 8 0 1 1 0 16 8 8 0 0 1 0-16Zm0 2a6 6 0 1 0 0 12 6 6 0 0 0 0-12Zm-3 5h6v2H7V9Zm9.586 6.172 4.121 4.121-1.414 1.415-4.122-4.122 1.415-1.414Z"/>
+      </svg>
+    </button>
+    
+    <button id="zoomInBtn" aria-label="Zoom in" class="icon-btn" title="Zoom in">
+      <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+        <path fill="currentColor" d="M10 2a8 8 0 1 1 0 16 8 8 0 0 1 0-16Zm0 2a6 6 0 1 0 0 12 6 6 0 0 0 0-12Zm-1 5h2v2h2v2h-2v2h-2v-2H7v-2h2V9Zm7.586 8.172 4.121 4.121-1.414 1.415-4.122-4.122 1.415-1.414Z"/>
+      </svg>
+    </button>
+
+    <button id="fitBtn" aria-label="Fit to viewport with margin">⤢ Fit</button>
+  </div>
 </header>
 
 <main id="pdf-container">Loading PDF…</main>
