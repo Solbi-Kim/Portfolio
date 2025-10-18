@@ -326,18 +326,24 @@ function scheduleHQCommit() {
   });
   fitBtn?.addEventListener('click', ()=>{ fitToViewport(true); syncUI(); });
 
-  async function fitToViewport(forceHQ=false){
-  fitScale = computeFitScaleWithMargin();
-  zoom = 1; pan = {x:0,y:0}; applyTransformCSS();
-  await renderAll(fitScale, false);
-  if (!initialRendered) initialRendered = true;
-  viewport.scrollTo({ left: 0, top: 0, behavior: "auto" });
-}; applyTransformCSS();
-    if (!initialRendered) initialRendered=true;
-    await renderAll(fitScale,false);
-    // 중앙 정렬처럼 보이도록 스크롤 최상단으로
+  async function fitToViewport(forceHQ = false) {
+    fitScale = computeFitScaleWithMargin();
+  
+    // 내부 트랜스폼 상태 초기화
+    zoom = 1;
+    pan  = { x: 0, y: 0 };
+    applyTransformCSS();
+  
+    // 화면 맞춤 스케일로 1회 렌더 (초회만 페이드/슬라이드)
+    await renderAll(fitScale, false);
+  
+    // 스크롤 위치 초기화
     viewport.scrollTo({ left: 0, top: 0, behavior: 'auto' });
+  
+    // 초회 렌더 완료 표시 (이후 재렌더에는 등장 애니메이션 X)
+    if (!initialRendered) initialRendered = true;
   }
+
 
   // Init
   (async ()=>{
