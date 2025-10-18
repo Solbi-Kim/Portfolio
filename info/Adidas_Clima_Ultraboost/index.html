@@ -182,15 +182,18 @@ width: 100%;
 
   // First-render fade-in only
   const appearObserver = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      entry.target.classList.add("show");
-      appearObserver.unobserve(entry.target);
+    for (const entry of entries) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('show');
+        appearObserver.unobserve(entry.target);
+      }
     }
+  }, {
+    // 전용 스크롤 박스를 루트로 관찰
+    root: document.getElementById('pdf-viewport'),
+    rootMargin: '0px 0px -20% 0px',
+    threshold: 0.01
   });
-}, { root: document.getElementById("pdf-viewport"), rootMargin: "0px 0px -20% 0px", threshold: 0.01 });
-appearObserver.unobserve(entry.target); } });
-  },{threshold:0.1});
 
   async function renderPage(pageNum, scale=1, hq=false){
     const page=await pdfDoc.getPage(pageNum);
