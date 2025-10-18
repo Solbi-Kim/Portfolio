@@ -242,29 +242,24 @@ if (!initialRendered) { appearObserver.observe(canvas); } else { canvas.classLis
     applyTransformCSS();
     scheduleHQCommit();
   }
-
-  async function doHQCommit(){
+async function doHQCommit() {
   clearTimeout(hqTimer);
-  if (zoom < 1) return;
+  if (zoom < 1) return;                          // 줌아웃 상태에선 HQ 스킵
   const commitScale = fitScale * Math.max(1, zoom);
+
   const old = { x: viewport.scrollLeft, y: viewport.scrollTop };
-  stage.classList.add("no-anim");
-  await renderAll(commitScale, true);
+  stage.classList.add('no-anim');                // 재렌더 시 페이드/슬라이드 끔
+  await renderAll(commitScale, true);            // HQ 스케일로 다시 그림
   applyTransformCSS();
-  viewport.scrollTo(old.x, old.y);
-  stage.classList.remove("no-anim");
-};
-    stage.classList.add('no-anim');
-    await renderAll(commitScale,true);
-    applyTransformCSS();
-    viewport.scrollTo(old.x, old.y);
-    stage.classList.remove('no-anim');
-  }
-  function scheduleHQCommit(){
+  viewport.scrollTo(old.x, old.y);               // 스크롤 위치 복구
+}
+
+function scheduleHQCommit() {
   clearTimeout(hqTimer);
-  if (zoom < 1) return;
+  if (zoom < 1) return;                          // 줌아웃 상태에선 큐 안 잡음
   hqTimer = setTimeout(() => doHQCommit(), HQ_DEBOUNCE_MS);
 }
+
 
   // Drag = real scrollbars (both axes) on the dedicated viewport
   (function setupDragScroll(){
