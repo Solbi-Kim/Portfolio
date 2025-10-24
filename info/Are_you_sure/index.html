@@ -148,8 +148,15 @@
 
     /* 모바일: 컨트롤을 제목 아래로 이동(한 줄 더) */
     @media (max-width: 768px){
-      header { height: auto; align-items: flex-start; }
-      .title { width: 100%; margin-bottom: 6px; }
+      header { height: auto; align-items: flex-start; flex-wrap: wrap; }
+      .head-left{
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;          /* 한 줄 전체 차지 */
+        margin-bottom: 6px;
+      }
+      .title { width: auto; marginm: 0; white-space: nowrap;}
       .controls { width: 100%; margin-left: 0; flex-wrap: wrap; }
       .zoombar { flex: 1; min-width: 0; }
       #pdf-viewport{ height: calc(100vh - 84px); }
@@ -257,11 +264,12 @@
 </script>
 
 <header>
-  <button class="iconbtn" onclick="history.back()" title="Back" aria-label="Back" style="padding:0 10px; aspect-ratio:auto;">
-    ←
-  </button>
-  <span class="title">Video Information</span>
-
+  <div class="head-left">
+    <button class="iconbtn" onclick="history.back()" title="Back" aria-label="Back" style="padding:0 10px; aspect-ratio:auto;">
+      ←
+    </button>
+    <span class="title">Video Information</span>
+  </div>
   <!-- 컨트롤 묶음(데스크톱은 우측, 모바일은 아래 줄로) -->
   <div class="controls" id="controls">
     <!-- Zoom Out (SVG 흑백) -->
