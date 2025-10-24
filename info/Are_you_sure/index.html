@@ -526,17 +526,13 @@
   });
 
   // Ctrl+0 → Fit
-  window.addEventListener('keydown', (e) => {
+  window.addEventListener('keydown', async (e) => {
     if (e.key === '0' && (e.ctrlKey || e.metaKey)) {
       e.preventDefault();
       fitMode = true;
       updateContainerWidth();
       await setScale(computeScaleFit(), false);
-      // 또는
-      fitMode = true;
-      setScale(computeScaleFit(), false).then(()=>{
-        updateContainerWidth();
-        viewportEl.scrollTo({ top:0, left:0, behavior:'auto' });
+      viewportEl.scrollTo({ top: 0, left: 0, behavior: 'auto' });
     }
   });
 
