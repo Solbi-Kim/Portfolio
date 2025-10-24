@@ -364,28 +364,36 @@
   }
   
   function updateContainerWidth(){
+    // 현재 페이지 CSS 폭(첫 페이지 기준)
     const pageCssW = basePageWidth ? basePageWidth * scale : getInnerWidth(viewportEl);
+    const vw = getInnerWidth(viewportEl);
   
     if (fitMode){
-      // 화면맞춤: 80vw 유지 + 가운데
+      // 화면맞춤: 80vw 고정, 항상 중앙
       container.style.width = '80vw';
       container.style.margin = '0 auto';
-      container.style.alignItems = 'center';    // 캔버스 가운데 정렬
+      container.style.alignItems = 'center';
     } else {
-      // 확대 모드: 컨테이너를 페이지 폭으로 늘리고, 좌측 정렬(가장 중요)
-      const target = Math.max(pageCssW, getInnerWidth(viewportEl));
-      container.style.width = cssPx(target);
-      container.style.margin = '0';             // auto 제거 → 좌측 기준
-      container.style.alignItems = 'flex-start';// 캔버스 왼쪽 정렬
+      // 수동 확대/축소: 페이지 폭 기준으로 컨테이너 폭 설정
+      container.style.width = cssPx(pageCssW);
+  
+      // 컨텐츠가 뷰포트보다 좁으면 중앙, 크면 좌측 정렬 (← 왼쪽 잘림 방지 + 요구사항)
+      if (pageCssW <= vw){
+        container.style.margin = '0 auto';
+        container.style.alignItems = 'center';
+      } else {
+        container.style.margin = '0';
+        container.style.alignItems = 'flex-start';
+      }
     }
   }
+
   
   function computeScaleFit(){
     const w = getInnerWidth(container); // 80vw 내부폭
     if (!basePageWidth) return 1;
     return w / basePageWidth;
   }
-  function debounce(fn, ms = 150){ let t; return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn(...args), ms); }; }
 
   // 등장 애니메이션 옵저버
   const appearObserver = new IntersectionObserver((entries) => {
@@ -397,44 +405,77 @@
     });
   }, { threshold: 0.1 });
 
-  // 페이지 렌더링
-  async function renderPage(pageNum){
-    const page = await pdfDoc.getPage(pageNum);
-    const viewport = page.getViewport({ scale });
+  // 렌더 경쟁 방지용
+  let renderVersion = 0;
+  let activeTasks = [];
+  
+  // 진행 중 렌더 취소 (가능한 경우)
+  function cancelActiveTasks(){
+    for (const t of activeTasks){
+      try { t && t.cancel && t.cancel(); } catch(_) {}
+    }
+    activeTasks.length = 0;
+  }
+  
+  // 슬라이더 디바운스(너무 잦은 재렌더 방지)
+  function debounce(fn, ms = 120){
+    let t; return (...args) => { clearTimeout(t); t = setTimeout(()=>fn(...args), ms); };
+  }
 
+
+
+  // 페이지 렌더링
+  async function renderPage(pageNum, token){
+    if (token !== renderVersion) return;
+  
+    const page = await pdfDoc.getPage(pageNum);
+    if (token !== renderVersion) return;
+  
+    const viewport = page.getViewport({ scale });
+  
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-
-    // CSS 표시 크기
+  
     const cssW = viewport.width;
     const cssH = viewport.height;
-
-    // outScale은 요구 3에 맞춰 품질 타깃으로 계산 (초기 1080p, 100% 초과시 2K)
+  
     const outScale = computeOutScale(cssW, cssH);
-
     canvas.width  = Math.floor(cssW  * outScale);
     canvas.height = Math.floor(cssH  * outScale);
     canvas.style.width  = cssPx(cssW);
     canvas.style.height = cssPx(cssH);
-
+  
     const renderContext = {
       canvasContext: ctx,
       viewport,
       transform: outScale !== 1 ? [outScale, 0, 0, outScale, 0, 0] : null
     };
-
-    await page.render(renderContext).promise;
+  
+    const task = page.render(renderContext);
+    activeTasks.push(task);         // 추적
+    await task.promise.catch(()=>{}); // 취소 시 에러 무시
+  
+    if (token !== renderVersion) return; // 스테일 결과 폐기
     container.appendChild(canvas);
     appearObserver.observe(canvas);
   }
-
+  
   async function renderAll(){
+    // 새 렌더 라운드 시작
+    cancelActiveTasks();
+    const token = ++renderVersion;
+  
+    // 초기화
     container.innerHTML = '';
+  
+    // 페이지 순차 렌더 (토큰 확인)
     for (let n = 1; n <= pdfDoc.numPages; n++){
-      await renderPage(n);
+      if (token !== renderVersion) return;
+      await renderPage(n, token);
     }
     firstRendered = true;
   }
+
 
   // 스크롤 위치 비율 보존(줌 시)
   function rememberScrollRatio(){
@@ -469,7 +510,7 @@
     }
   })();
 
-  // 리사이즈 (fit 모드에서만 자동 재계산)
+  // onResize (fit 모드에서만 자동 재계산)
   const onResize = debounce(async () => {
     if (!pdfDoc || !basePageWidth || !fitMode) return;
     const nextFit = computeScaleFit();
@@ -496,11 +537,14 @@
     newScale = clamp(newScale, MIN_SCALE, MAX_SCALE);
     const ratio = keepScroll ? rememberScrollRatio() : null;
     scale = newScale;
-    updateContainerWidth();    // ★ 추가
-    await renderAll();
+  
+    updateContainerWidth();   // ★ 레이아웃 먼저 잡고
+    await renderAll();        // ★ 최신 렌더만 살아남음
+  
     if (ratio) restoreScrollRatio(ratio);
     updateZoomUI();
   }
+
 
   async function doZoom(delta){
     fitMode = false;
@@ -510,11 +554,16 @@
   zoomInBtn?.addEventListener('click',  () => doZoom(+ZOOM_STEP));
   zoomOutBtn?.addEventListener('click', () => doZoom(-ZOOM_STEP));
 
+  const setScaleDebounced = debounce((val)=>{
+    fitMode = false;
+    setScale(val, true); // 내부에서 await 처리하니 여기선 async 필요 없음
+  }, 120);
   // 슬라이더 → 스케일 연동
   zoomSlider?.addEventListener('input', async (e)=>{
-    fitMode = false;
     const val = parseFloat(e.target.value);
-    await setScale(val, true);
+    // 퍼센트 즉시 업데이트(UX), 렌더는 디바운스
+    zoomLabel.textContent = `${Math.round(val * 100)}%`;
+    setScaleDebounced(val);
   });
 
   // Fit to 80vw
