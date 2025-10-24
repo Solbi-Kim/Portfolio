@@ -22,15 +22,17 @@
       --thumb: #0a0a0b; /* black */
       --ctrl-h: 26px;   /* 버튼/슬라이더 공통 높이 */
     }
+    
     html, body {
       height: 100%;
       margin: 0;
       background: var(--bg);
       color: var(--text);
       font-family: sans-serif;
-      /* X 스크롤 막지 말 것: 확대 시 좌우 스크롤 가능해야 함 */
-      /* overflow-x: hidden;  <- 제거 */
+      /* 요청: 페이지 기본 스크롤 비활성화 (PDF 영역만 스크롤) */
+      overflow: hidden;
     }
+    
     header {
       position: sticky; top:0; z-index:1000;
       height: var(--header-h);
@@ -38,11 +40,8 @@
       padding:8px 12px; background:#111622;
       border-bottom:1px solid rgba(255,255,255,0.1);
     }
-    .title {
-      font-weight: 600;
-      white-space: nowrap;
-    }
-
+    .title { font-weight: 600; white-space: nowrap; }
+    
     /* 컨트롤 묶음 */
     .controls {
       margin-left:auto;
@@ -60,15 +59,14 @@
     /* 슬라이더 + 라벨 한 셋 */
     .zoombar {
       display:flex; align-items:center; gap:10px;
-      background: var(--panel);
-      border-radius: 8px;
-      padding: 0 10px;
+      background: transparent;
+      padding: 0;
       height: var(--ctrl-h);
       min-width: 220px;
     }
     .zoombar input[type="range"]{
       -webkit-appearance: none; appearance: none;
-      width: 160px; height: var(--ctrl-h); /* 트랙과 슬라이더 동일 높이 */
+      width: 180px; height: var(--ctrl-h); /* 트랙과 슬라이더 동일 높이 */
       background: transparent;
     }
     /* 트랙: 회색, 높이 = 컨테이너 높이와 동일 */
@@ -77,8 +75,9 @@
       border-radius: 8px;
     }
     .zoombar input[type="range"]::-moz-range-track{
-      height: 100%; background: var(--track);
-      border-radius: 8px;
+      height: 100%;
+      background: var(--track);
+      border-radius: 9999px;
     }
     /* 슬라이더(thumb): 검은색 원형 + bevel */
     .zoombar input[type="range"]::-webkit-slider-thumb{
@@ -101,10 +100,16 @@
         inset -3px -3px 6px rgba(0,0,0,0.55);
       border: 1px solid rgba(255,255,255,0.08);
     }
-    .zoom-label{
-      min-width: 56px; text-align:right; color: var(--muted);
+    .zoom-badge{
+      display:inline-flex; align-items:center; justify-content:center;
+      height: var(--ctrl-h);
+      padding: 0 10px;
+      background: var(--panel);
+      border-radius: 9999px;
+      color: var(--muted);
       font-variant-numeric: tabular-nums;
       font-size: 13px;
+      min-width: 64px; /* 100% 고정폭 느낌 */
     }
 
     /* 뷰포트: 좌우/상하 스크롤을 여기서 처리 */
@@ -123,7 +128,7 @@
       box-sizing: border-box;
       display: flex;
       flex-direction: column;
-      align-items: center; /* 가로 중앙 */
+      align-items: center;
       min-height: 100%;
     }
 
@@ -138,18 +143,15 @@
       transform: translateY(40px);
       transition: opacity .6s ease, transform .6s ease;
     }
-    canvas.show {
-      opacity: 1;
-      transform: translateY(0);
-    }
+    canvas.show { opacity: 1; transform: translateY(0); }
 
     /* 모바일: 컨트롤을 제목 아래로 이동(한 줄 더) */
     @media (max-width: 768px){
       header { height: auto; align-items: flex-start; }
       .title { width: 100%; margin-bottom: 6px; }
-      .controls { width: 100%; margin-left: 0; }
+      .controls { width: 100%; margin-left: 0; flex-wrap: wrap; }
       .zoombar { flex: 1; min-width: 0; }
-      #pdf-viewport{ height: calc(100vh - 84px); } /* 헤더 높이 증가 보정 */
+      #pdf-viewport{ height: calc(100vh - 84px); }
     }
   </style>
 </head>
@@ -272,8 +274,9 @@
     <!-- Zoom Slider + Label -->
     <div class="zoombar">
       <input id="zoomSlider" type="range" min="0.25" max="3.0" step="0.01" value="1.00" aria-label="Zoom slider" />
-      <span class="zoom-label" id="zoomLabel">100%</span>
     </div>
+
+    <span class="zoom-badge" id="zoomLabel">100%</span>
 
     <!-- Fit -->
     <button id="fitBtn" class="iconbtn" aria-label="Fit to 80vw" title="Fit to 80vw" style="padding:0 10px; aspect-ratio:auto;">
@@ -358,6 +361,22 @@
     const pad = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
     return el.clientWidth - pad;
   }
+  
+  function updateContainerWidth(){
+    // 현재 페이지 CSS 폭(첫 페이지 기준) = basePageWidth * scale
+    const pageCssW = basePageWidth ? basePageWidth * scale : getInnerWidth(viewportEl);
+    // fit 모드에서는 80vw 유지, 수동 확대 모드에서는 페이지 폭으로 확장
+    if (fitMode){
+      container.style.width = '80vw';
+      container.style.margin = '0 auto';
+    } else {
+      // 최소한 뷰포트 폭보다는 넓게 (작은 확대에서 깜빡임 방지)
+      const target = Math.max(pageCssW, getInnerWidth(viewportEl));
+      container.style.width = cssPx(target);
+      container.style.margin = '0 auto'; // 가운데 시작, 좌우 스크롤 가능
+    }
+  }
+  
   function computeScaleFit(){
     const w = getInnerWidth(container); // 80vw 내부폭
     if (!basePageWidth) return 1;
@@ -438,6 +457,7 @@
       // 80vw 기준 화면맞춤 스케일
       scale = computeScaleFit();
       // 초기 렌더는 1080p 타깃으로 출력 (computeOutScale 내 로직이 처리)
+      updateContainerWidth();
       await renderAll();
       updateZoomUI();
     } catch (e) {
@@ -452,6 +472,7 @@
     const nextFit = computeScaleFit();
     if (Math.abs(nextFit - scale) < 0.02) return;
     scale = nextFit;
+    updateContainerWidth();
     await renderAll();
     updateZoomUI();
   }, 200);
@@ -472,6 +493,7 @@
     newScale = clamp(newScale, MIN_SCALE, MAX_SCALE);
     const ratio = keepScroll ? rememberScrollRatio() : null;
     scale = newScale;
+    updateContainerWidth();    // ★ 추가
     await renderAll();
     if (ratio) restoreScrollRatio(ratio);
     updateZoomUI();
@@ -495,8 +517,13 @@
   // Fit to 80vw
   fitBtn?.addEventListener('click', async () => {
     fitMode = true;
+    updateContainerWidth();
     await setScale(computeScaleFit(), false);
-    viewportEl.scrollTo({ top: 0, left: 0, behavior:'auto' });
+    // 또는
+    fitMode = true;
+    setScale(computeScaleFit(), false).then(()=>{
+      updateContainerWidth();
+      viewportEl.scrollTo({ top:0, left:0, behavior:'auto' });
   });
 
   // Ctrl+0 → Fit
