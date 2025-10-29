@@ -2296,3 +2296,5 @@ body.donut-active #main:after { pointer-events: auto; opacity: 1; visibility: vi
 .poptrox-popup .caption2 a .hint-bubble::after{
   content: none !important;
 }
+
+/* Legacy note: scroll-behavior is forced to auto above to avoid native conflicts; JS handles smooth/snap on old Chrome. */
