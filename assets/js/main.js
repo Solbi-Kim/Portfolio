@@ -1,4 +1,155 @@
 
+/* ==========================================================================
+   LEGACY COMPATIBILITY BLOCK (Chrome 49+ safe, no errors on newer)
+   - Passive event option detection + helper
+   - requestAnimationFrame / performance.now fallback
+   - CSS.supports() stub (returns false when missing)
+   - IntersectionObserver tiny polyfill (viewport-based)
+   - Smooth scroll ponyfill for window.scrollTo({behavior:'smooth'})
+   ========================================================================== */
+(function(){
+  // --- performance.now fallback ---
+  if (!('performance' in window)) window.performance = {};
+  if (!('now' in performance)) {
+    var __t0 = Date.now();
+    performance.now = function(){ return Date.now() - __t0; };
+  }
+
+  // --- rAF/cAF fallback ---
+  (function() {
+    var vendors = ['ms', 'moz', 'webkit', 'o'];
+    for (var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
+      window.requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame'];
+      window.cancelAnimationFrame  = window[vendors[x]+'CancelAnimationFrame']
+                                  || window[vendors[x]+'CancelRequestAnimationFrame'];
+    }
+    if (!window.requestAnimationFrame) {
+      window.requestAnimationFrame = function(cb){ return setTimeout(function(){ cb(performance.now()); }, 16); };
+      window.cancelAnimationFrame  = function(id){ clearTimeout(id); };
+    }
+  })();
+
+  // --- CSS.supports stub (older Chrome) ---
+  if (!('CSS' in window)) window.CSS = {};
+  if (typeof window.CSS.supports !== 'function') {
+    window.CSS.supports = function(){ return false; };
+  }
+
+  // --- addEventListener options detection + helper ---
+  (function(){
+    var _supportsOptions = false;
+    try {
+      var opts = Object.defineProperty({}, 'passive', { get: function(){ _supportsOptions = true; } });
+      window.addEventListener('test-passive', function(){}, opts);
+      window.removeEventListener('test-passive', function(){}, opts);
+    } catch(_) {}
+    window.__supportsEvtOptions = _supportsOptions;
+    window.onAddEvt = function(target, type, handler, options){
+      // Normalize to capture boolean if options unsupported
+      if (!_supportsOptions && options && typeof options === 'object') {
+        target.addEventListener(type, handler, !!options.capture);
+      } else {
+        target.addEventListener(type, handler, options || false);
+      }
+    };
+  })();
+
+  // --- Very small IntersectionObserver polyfill (viewport only) ---
+  (function(){
+    if ('IntersectionObserver' in window) return; // native exists
+    function IO(callback, options){
+      this._cb = callback;
+      this._opts = options || {};
+      this._th = Array.isArray(this._opts.threshold) ? this._opts.threshold : [this._opts.threshold || 0];
+      this._root = this._opts.root || null;
+      this._rootMargin = this._opts.rootMargin || '0px';
+      this._items = [];
+      var self = this;
+      this._boundCheck = function(){ self._check(); };
+      onAddEvt(window, 'scroll', this._boundCheck, { passive: true });
+      onAddEvt(window, 'resize', this._boundCheck, { passive: true });
+      setTimeout(this._boundCheck, 0);
+    }
+    IO.prototype.observe = function(el){
+      if (!el) return;
+      if (this._items.indexOf(el) === -1) this._items.push(el);
+      this._check();
+    };
+    IO.prototype.unobserve = function(el){
+      var i = this._items.indexOf(el);
+      if (i >= 0) this._items.splice(i, 1);
+    };
+    IO.prototype.disconnect = function(){
+      this._items = [];
+      window.removeEventListener('scroll', this._boundCheck, true);
+      window.removeEventListener('resize', this._boundCheck, true);
+    };
+    IO.prototype._check = function(){
+      var entries = [];
+      var vh = window.innerHeight || document.documentElement.clientHeight;
+      var vw = window.innerWidth  || document.documentElement.clientWidth;
+      for (var i=0;i<this._items.length;i++){
+        var el = this._items[i];
+        var r = el.getBoundingClientRect();
+        var visibleH = Math.max(0, Math.min(r.bottom, vh) - Math.max(r.top, 0));
+        var visibleW = Math.max(0, Math.min(r.right, vw) - Math.max(r.left, 0));
+        var area = (r.width||visibleW) * (r.height||visibleH);
+        var visArea = visibleW * visibleH;
+        var ratio = area > 0 ? visArea / area : 0;
+        // Decide intersecting if ratio >= min threshold
+        var minTh = 0;
+        for (var t=0;t<this._th.length;t++){ if (this._th[t] != null) { minTh = Math.max(minTh, this._th[t]); } }
+        var isI = ratio >= minTh && (r.bottom > 0 && r.right > 0 && r.top < vh && r.left < vw);
+        entries.push({ target: el, isIntersecting: !!isI, intersectionRatio: ratio });
+      }
+      if (entries.length) this._cb(entries, this);
+    };
+    window.IntersectionObserver = IO;
+  })();
+
+  // --- window.scrollTo({behavior:'smooth'}) ponyfill ---
+  (function(){
+    var supportsSmooth;
+    try {
+      var tmp = { top: 0, behavior: 'smooth' };
+      window.scrollTo(tmp);
+      supportsSmooth = true;
+    } catch(_) { supportsSmooth = false; }
+
+    if (supportsSmooth) return;
+    var _animating = false;
+    window._smoothScrollTo = function(x, y, dur){
+      var startX = window.scrollX || window.pageXOffset || 0;
+      var startY = window.scrollY || window.pageYOffset || 0;
+      var dx = (x||0) - startX;
+      var dy = (y||0) - startY;
+      var start = performance.now();
+      var D = Math.max(200, dur || 500);
+      function ease(t){ return t<0.5 ? 2*t*t : -1 + (4 - 2*t)*t; }
+      function raf(now){
+        var p = Math.min(1, (now - start)/D);
+        var e = ease(p);
+        window.scrollTo(startX + dx*e, startY + dy*e);
+        if (p < 1 && _animating) requestAnimationFrame(raf);
+      }
+      _animating = true;
+      requestAnimationFrame(raf);
+      setTimeout(function(){ _animating = false; }, D+20);
+    };
+    var _orig = window.scrollTo;
+    window.scrollTo = function(a, b){
+      // patterns: scrollTo(x, y) OR scrollTo({top,left,behavior})
+      if (typeof a === 'object' && a) {
+        if (a.behavior === 'smooth') return _smoothScrollTo(a.left||window.scrollX||0, a.top||0, 600);
+        return _orig.call(window, a.left||0, a.top||0);
+      } else {
+        return _orig.call(window, a||0, b||0);
+      }
+    };
+  })();
+})();
+
+
 /*
 	Multiverse by HTML5 UP (customized)
 	- Removed rocket-related code and duplicate typing function
